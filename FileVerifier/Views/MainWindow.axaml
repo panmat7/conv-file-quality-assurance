@@ -1,0 +1,93 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AvaloniaDraft.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="AvaloniaDraft.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="FileVerifier">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    
+    
+    <TabControl>
+        <TabItem Header="Home">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="4*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <!-- Input -->
+                <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5">Input Folder</TextBlock>
+                <Button Grid.Column="1" Grid.Row="0" Margin="5"
+                        Name="InputButton" Click="InputButton_OnClick"
+                        PointerEntered="InputButton_OnPointerEntered"
+                        PointerExited="InputButton_OnPointerExited">
+                    Select
+                </Button>
+                
+                <!-- Output -->
+                <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="5">Output Folder</TextBlock>
+                <Button Grid.Column="1" Grid.Row="1" Margin="5"
+                        Name="OutputButton" Click="InputButton_OnClick"
+                        PointerEntered="InputButton_OnPointerEntered"
+                        PointerExited="InputButton_OnPointerExited">
+                    Select
+                </Button>
+                
+                <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5">Quick Setting 1 </TextBlock>
+                <CheckBox Grid.Column="1" Grid.Row="3" Margin="5"></CheckBox>
+                
+                <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" Margin="5">Quick Setting 2 </TextBlock>
+                <CheckBox Grid.Column="1" Grid.Row="4" Margin="5"></CheckBox>
+                
+                <TextBlock Grid.Column="0" Grid.Row="5" VerticalAlignment="Center" Margin="5">Quick Setting 3 </TextBlock>
+                <CheckBox Grid.Column="1" Grid.Row="5" Margin="5"></CheckBox>
+                
+                <TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center" Margin="5">Quick Setting 4 </TextBlock>
+                <CheckBox Grid.Column="1" Grid.Row="6" Margin="5"></CheckBox>
+                
+                <TextBlock Grid.Column="0" Grid.Row="7" VerticalAlignment="Center" Margin="5">Quick Setting 5 </TextBlock>
+                <CheckBox Grid.Column="1" Grid.Row="7" Margin="5"></CheckBox>
+                
+                <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="5" Margin="7" 
+                         IsReadOnly="True" VerticalContentAlignment="Bottom"
+                         FontFamily="Consolas" Name="Console">
+                    
+                </TextBox>
+                
+                <Button Grid.Column="3" Grid.Row="8" HorizontalAlignment="Right" 
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        Margin="5"
+                        Click="Start_OnClick">Start
+                </Button>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Settings">
+            *Settings go here*
+        </TabItem>
+    </TabControl>
+
+</Window>
