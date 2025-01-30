@@ -32,42 +32,55 @@ public class FilePair
 
 public class FileManager
 {
-    //Key - Original file 
     private List<FilePair> filePairs;
     private List<string> pairlessFiles;
 
-    FileManager(string input, string output)
+    public FileManager(string originalDirectory, string newDirectory)
     {
         filePairs = new List<FilePair>();
         pairlessFiles = new List<string>();
         
-        var inputFiles = Directory.GetFiles(input);
-        var outputFiles = Directory.GetFiles(output);
+        var originalFiles = Directory.GetFiles(originalDirectory).ToList();
+        var newFiles = Directory.GetFiles(newDirectory).ToList();
         
         //If any file name appears more than once - inform
-        if (inputFiles.Select(Path.GetFileName).Distinct().Count() != inputFiles.Length)
-            throw new Exception("FILENAME DUPLICATES IN INPUT");
+        if (originalFiles.Select(Path.GetFileName).Distinct().Count() != originalFiles.Count)
+            throw new Exception("FILENAME DUPLICATES IN ORIGINAL DIRECTORY");
         
-        if (outputFiles.Select(Path.GetFileName).Distinct().Count() != outputFiles.Length)
-            throw new Exception("FILENAME DUPLICATES IN OUTPUT");
+        if (newFiles.Select(Path.GetFileName).Distinct().Count() != newFiles.Count)
+            throw new Exception("FILENAME DUPLICATES IN NEW DIRECTORY");
         
-        foreach (var iFile in inputFiles)
+        foreach (var iFile in originalFiles)
         {
             try
             {
                 //Creating the file-to-file dictionary, getting first result of outputfiles containing file name 
-                var oFile = outputFiles.First(f => f.Contains(Path.GetFileName(iFile)));
-                filePairs.Add(new FilePair(iFile, Path.GetExtension(iFile), oFile, Path.GetFileName(oFile)));
+                var oFile = newFiles.First(f => f.Contains(Path.GetFileNameWithoutExtension(iFile)));
+                filePairs.Add(new FilePair(iFile, "", oFile, ""));
             }
             catch
             {
                 pairlessFiles.Add(iFile);
             }
         }
+        
+        //Adding all files that do not have a pair from newfiles to pairless
+        pairlessFiles.AddRange(newFiles.FindAll(f => !filePairs.Select(fp => fp.NewFilePath).Contains(f)));
+        
+        Siegfried.GetFileFormats(originalDirectory, newDirectory, ref filePairs);
     }
 
-    void VerifyFormatSiegfried()
+    public void WritePairs()
     {
-        //TODO: Use Siegfried to verify signature
+        Console.WriteLine("PAIRS:");
+        foreach (var pair in filePairs)
+        {
+            Console.WriteLine($"{pair.OriginalFilePath} ({pair.OriginalFileFormat}) - {pair.NewFilePath} ({pair.NewFileFormat})");
+        }
+        Console.WriteLine("PAIRLESS");
+        foreach (var file in pairlessFiles)
+        {
+            Console.WriteLine($"{file}");
+        }
     }
 }
