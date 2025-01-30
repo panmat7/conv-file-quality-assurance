@@ -5,14 +5,40 @@ using System.Linq;
 
 namespace AvaloniaDraft.FileManager;
 
+public class FilePair
+{
+    public string OriginalFilePath { get; set; }
+    public string OriginalFileFormat { get; set; }
+    public string NewFilePath { get; set; }
+    public string NewFileFormat { get; set; }
+
+    public FilePair(string oFilePath, string nFilePath)
+    {
+        OriginalFilePath = oFilePath;
+        OriginalFileFormat = Path.GetExtension(oFilePath);
+        NewFilePath = nFilePath;
+        NewFileFormat = Path.GetExtension(nFilePath);
+        
+    }
+
+    public FilePair(string oFilePath, string oFileFormat, string nFilePath, string newFileFormat)
+    {
+        OriginalFilePath = oFilePath;
+        OriginalFileFormat = oFileFormat;
+        NewFilePath = nFilePath;
+        NewFileFormat = newFileFormat;
+    }
+}
+
 public class FileManager
 {
-    private Dictionary<Tuple<string, string>, Tuple<string, string>> filePairs;
+    //Key - Original file 
+    private List<FilePair> filePairs;
     private List<string> pairlessFiles;
 
     FileManager(string input, string output)
     {
-        filePairs = new Dictionary<Tuple<string, string>, Tuple<string, string>>();
+        filePairs = new List<FilePair>();
         pairlessFiles = new List<string>();
         
         var inputFiles = Directory.GetFiles(input);
@@ -31,7 +57,7 @@ public class FileManager
             {
                 //Creating the file-to-file dictionary, getting first result of outputfiles containing file name 
                 var oFile = outputFiles.First(f => f.Contains(Path.GetFileName(iFile)));
-                filePairs.Add(new Tuple<string, string>(iFile, Path.GetExtension(iFile)), new Tuple<string, string>(oFile, Path.GetFileName(oFile)));
+                filePairs.Add(new FilePair(iFile, Path.GetExtension(iFile), oFile, Path.GetFileName(oFile)));
             }
             catch
             {

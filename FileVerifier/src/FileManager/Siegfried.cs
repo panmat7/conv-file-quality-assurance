@@ -2,5 +2,10 @@
 
 public class Siegfried
 {
-    
+
+
+    Siegfried()
+    {
+        
+    }
 }
