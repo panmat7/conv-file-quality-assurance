@@ -42,57 +42,60 @@ public static class Siegfried
     {
         if (OperatingSystem.IsWindows())
         {
+            //Using powershell to run siegfried (REQUIRES LOCAL INSTALLATION AND PRESENCE IN PATH)
+            var psi = new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-ExecutionPolicy Bypass -Command \"sf -json {originalDir}; sf -json {newDir}\"",
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                RedirectStandardError = true,
+            };
+    
+            using var process = new Process();
+            process.StartInfo = psi;
+            process.Start();
             
-        }
+            //Currently error-prone - if one of the files is empty the entire json sequence if broken.
+            var output = process.StandardOutput.ReadToEnd();
+            var error = process.StandardError.ReadToEnd();
+            
+            if (!string.IsNullOrEmpty(error)) throw new Exception(error);
+            
+            //Output currently contains two json object separated by a new line, needs to be split 
+            var outputSep = output.Split("\n");
+            
+            //Should always result in array of length 3 - two JSON object and an empty string
+            if (outputSep.Length != 3) throw new Exception("Invalid Siegfried output");
+            
+            var originalOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[0]);
+            var newOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[1]);
+            
+            if(originalOutput == null || newOutput == null) throw new Exception("Invalid Siegfried output");
+            
+            //Removing files with no matches TODO: Log them
+            originalOutput.Files = originalOutput.Files.Where(f => f.Matches.Count > 0).ToList();
+            newOutput.Files = newOutput.Files.Where(f => f.Matches.Count > 0).ToList();
+            
+            //Assign files their format
+            foreach (var file in files)
+            {
+                file.OriginalFileFormat = originalOutput.Files.First(
+                        f => f.Name == file.OriginalFilePath)
+                    .Matches[0].id;
+                
+                file.NewFileFormat = newOutput.Files.First(
+                    f => f.Name == file.NewFilePath)
+                    .Matches[0].id;
+            }
         
-        //Using powershell to run siegfried (REQUIRES LOCAL INSTALLATION AND PRESENCE IN PATH)
-        var psi = new ProcessStartInfo
-        {
-            FileName = "powershell.exe",
-            Arguments = $"-ExecutionPolicy Bypass -Command \"sf -json {originalDir}; sf -json {newDir}\"",
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            RedirectStandardError = true,
-        };
+            process.WaitForExit();
+        }
 
-        using var process = new Process();
-        process.StartInfo = psi;
-        process.Start();
-        
-        //Currently error-prone - if one of the files is empty the entire json sequence if broken.
-        var output = process.StandardOutput.ReadToEnd();
-        var error = process.StandardError.ReadToEnd();
-        
-        if (!string.IsNullOrEmpty(error)) throw new Exception(error);
-        
-        //Output currently contains two json object separated by a new line, needs to be split 
-        var outputSep = output.Split("\n");
-        
-        //Should always result in array of length 3 - two JSON object and an empty string
-        if (outputSep.Length != 3) throw new Exception("Invalid Siegfried output");
-        
-        var originalOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[0]);
-        var newOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[1]);
-        
-        if(originalOutput == null || newOutput == null) throw new Exception("Invalid Siegfried output");
-        
-        //Removing files with no matches TODO: Log them
-        originalOutput.Files = originalOutput.Files.Where(f => f.Matches.Count > 0).ToList();
-        newOutput.Files = newOutput.Files.Where(f => f.Matches.Count > 0).ToList();
-        
-        //Assign files their format
-        foreach (var file in files)
+        if (OperatingSystem.IsLinux())
         {
-            file.OriginalFileFormat = originalOutput.Files.First(
-                    f => f.Name == file.OriginalFilePath)
-                .Matches[0].id;
-            
-            file.NewFileFormat = newOutput.Files.First(
-                f => f.Name == file.NewFilePath)
-                .Matches[0].id;
+            //TODO
         }
-        
-        process.WaitForExit();
     }
 }
