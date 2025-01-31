@@ -39,6 +39,11 @@ public static class AnimationComparison
         }
     }
 
+    /// <summary>
+    /// Checks if the file format is of one of the PowerPoint formats
+    /// </summary>
+    /// <param name="fileFormat"> The id of the file format being checked  </param>
+    /// <returns> Returns whether if it is of PowerPoint format </returns>
     private static bool IsPowerPointFile(string fileFormat)
     {
         return fileFormat is "fmt/215" or "fmt/126" or "fmt/125" or "fmt/124" or "x-fmt/88" 
