@@ -18,6 +18,8 @@ public static class AnimationComparison
         // Check if the file format is of PowerPoint format
         if (files.OriginalFileFormat != "fmt/126" && files.OriginalFileFormat != "fmt/215") return true;
         
+        // TODO: Check if the new file is also of some type of PowerPoint format. Animations would be the same in both files.
+        
         // Check for animations in the PowerPoint file
         try
         {
