@@ -77,10 +77,10 @@ public class FileManager
         var newFiles = _fileSystem.Directory.GetFiles(nDirectory).ToList();
         
         //If any file name appears more than once - inform
-        if (originalFiles.Select(_fileSystem.Path.GetFileName).Distinct().Count() != originalFiles.Count)
+        if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != originalFiles.Count)
             throw new Exception("FILENAME DUPLICATES IN ORIGINAL DIRECTORY");
         
-        if (newFiles.Select(_fileSystem.Path.GetFileName).Distinct().Count() != newFiles.Count)
+        if (newFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != newFiles.Count)
             throw new Exception("FILENAME DUPLICATES IN NEW DIRECTORY");
         
         foreach (var iFile in originalFiles)

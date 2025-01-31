@@ -12,6 +12,7 @@ namespace AvaloniaDraft.FileManager;
 /// </summary>
 public static class Siegfried
 {
+    //Three classes used to parse siegfried output
     private class SiegfriedOutputJson(string version, List<SiegfriedFile> files)
     {
         [JsonPropertyName("siegfried")] public string Version { get; set; } = version;
@@ -39,6 +40,11 @@ public static class Siegfried
     /// <param name="files">The list of file pairs from both directories</param>
     public static void GetFileFormats(string originalDir, string newDir, ref List<FilePair> files)
     {
+        if (OperatingSystem.IsWindows())
+        {
+            
+        }
+        
         //Using powershell to run siegfried (REQUIRES LOCAL INSTALLATION AND PRESENCE IN PATH)
         var psi = new ProcessStartInfo
         {

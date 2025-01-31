@@ -16,6 +16,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Aspose.Slides.NET" Version="25.1.0" />
+        <PackageReference Include="Aspose.Words" Version="25.1.0" />
         <PackageReference Include="Avalonia" Version="11.2.1"/>
         <PackageReference Include="Avalonia.Desktop" Version="11.2.1"/>
         <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.1"/>
@@ -26,6 +28,7 @@
             <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
         </PackageReference>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1"/>
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
         <PackageReference Include="TestableIO.System.IO.Abstractions" Version="21.3.1" />
         <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="21.3.1" />
     </ItemGroup>
