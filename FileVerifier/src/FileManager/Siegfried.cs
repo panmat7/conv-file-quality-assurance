@@ -7,47 +7,36 @@ using System.Text.Json.Serialization;
 
 namespace AvaloniaDraft.FileManager;
 
+/// <summary>
+/// The <c>Siegfried</c> class is responsible for handing communication with Siegfried
+/// </summary>
 public static class Siegfried
 {
-    private class SiegfriedOutputJson
+    private class SiegfriedOutputJson(string version, List<SiegfriedFile> files)
     {
-        public SiegfriedOutputJson(string version, List<SiegfriedFile> files)
-        {
-            Version = version;
-            Files = files;
-        }
-
-        [JsonPropertyName("siegfried")] public string Version { get; set; }
-        [JsonPropertyName("files")] public List<SiegfriedFile> Files { get; set; }
-        
+        [JsonPropertyName("siegfried")] public string Version { get; set; } = version;
+        [JsonPropertyName("files")] public List<SiegfriedFile> Files { get; set; } = files;
     }
 
-    private class SiegfriedFile
+    private class SiegfriedFile(string name, string errors, List<SiegfriedMatches> matches)
     {
-        public SiegfriedFile(string name, string errors, List<SiegfriedMatches> matches)
-        {
-            Name = name;
-            Errors = errors;
-            Matches = matches;
-        }
-
-        [JsonPropertyName("filename")] public string Name { get; set; }
-        [JsonPropertyName("errors")] public string Errors { get; set; }
-        [JsonPropertyName("matches")] public List<SiegfriedMatches> Matches { get; set; }
+        [JsonPropertyName("filename")] public string Name { get; set; } = name;
+        [JsonPropertyName("errors")] public string Errors { get; set; } = errors;
+        [JsonPropertyName("matches")] public List<SiegfriedMatches> Matches { get; set; } = matches;
     }
 
-    private class SiegfriedMatches
+    private class SiegfriedMatches(string ns, string id)
     {
-        public SiegfriedMatches(string ns, string id)
-        {
-            this.ns = ns;
-            this.id = id;
-        }
-
-        [JsonPropertyName("ns")] public string ns { get; set; }
-        [JsonPropertyName("id")] public string id { get; set; }
+        [JsonPropertyName("ns")] public string ns { get; set; } = ns;
+        [JsonPropertyName("id")] public string id { get; set; } = id;
     }
     
+    /// <summary>
+    /// Method <c>GetFileFormats</c> is to called run siegfried on two directories and assign PRONOM formats to files
+    /// </summary>
+    /// <param name="originalDir">The directory containing the original files</param>
+    /// <param name="newDir">The directory contacting the newly converted files</param>
+    /// <param name="files">The list of file pairs from both directories</param>
     public static void GetFileFormats(string originalDir, string newDir, ref List<FilePair> files)
     {
         //Using powershell to run siegfried (REQUIRES LOCAL INSTALLATION AND PRESENCE IN PATH)

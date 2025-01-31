@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace AvaloniaDraft.FileManager;
 
+/// <summary>
+/// Class <c>FilePair</c> is used to store the path and format of the two compared files
+/// </summary>
 public class FilePair
 {
     public string OriginalFilePath { get; set; }
@@ -30,7 +33,7 @@ public class FilePair
         NewFileFormat = newFileFormat;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj is FilePair fp)
         {
@@ -47,6 +50,9 @@ public class FilePair
     }
 }
 
+/// <summary>
+/// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process
+/// </summary>
 public class FileManager
 {
     private readonly string oDirectory;
@@ -95,11 +101,17 @@ public class FileManager
         pairlessFiles.AddRange(newFiles.FindAll(f => !filePairs.Select(fp => fp.NewFilePath).Contains(f)));
     }
     
+    /// <summary>
+    /// Calls Siegfried to identify format of files in both directories
+    /// </summary>
     public void GetSiegfriedFormats()
     {
         Siegfried.GetFileFormats(oDirectory, nDirectory, ref filePairs);
     }
     
+    /// <summary>
+    /// Writes all files pairs and pairless files to standard output
+    /// </summary>
     public void WritePairs()
     {
         Console.WriteLine("PAIRS:");
