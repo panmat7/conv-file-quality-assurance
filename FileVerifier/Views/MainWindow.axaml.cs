@@ -95,6 +95,7 @@ public partial class MainWindow : Window
         foreach (var file in files) { AppendMessageToConsole(file); }
         
         var f = new FileManager.FileManager(InputPath, OutputPath);
+        f.GetSiegfriedFormats();
         f.WritePairs();
     }
 
