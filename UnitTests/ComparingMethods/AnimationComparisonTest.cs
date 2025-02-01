@@ -48,6 +48,24 @@ public class FileAnimationComparisonTests : TestBase
     }
     
     [Fact]
+    public void TestInvalidOriginalFilePath()
+    {
+        var nFilePath = Path.Combine(TestFileDirectory, "presentation_with_animations.pdf");
+        var files = new FilePair("invalid_path.pptx", "fmt/215", nFilePath, "fmt/19");
+        var result = AnimationComparison.FileAnimationComparison(files);
+        Assert.False(result); // Invalid file path should fail
+    }
+
+    [Fact]
+    public void TestInvalidNewFilePath()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "presentation_with_animations.ppt");
+        var files = new FilePair(oFilePath, "fmt/126", "invalid_path.pdf", "fmt/19");
+        var result = AnimationComparison.FileAnimationComparison(files);
+        Assert.False(result); // Invalid new file path should fail
+    }
+    
+    [Fact]
     public void TestPowerPointFileWithAnimations()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "presentation_with_animations.pptx");
