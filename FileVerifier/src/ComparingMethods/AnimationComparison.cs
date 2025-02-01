@@ -58,7 +58,7 @@ public static class AnimationComparison
     /// </summary>
     /// <param name="fileFormat"> The id of the file format being checked  </param>
     /// <returns> Returns whether if it is of PowerPoint format </returns>
-    private static bool IsPowerPointFile(string fileFormat) => PowerPointFormats.Contains(fileFormat);
+    public static bool IsPowerPointFile(string fileFormat) => PowerPointFormats.Contains(fileFormat);
     
     /// <summary>
     ///  Checks if the PowerPoint files other than pptx contain animations
@@ -78,7 +78,7 @@ public static class AnimationComparison
     /// </summary>
     /// <param name="filePath"> File path to file </param>
     /// <returns> Returns whether if animations were found </returns>
-    private static bool CheckPptxFilesForAnimation(string filePath)
+    public static bool CheckPptxFilesForAnimation(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
         // Gather all slides
