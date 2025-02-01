@@ -1,13 +1,28 @@
 ﻿using AvaloniaDraft.FileManager;
 using System;
+using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using Aspose.Slides;
 
 namespace AvaloniaDraft.ComparingMethods;
 
+/// <summary>
+/// This class is responsible for checking if the original file contains animations
+/// </summary>
 public static class AnimationComparison
 {
+    
+    /// <summary>
+    /// Contains all the PowerPoint formats
+    /// </summary>
+    private static readonly HashSet<string> PowerPointFormats =
+    [
+        "fmt/215", "fmt/126", "fmt/125", "fmt/124", "x-fmt/88", "fmt/1748", "fmt/1747", "fmt/1867", "fmt/1866",
+        "fmt/179", "x-fmt/87", "fmt/181", "fmt/180", "fmt/182", "x-fmt/216", "x-sfw/40", "x-sfw/278", "fmt/629",
+        "fmt/630", "fmt/631", "fmt/632", "fmt/633", "fmt/636", "fmt/487"
+    ];
+    
     /// <summary>
     /// Checks if the original file is of PowerPoint format and if it contains animations
     /// </summary>
@@ -16,16 +31,15 @@ public static class AnimationComparison
     public static bool FileAnimationComparison(FilePair files)
     {
         
-        // Check if the file format is of PowerPoint format
-        if (!IsPowerPointFile(files.OriginalFilePath)) return true;
-        
-        // If the original file was converted to a different PowerPoint format we do not need to check for animations
-        if (IsPowerPointFile(files.NewFileFormat)) return true;
+        // Does not conduct the test if the original file is not of PowerPoint format or
+        // if both original and new files are of PowerPoint format
+        if (!IsPowerPointFile(files.OriginalFileFormat) || 
+            IsPowerPointFile(files.OriginalFileFormat) && IsPowerPointFile(files.NewFileFormat)) return true;
         
         // Check for animations in the PowerPoint file
         try
         {
-            // Handle different PowerPoint file formats
+            // Handle check based on PowerPoint file format
             return files.OriginalFileFormat switch
             {
                 "fmt/126" => CheckPptxFilesForAnimation(files.OriginalFilePath),
@@ -44,13 +58,7 @@ public static class AnimationComparison
     /// </summary>
     /// <param name="fileFormat"> The id of the file format being checked  </param>
     /// <returns> Returns whether if it is of PowerPoint format </returns>
-    private static bool IsPowerPointFile(string fileFormat)
-    {
-        return fileFormat is "fmt/215" or "fmt/126" or "fmt/125" or "fmt/124" or "x-fmt/88" 
-            or "fmt/1748" or "fmt/1747" or "fmt/1867" or "fmt/1866" or "fmt/179" or "x-fmt/87" or "fmt/181" 
-            or "fmt/180" or "fmt/182" or "x-fmt/216" or "x-sfw/40" or "x-sfw/278" or "fmt/629" 
-            or "fmt/630" or "fmt/631" or "fmt/632" or "fmt/633" or "fmt/636" or "fmt/487";
-    }
+    private static bool IsPowerPointFile(string fileFormat) => PowerPointFormats.Contains(fileFormat);
     
     /// <summary>
     ///  Checks if the PowerPoint files other than pptx contain animations
@@ -59,7 +67,7 @@ public static class AnimationComparison
     /// <returns> Returns whether if animations were found </returns>
     private static bool CheckGeneralFilesForAnimation(string filePath)
     {
-        var file = new Presentation(filePath);
+        using var file = new Presentation(filePath);
         
         // Check if the ppt file contains animations by checking the timeline of each slide
         return file.Slides.All(slide => slide.Timeline.MainSequence.Count <= 0);
@@ -88,6 +96,7 @@ public static class AnimationComparison
             // Check if the slide's xml contents contains animations
             if (slideXml.Descendants().Any(e => e.Name.LocalName is "anim" or "animEffect" or "timing"))
             {
+                // Fails the test
                 return false;
             }
         }
