@@ -7,7 +7,7 @@ namespace UnitTests.ComparingMethods;
 
 public abstract class TestBase
 {
-    public static readonly string TestFileDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory)!
+    protected static readonly string TestFileDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory)!
         .Parent!.Parent!.Parent!.FullName + "/ComparingMethods/TestFiles/PowerPoint";
 }
 
@@ -36,13 +36,23 @@ public class FileAnimationComparisonTests : TestBase
         var result = AnimationComparison.FileAnimationComparison(files);
         Assert.True(result); // Non-PowerPoint file should pass
     }
-
+    
+    [Fact]
+    public void TestBothPowerPointFiles()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "presentation_with_animations.ppt");
+        var nFilePath = Path.Combine(TestFileDirectory, "presentation_with_animations.pptx");
+        var files = new FilePair(oFilePath, "fmt/126", nFilePath, "fmt/215");
+        var result = AnimationComparison.FileAnimationComparison(files);
+        Assert.True(result); // Both PowerPoint files should pass
+    }
+    
     [Fact]
     public void TestPowerPointFileWithAnimations()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "presentation_with_animations.pptx");
         var nFilePath = Path.Combine(TestFileDirectory, "presentation_with_animations.pdf");
-        var files = new FilePair(oFilePath, "fmt/126", nFilePath, "fmt/19");
+        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/19");
         var result = AnimationComparison.FileAnimationComparison(files);
         Assert.False(result); // PowerPoint file with animations should fail
     }
@@ -51,6 +61,26 @@ public class FileAnimationComparisonTests : TestBase
     public void TestPowerPointFileWithoutAnimations()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "presentation_without_animations.pptx");
+        var nFilePath = Path.Combine(TestFileDirectory, "presentation_without_animations.pdf");
+        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/19");
+        var result = AnimationComparison.FileAnimationComparison(files);
+        Assert.True(result); // PowerPoint file without animations should pass
+    }
+    
+    [Fact]
+    public void TestOlderPowerPointFileWithAnimations()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "presentation_with_animations.ppt");
+        var nFilePath = Path.Combine(TestFileDirectory, "presentation_with_animations.pdf");
+        var files = new FilePair(oFilePath, "fmt/126", nFilePath, "fmt/19");
+        var result = AnimationComparison.FileAnimationComparison(files);
+        Assert.False(result); // PowerPoint file with animations should fail
+    }
+
+    [Fact]
+    public void TestOlderPowerPointFileWithoutAnimations()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "presentation_without_animations.ppt");
         var nFilePath = Path.Combine(TestFileDirectory, "presentation_without_animations.pdf");
         var files = new FilePair(oFilePath, "fmt/126", nFilePath, "fmt/19");
         var result = AnimationComparison.FileAnimationComparison(files);
@@ -73,6 +103,25 @@ public class CheckPptxFilesForAnimationTests : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.pptx");
         var result = AnimationComparison.CheckPptxFilesForAnimation(filePath);
+        Assert.True(result); // File without animations should pass
+    }
+}
+
+public class CheckGeneralFilesForAnimationTests : TestBase
+{
+    [Fact]
+    public void TestGeneralFileWithAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_with_animations.ppt");
+        var result = AnimationComparison.CheckGeneralFilesForAnimation(filePath);
+        Assert.False(result); // File with animations should fail
+    }
+
+    [Fact]
+    public void TestGeneralFileWithoutAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.ppt");
+        var result = AnimationComparison.CheckGeneralFilesForAnimation(filePath);
         Assert.True(result); // File without animations should pass
     }
 }

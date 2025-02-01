@@ -42,7 +42,7 @@ public static class AnimationComparison
             // Handle check based on PowerPoint file format
             return files.OriginalFileFormat switch
             {
-                "fmt/126" => CheckPptxFilesForAnimation(files.OriginalFilePath),
+                "fmt/215" => CheckPptxFilesForAnimation(files.OriginalFilePath),
                 _ => CheckGeneralFilesForAnimation(files.OriginalFilePath)
             };
         }
@@ -65,7 +65,7 @@ public static class AnimationComparison
     /// </summary>
     /// <param name="filePath"> File path to file </param>
     /// <returns> Returns whether if animations were found </returns>
-    private static bool CheckGeneralFilesForAnimation(string filePath)
+    public static bool CheckGeneralFilesForAnimation(string filePath)
     {
         using var file = new Presentation(filePath);
         
