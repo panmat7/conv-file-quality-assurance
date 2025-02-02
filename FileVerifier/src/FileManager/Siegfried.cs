@@ -55,7 +55,12 @@ public static class Siegfried
     
             using var process = new Process();
             process.StartInfo = psi;
-            process.Start();
+           
+            try { process.Start(); }
+            catch(Exception ex)
+            {
+                throw new Exception($"Unable to start powershell.exe and Siegfried: {ex.Message}");
+            }
             
             //Currently error-prone - if one of the files is empty the entire json sequence if broken.
             var output = process.StandardOutput.ReadToEnd();
@@ -65,9 +70,10 @@ public static class Siegfried
             
             //Output currently contains two json object separated by a new line, needs to be split 
             var outputSep = output.Split("\n");
+            outputSep = outputSep.Where(x => !string.IsNullOrEmpty(x)).ToArray();
             
-            //Should always result in array of length 3 - two JSON object and an empty string
-            if (outputSep.Length != 3) throw new Exception("Invalid Siegfried output");
+            //Should always result in array of length 2 - a JSON object per command
+            if (outputSep.Length != 2) throw new Exception("Invalid Siegfried output");
             
             var originalOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[0]);
             var newOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[1]);
