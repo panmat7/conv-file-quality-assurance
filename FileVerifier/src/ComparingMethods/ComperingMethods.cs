@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using Aspose.Slides;
 using Aspose.Words;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using SixLabors.ImageSharp;
+using UglyToad.PdfPig;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -21,7 +21,7 @@ public static class ComperingMethods
         var originalSize = new FileInfo(files.OriginalFilePath).Length;
         var newSize = new FileInfo(files.NewFilePath).Length;
         
-        return originalSize - newSize;
+        return long.Abs(originalSize - newSize);
     }
     
     /// <summary>
@@ -99,17 +99,24 @@ public static class ComperingMethods
         try
         {
             //Text documents
-            if (FormatCodes.TextDocumentFormats.Contains(format))
+            if (FormatCodes.PronomCodesTextDocuments.Contains(format))
             {
                 var doc = new Document(path);
                 return doc.PageCount;
             }
 
-            //For powerpoint - return number of slides
-            if (FormatCodes.PresentationFormats.Contains(format))
+            //For presentations - return number of slides
+            if (FormatCodes.PronomCodesPresentationDocuments.Contains(format))
             {
                 var presentation = new Presentation(path);
                 return presentation.Slides.Count;
+            }
+            
+            //For PDFs
+            if (FormatCodes.PronomCodesPDF.Contains(format) || FormatCodes.PronomCodesPDFA.Contains(format))
+            {
+                using var doc = PdfDocument.Open(path);
+                return doc.NumberOfPages;
             }
         }
         catch

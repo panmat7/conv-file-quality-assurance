@@ -27,4 +27,8 @@
       <ProjectReference Include="..\FileVerifier\FileVerifier.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="ComparingMethods\TestFiles\Images\" />
+    </ItemGroup>
+
 </Project>
