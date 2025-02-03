@@ -18,9 +18,9 @@ public static class AnimationComparison
     /// </summary>
     private static readonly HashSet<string> PowerPointFormats =
     [
-        "fmt/215", "fmt/126", "fmt/125", "fmt/124", "x-fmt/88", "fmt/1748", "fmt/1747", "fmt/1867", "fmt/1866",
+        "fmt/215", "fmt/126", "fmt/125", "x-fmt/88", "fmt/1748", "fmt/1747", "fmt/1867", "fmt/1866",
         "fmt/179", "x-fmt/87", "fmt/181", "fmt/180", "fmt/182", "x-fmt/216", "x-sfw/40", "x-sfw/278", "fmt/629",
-        "fmt/630", "fmt/631", "fmt/632", "fmt/633", "fmt/636", "fmt/487"
+        "fmt/630", "fmt/631", "fmt/632", "fmt/633", "fmt/636", "fmt/487", "fmt/101"
     ];
     
     /// <summary>
@@ -42,8 +42,8 @@ public static class AnimationComparison
             // Handle check based on PowerPoint file format
             return files.OriginalFileFormat switch
             {
-                "fmt/215" => CheckPptxFilesForAnimation(files.OriginalFilePath),
-                _ => CheckGeneralFilesForAnimation(files.OriginalFilePath)
+                "fmt/215" => CheckPptxFormatForAnimation(files.OriginalFilePath),
+                _ => CheckOtherFormatsForAnimation(files.OriginalFilePath)
             };
         }
         catch (Exception e)
@@ -59,26 +59,13 @@ public static class AnimationComparison
     /// <param name="fileFormat"> The id of the file format being checked  </param>
     /// <returns> Returns whether if it is of PowerPoint format </returns>
     public static bool IsPowerPointFile(string fileFormat) => PowerPointFormats.Contains(fileFormat);
-    
-    /// <summary>
-    ///  Checks if the PowerPoint files other than pptx contain animations
-    /// </summary>
-    /// <param name="filePath"> File path to file </param>
-    /// <returns> Returns whether if animations were found </returns>
-    public static bool CheckGeneralFilesForAnimation(string filePath)
-    {
-        using var file = new Presentation(filePath);
-        
-        // Check if the ppt file contains animations by checking the timeline of each slide
-        return file.Slides.All(slide => slide.Timeline.MainSequence.Count <= 0);
-    }
 
     /// <summary>
     /// Checks if the pptx file contains animations
     /// </summary>
     /// <param name="filePath"> File path to file </param>
     /// <returns> Returns whether if animations were found </returns>
-    public static bool CheckPptxFilesForAnimation(string filePath)
+    public static bool CheckPptxFormatForAnimation(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
         // Gather all slides
@@ -102,5 +89,18 @@ public static class AnimationComparison
         }
 
         return true;
+    }
+    
+    /// <summary>
+    ///  Checks if the PowerPoint files other than pptx contain animations
+    /// </summary>
+    /// <param name="filePath"> File path to file </param>
+    /// <returns> Returns whether if animations were found </returns>
+    public static bool CheckOtherFormatsForAnimation(string filePath)
+    {
+        using var file = new Presentation(filePath);
+        
+        // Check if the ppt file contains animations by checking the timeline of each slide
+        return file.Slides.All(slide => slide.Timeline.MainSequence.Count <= 0);
     }
 }

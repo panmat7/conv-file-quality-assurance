@@ -106,13 +106,13 @@ public class FileAnimationComparisonTests : TestBase
     }
 }
 
-public class CheckPptxFilesForAnimationTests : TestBase
+public class CheckPptxFormatForAnimationTests : TestBase
 {
     [Fact]
     public void TestPptxFileWithAnimations()
     {
         var filePath = Path.Combine(TestFileDirectory, "presentation_with_animations.pptx");
-        var result = AnimationComparison.CheckPptxFilesForAnimation(filePath);
+        var result = AnimationComparison.CheckPptxFormatForAnimation(filePath);
         Assert.False(result); // File with animations should fail
     }
 
@@ -120,26 +120,122 @@ public class CheckPptxFilesForAnimationTests : TestBase
     public void TestPptxFileWithoutAnimations()
     {
         var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.pptx");
-        var result = AnimationComparison.CheckPptxFilesForAnimation(filePath);
+        var result = AnimationComparison.CheckPptxFormatForAnimation(filePath);
         Assert.True(result); // File without animations should pass
     }
 }
 
-public class CheckGeneralFilesForAnimationTests : TestBase
+public class CheckOtherFormatsForAnimationTests : TestBase
 {
     [Fact]
-    public void TestGeneralFileWithAnimations()
+    public void TestPptFileWithAnimations()
     {
         var filePath = Path.Combine(TestFileDirectory, "presentation_with_animations.ppt");
-        var result = AnimationComparison.CheckGeneralFilesForAnimation(filePath);
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
         Assert.False(result); // File with animations should fail
     }
 
     [Fact]
-    public void TestGeneralFileWithoutAnimations()
+    public void TestPptFileWithoutAnimations()
     {
         var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.ppt");
-        var result = AnimationComparison.CheckGeneralFilesForAnimation(filePath);
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.True(result); // File without animations should pass
+    }
+    
+    [Fact]
+    public void TestPptmFileWithAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_with_animations.pptm");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.False(result); // File with animations should not pass
+    }
+    
+    [Fact]
+    public void TestPptmFileWithoutAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.pptm");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.True(result); // File without animations should pass
+    }
+    
+    [Fact]
+    public void TestPotxFileWithAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_with_animations.potx");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.False(result); // File with animations should not pass
+    }
+    
+    [Fact]
+    public void TestPotxFileWithoutAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.potx");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.True(result); // File without animations should pass
+    }
+    
+    [Fact]
+    public void TestPotmFileWithAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_with_animations.potm");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.False(result); // File with animations should not pass
+    }
+    
+    [Fact]
+    public void TestPotmFileWithoutAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.potm");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.True(result); // File without animations should pass
+    }
+    
+    [Fact]
+    public void TestPpsxFileWithAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_with_animations.ppsx");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.False(result); // File with animations should not pass
+    }
+    
+    [Fact]
+    public void TestPpsxFileWithoutAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.ppsx");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.True(result); // File without animations should pass
+    }
+    
+    [Fact]
+    public void TestPpsmFileWithAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_with_animations.ppsm");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.False(result); // File with animations should not pass
+    }
+    
+    [Fact]
+    public void TestPpsmFileWithoutAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.ppsm");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.True(result); // File without animations should pass
+    }
+    
+    [Fact]
+    public void TestXmlFileWithAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_with_animations.xml");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
+        Assert.False(result); // File with animations should fail
+    }
+
+    [Fact]
+    public void TestXmlFileWithoutAnimations()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "presentation_without_animations.xml");
+        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
         Assert.True(result); // File without animations should pass
     }
 }
