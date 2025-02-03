@@ -6,12 +6,6 @@ namespace UnitTests.FileManagerTest;
 [TestFixture]
 public class FileManagerTest
 {
-    [SetUp]
-    public void Setup()
-    {
-        
-    }
-
     [Test]
     public void FileManagerCreationTest()
     {
@@ -27,7 +21,7 @@ public class FileManagerTest
             }
         );
 
-        var f = new AvaloniaDraft.FileManager.FileManager(@"C:\testOriginal\", @"C:\testNew\", fileSystem);
+        var f = new FileManager(@"C:\testOriginal\", @"C:\testNew\", fileSystem);
         var pairs = f.GetFilePairs();
         var pairless = f.GetPairlessFiles();
 
