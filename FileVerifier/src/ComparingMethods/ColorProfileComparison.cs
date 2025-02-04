@@ -22,11 +22,11 @@ public class ColorProfileComparison
             return oFormat switch
             {
                 _ when FormatCodes.PronomCodesImages.Contains(oFormat) && FormatCodes.PronomCodesImages.Contains(nFormat) 
-                    => ImageToImageColorProfileComparison(files.OriginalFilePath, files.NewFilePath),
+                    => ImageToImageColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesImages.Contains(oFormat) && FormatCodes.PronomCodesPDF.Contains(nFormat)
-                    => ImageToPdfColorProfileComparison(files.OriginalFilePath, files.NewFilePath),
+                    => ImageToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesPDF.Contains(oFormat) && FormatCodes.PronomCodesPDF.Contains(nFormat) =>
-                    PdfToPdfColorProfileComparison(files.OriginalFilePath, files.NewFilePath),
+                    PdfToPdfColorProfileComparison(files),
                 _ => false
             };
         }
@@ -38,7 +38,12 @@ public class ColorProfileComparison
         
     }
     
-    public static bool ImageToImageColorProfileComparison(string originalImagePath, string newImagePath)
+    public static bool ImageToImageColorProfileComparison(FilePair files)
+    {
+        return CompareColorProfiles(files.OriginalFilePath, files.NewFilePath);
+    }
+    
+    public static bool PdfToPdfColorProfileComparison(FilePair files)
     {
         //TODO
         
@@ -53,22 +58,7 @@ public class ColorProfileComparison
         return true;
     }
     
-    public static bool PdfToPdfColorProfileComparison(string originalPdfPath, string newPdfPath)
-    {
-        //TODO
-        
-        // Extract the images for each file
-        
-        // Gather color profiles if present
-        
-        // Compare color profiles
-        
-        // Return result
-        
-        return true;
-    }
-    
-    public static bool ImageToPdfColorProfileComparison(string originalImagePath, string newPdfPath)
+    public static bool ImageToPdfColorProfileComparison(FilePair files)
     {
         //TODO
         
@@ -97,11 +87,11 @@ public class ColorProfileComparison
         
         var oProfile = oImage.GetColorProfile();
         
-        if (oProfile == null) throw new Exception("Missing color profile embedded in original image");
+        if (oProfile == null) throw new InvalidOperationException($"Missing color profile in original image: {oPath}");
         
         var nProfile = nImage.GetColorProfile();
         
-        if (nProfile == null) throw new Exception("Missing color profile embedded in new image");
+        if (nProfile == null) throw new InvalidOperationException($"Missing color profile in new image: {nPath}");
         
         return oProfile.Equals(nProfile);
     }
