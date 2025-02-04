@@ -3,6 +3,17 @@ using System.Linq;
 
 namespace AvaloniaDraft.Helpers;
 
+/**********************
+ * !!!README!!!
+ * 
+ * Det her er vanskelig å sikre at disse er korrekte uten å legge de til manuelt.
+ * Stol kun på koder med komentar på siden, andre er ikke dobbeltsjekket
+ * Hvis du skal legge til flere pls legg til en kommentar med faktiske format navn, som man kan finne her
+ * https://www.nationalarchives.gov.uk/PRONOM/PUID/proPUIDSearch.aspx?status=new
+ *
+ * !!!README!!!
+ **********************/
+
 /// <summary>
 /// A helper class containing lists of PRONOM codes for file formats and groups
 /// </summary>
@@ -11,8 +22,8 @@ public static class FormatCodes
     //TEXT DOCUMENTS 
     public static readonly List<string> PronomCodesDOC =
     [
-        "fmt/39", //Word 6.0/95
-        "fmt/40", //Word 97-2003
+        "fmt/39", //Word Document 6.0/95
+        "fmt/40", //Word Document 97-2003
     ];
 
     public static readonly List<string> PronomCodesDOCM =
