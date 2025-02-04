@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using ImageMagick;
 using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
 
 namespace AvaloniaDraft.ComparingMethods;
 
-public class ColorProfileComparison
+public static class ColorProfileComparison
 {
     /// <summary>
     /// Checks if color profile in original and new file are the same
@@ -56,7 +54,7 @@ public class ColorProfileComparison
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
         
         // TODO
-        // Check if more than one image is extracted from the PDF file
+        // Check if there are more than one image in each PDF file
         
         return CompareColorProfiles(oImages.First(), nImages.First());
     }
