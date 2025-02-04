@@ -73,14 +73,16 @@ public class FileManager
         filePairs = new List<FilePair>();
         pairlessFiles = new List<string>();
         
-        var originalFiles = _fileSystem.Directory.GetFiles(oDirectory).ToList();
-        var newFiles = _fileSystem.Directory.GetFiles(nDirectory).ToList();
+        var originalFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories).ToList();
+        var newFiles = _fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories).ToList();
+        
+        //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
         
         //If any file name appears more than once - inform
-        if (originalFiles.Select(_fileSystem.Path.GetFileName).Distinct().Count() != originalFiles.Count)
+        if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != originalFiles.Count)
             throw new Exception("FILENAME DUPLICATES IN ORIGINAL DIRECTORY");
         
-        if (newFiles.Select(_fileSystem.Path.GetFileName).Distinct().Count() != newFiles.Count)
+        if (newFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != newFiles.Count)
             throw new Exception("FILENAME DUPLICATES IN NEW DIRECTORY");
         
         foreach (var iFile in originalFiles)

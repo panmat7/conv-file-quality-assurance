@@ -1,8 +1,9 @@
 using System.IO.Abstractions.TestingHelpers;
 using AvaloniaDraft.FileManager;
 
-namespace UnitTests;
+namespace UnitTests.FileManagerTest;
 
+[TestFixture]
 public class FileManagerTest
 {
     [SetUp]
@@ -12,7 +13,7 @@ public class FileManagerTest
     }
 
     [Test]
-    public void FileManager_NormalCase_Success()
+    public void FileManagerCreationTest()
     {
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
@@ -26,7 +27,7 @@ public class FileManagerTest
             }
         );
 
-        var f = new FileManager(@"C:\testOriginal\", @"C:\testNew\", fileSystem);
+        var f = new AvaloniaDraft.FileManager.FileManager(@"C:\testOriginal\", @"C:\testNew\", fileSystem);
         var pairs = f.GetFilePairs();
         var pairless = f.GetPairlessFiles();
 
