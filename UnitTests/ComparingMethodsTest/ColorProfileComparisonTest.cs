@@ -46,4 +46,14 @@ public class CompareColorProfilesTest : TestBase
         var result = ColorProfileComparison.CompareColorProfiles(oFilePath, nFilePath);
         Assert.False(result); // New file without profile should fail
     }
+    
+    [Fact]
+    public void TestBothNoProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.jpg");
+        var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.jpg");
+        
+        var result = ColorProfileComparison.CompareColorProfiles(oFilePath, nFilePath);
+        Assert.True(result); // Two files without profile should pass
+    }
 }

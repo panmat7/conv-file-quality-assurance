@@ -79,21 +79,23 @@ public class ColorProfileComparison
     /// <param name="oPath"></param>
     /// <param name="nPath"></param>
     /// <returns></returns>
-    /// <exception cref="Exception"></exception>
     public static bool CompareColorProfiles(string oPath, string nPath)
     {
         using var oImage = new MagickImage(oPath);
         using var nImage = new MagickImage(nPath);
         
         var oProfile = oImage.GetColorProfile();
-        
-        if (oProfile == null) throw new InvalidOperationException($"Missing color profile in original image: {oPath}");
-        
         var nProfile = nImage.GetColorProfile();
-        
-        if (nProfile == null) throw new InvalidOperationException($"Missing color profile in new image: {nPath}");
-        
-        return oProfile.Equals(nProfile);
+
+        return oProfile switch
+        {
+            null when nProfile == null => true // If both images do not have color profiles it means no loss of data
+            ,
+            null => false // If only one image has a color profile it means loss of data
+            ,
+            _ => nProfile != null && // If only one image has a color profile it means loss of data
+                 oProfile.Equals(nProfile)
+        };
     }
 }
 
