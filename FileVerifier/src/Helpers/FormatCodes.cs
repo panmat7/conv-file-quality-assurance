@@ -11,42 +11,45 @@ public static class FormatCodes
     //TEXT DOCUMENTS 
     public static readonly List<string> PronomCodesDOC =
     [
-        "fmt/40",
+        "fmt/39", //Word 6.0/95
+        "fmt/40", //Word 97-2003
     ];
 
-    public static readonly List<string> PronomCodesDOM =
+    public static readonly List<string> PronomCodesDOCM =
     [
-        "fmt/477"
+        
     ];
     
-    public static readonly List<string> PronomCodesDOX =
+    public static readonly List<string> PronomCodesDOCX =
     [
-        "fmt/412"
+        "fmt/412" //Word for Windows 2007 onwards
     ];
     
     public static readonly List<string> PronomCodesDOT =
     [
-        "fmt/39"
+        
     ];
     
     public static readonly List<string> PronomCodesDOTM =
     [
-        "fmt/478"
+        
     ];
     
     public static readonly List<string> PronomCodesDOTX =
     [
-        "fmt/413"
+        
     ];
     
     public static readonly List<string> PronomCodesODT =
     [
-        "fmt/139"
+        "fmt/290",  //OpenDocument Text 1.1
+        "fmt/291",  //OpenDocument Text 1.2
+        "fmt/1756", //OpenDocument Text 1.3
     ];
     
     public static readonly List<string> PronomCodesTextDocuments = PronomCodesDOC
-        .Concat(PronomCodesDOM)
-        .Concat(PronomCodesDOX)
+        .Concat(PronomCodesDOCM)
+        .Concat(PronomCodesDOCX)
         .Concat(PronomCodesDOT)
         .Concat(PronomCodesDOTM)
         .Concat(PronomCodesDOTX)
@@ -101,23 +104,26 @@ public static class FormatCodes
     //PRESENTATIONS
     public static readonly List<string> PronomCodesPPT = 
     [
-        "fmt/126"
+        "fmt/125", //PowerPoint Presentation 95
+        "fmt/126", //PowerPoint Presentation 97-2003
     ];
     
     public static readonly List<string> PronomCodesPPTM = 
     [
-        "fmt/479"
+        
     ];
     
     public static readonly List<string> PronomCodesPPTX = 
     [
-        "fmt/214",
-        "fmt/215"
+        "fmt/215" //PowerPoint for Windows 2007 onwards
     ];
     
     public static readonly List<string> PronomCodesODP = 
     [
-        "fmt/139"
+        "fmt/138", //OpenDocument Presentation 1.0
+        "fmt/292", //OpenDocument Presentation 1.1
+        "fmt/293", //OpenDocument Presentation 1.2
+        "fmt/1754" //OpenDocument Presentation 1.3
     ];
     
     public static readonly List<string> PronomCodesPresentationDocuments = PronomCodesPPT
@@ -129,27 +135,33 @@ public static class FormatCodes
     //SPREADSHEETS
     public static readonly List<string> PronomCodesXLS = 
     [
-        "fmt/61"
+        "fmt/61", //Excel 97 Workbook (xls) 8
+        "fmt/62", //Excel 2000-2003 Workbook (xls) 8X
     ];
     
     public static readonly List<string> PronomCodesXLSM = 
     [
-        "fmt/475"
+        
     ];
     
     public static readonly List<string> PronomCodesXLSX = 
     [
-        "fmt/215"
+        
     ];
     
     public static readonly List<string> PronomCodesODS = 
     [
-        "fmt/142"
+        "fmt/137", //OpenDocument Spreadsheet 1.0
+        "fmt/294", //OpenDocument Spreadsheet 1.1
+        "fmt/295", //OpenDocument Spreadsheet 1.2
+        "fmt/1755" //OpenDocument Spreadsheet 1.3
     ];
     
     public static readonly List<string> PronomCodesCSV = 
     [
-        "fmt/78"
+        "fmt/800", //CSV Schema
+        
+        "x-fmt/18" //Comma Separated Values 
     ];
     
     public static readonly List<string> PronomCodesSpreadsheets = PronomCodesXLS
@@ -162,19 +174,23 @@ public static class FormatCodes
     //IMAGES
     public static readonly List<string> PronomCodesPNG = 
     [
-        "fmt/11",
-        "fmt/12"
+        "fmt/11", //PNG 1.0
+        "fmt/12", //PNG 1.1
+        "fmt/13"  //PNG 1.2
     ];
     
     public static readonly List<string> PronomCodesJPEG = 
     [
-        "fmt/41",
-        "fmt/43"
+        "fmt/41", //Raw JPEG
+        "fmt/42", //JPEG 1.00
+        "fmt/43", //JPEG 1.01
+        "fmt/44", //JPEG 1.02
     ];
     
     public static readonly List<string> PronomCodesGIF = 
     [
-        "fmt/4"
+        "fmt/3", //GIF 87a
+        "fmt/4"  //GIF 89a
     ];
     
     public static readonly List<string> PronomCodesImages = PronomCodesPNG
