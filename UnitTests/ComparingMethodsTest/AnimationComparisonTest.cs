@@ -8,7 +8,7 @@ namespace UnitTests.ComparingMethods;
 public abstract class TestBase
 {
     protected static readonly string TestFileDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory)!
-        .Parent!.Parent!.Parent!.FullName + "/ComparingMethods/TestFiles/PowerPoint";
+        .Parent!.Parent!.Parent!.FullName + "/ComparingMethodsTest/TestFiles/PowerPoint";
 }
 
 public class IsPowerPointFileTests
