@@ -58,7 +58,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"YourProjectKey" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths="coverage.xml"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"PanMat122_conv-file-quality-assurance" /o:"ntnu-b-fileverification" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths="coverage.xml"
 
       - name: Build Solution
         run: dotnet build --configuration Release
