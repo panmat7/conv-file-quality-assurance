@@ -58,19 +58,29 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"PanMat122_conv-file-quality-assurance" /o:"ntnu-b-fileverification" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths="coverage.xml"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"PanMat122_conv-file-quality-assurance" /o:"ntnu-b-fileverification" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="TestResults/CoverageReport.xml"
+
+      - name: Restore Dependencies
+        run: dotnet restore
 
       - name: Build Solution
-        run: dotnet build --configuration Release
+        run: dotnet build --no-restore --configuration Release
 
       - name: Run Tests with Coverage
-        run: dotnet test --collect:"XPlat Code Coverage" --results-directory TestResults
+        run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
 
-      - name: Convert Coverage to Cobertura Format
+      - name: Convert Coverage to Cobertura
         run: |
-          reportgenerator -reports:TestResults/*/coverage.cobertura.xml -targetdir:CoverageReports -reporttypes:Cobertura
+          reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:"TestResults/CoverageReport" -reporttypes:Cobertura
 
-      - name: Finalize SonarQube Analysis
+      - name: Verify Coverage Report Exists
+        run: |
+          if (!(Test-Path "TestResults/CoverageReport/Cobertura.xml")) { Write-Error "Coverage report was not generated!" }
+
+      - name: Show Coverage Report for Debugging
+        run: cat TestResults/CoverageReport/Cobertura.xml
+
+      - name: Complete SonarQube Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
