@@ -58,7 +58,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"PanMat122_conv-file-quality-assurance" /o:"ntnu-b-fileverification" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths="TestResults/CoverageReport/Cobertura.xml"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"PanMat122_conv-file-quality-assurance" /o:"ntnu-b-fileverification" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths="TestResults/CoverageReport/coverage.opencover.xml"
 
       - name: Restore Dependencies
         run: dotnet restore
@@ -67,18 +67,17 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Run Tests with Coverage
-        run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
-
-      - name: Convert Coverage to Cobertura
         run: |
-          reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:"TestResults/CoverageReport" -reporttypes:Cobertura
+          dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults --logger trx
+          # Convert coverage report to OpenCover format
+          reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:"TestResults/CoverageReport" -reporttypes:OpenCover
 
       - name: Verify Coverage Report Exists
         run: |
-          if (!(Test-Path "TestResults/CoverageReport/Cobertura.xml")) { Write-Error "Coverage report was not generated!" }
+          if (!(Test-Path "TestResults/CoverageReport/coverage.opencover.xml")) { Write-Error "Coverage report was not generated!" }
 
       - name: Show Coverage Report for Debugging
-        run: cat TestResults/CoverageReport/Cobertura.xml
+        run: cat TestResults/CoverageReport/coverage.opencover.xml
 
       - name: Complete SonarQube Analysis
         env:
