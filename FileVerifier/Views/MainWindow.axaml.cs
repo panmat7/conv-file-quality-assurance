@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using AvaloniaDraft.FileManager;
 using AvaloniaDraft.ViewModels;
 
 namespace AvaloniaDraft.Views;
@@ -92,6 +93,10 @@ public partial class MainWindow : Window
         AppendMessageToConsole("OUTPUT:");
         files = Directory.GetFiles(OutputPath);
         foreach (var file in files) { AppendMessageToConsole(file); }
+        
+        var f = new FileManager.FileManager(InputPath, OutputPath);
+        f.GetSiegfriedFormats();
+        f.WritePairs();
     }
 
     private void AppendMessageToConsole(string text)
