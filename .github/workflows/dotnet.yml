@@ -58,7 +58,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"PanMat122_conv-file-quality-assurance" /o:"ntnu-b-fileverification" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths="TestResults/CoverageReport.xml"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"PanMat122_conv-file-quality-assurance" /o:"ntnu-b-fileverification" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.cs.opencover.reportsPaths="TestResults/CoverageReport/Cobertura.xml"
 
       - name: Restore Dependencies
         run: dotnet restore
