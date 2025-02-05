@@ -189,4 +189,21 @@ public class ComperingMethodsTest
         var diff = ComperingMethods.GetPageCountDifference(files);
         Assert.That(diff, Is.EqualTo(0));
     }
+
+    [Test]
+    public void GetPageCountTest_8PDF_3ODT()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/276",
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
+            "fmt/1756"
+        );
+
+        var count1 = ComperingMethods.GetPageCount(files.OriginalFilePath, files.OriginalFileFormat);
+        var count2 = ComperingMethods.GetPageCount(files.NewFilePath, files.NewFileFormat);
+        
+        Assert.That(count1 is 8 && count2 is 3);
+    }
 }

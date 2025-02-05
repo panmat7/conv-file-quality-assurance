@@ -1,11 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection.Metadata;
 using Aspose.Slides;
-using Aspose.Words;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using MetadataExtractor;
+using MetadataExtractor.Formats.FileSystem;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Metadata;
 using UglyToad.PdfPig;
+using Document = Aspose.Words.Document;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -93,12 +99,6 @@ public static class ComperingMethods
     /// <returns>Either a positive integer with page count, -1 meaning error while getting pages or null meaning not supported file type</returns>
     public static int? GetPageCount(string path, string format)
     {
-        var check1 = FormatCodes.PronomCodesPresentationDocuments;
-        var check2 = FormatCodes.PronomCodesTextDocuments;
-        var check3 = FormatCodes.PronomCodesPDF;
-        var check4 = FormatCodes.PronomCodesPDFA;
-        
-        
         try
         {
             //Text documents
@@ -129,4 +129,22 @@ public static class ComperingMethods
 
         return -1;
     }
+    
+    /// <summary>
+    /// Returns all metadata that is present in the original file, but is missing in the new file
+    /// </summary>
+    /// <param name="files">The files which are to be compared</param>
+    /// <returns>List of the names of all missing metadata</returns>
+    public static List<string> GetMissingImageMetadata(FilePair files)
+    {
+        var metadataOriginal = ImageMetadataReader.ReadMetadata(files.OriginalFilePath);
+        var metadataNew = ImageMetadataReader.ReadMetadata(files.NewFilePath);
+
+        var originalTags = metadataOriginal.SelectMany(m => m.Tags).Distinct().ToList();
+        var newTags = metadataNew.SelectMany(m => m.Tags).Distinct().ToList();
+        
+        return originalTags.Except(newTags).Select(n => n.Name).ToList();
+    }
+
+    
 }

@@ -59,7 +59,7 @@ public static class Siegfried
             try { process.Start(); }
             catch(Exception ex)
             {
-                throw new Exception($"Unable to start powershell.exe and Siegfried: {ex.Message}");
+                throw new Exception($"Unable to start powershell.exe and/or Siegfried: {ex.Message}");
             }
             
             //Currently error-prone - if one of the files is empty the entire json sequence if broken.
