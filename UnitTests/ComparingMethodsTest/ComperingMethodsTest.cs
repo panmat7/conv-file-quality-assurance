@@ -38,7 +38,7 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetFileSizeDifference(files);
-        Assert.AreEqual(1, diff);
+        Assert.That(diff, Is.EqualTo(1));
     }
     
     [Test]
@@ -64,7 +64,7 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetFileSizeDifference(files);
-        Assert.AreEqual(0, diff);
+        Assert.That(diff, Is.EqualTo(0));
     }
 
     [Test]
@@ -77,7 +77,7 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetImageResolutionDifference(files);
-        Assert.AreEqual(new Tuple<int, int>(225, 225), diff);
+        Assert.That(diff, Is.EqualTo(new Tuple<int, int>(225, 225)));
     }
     
     [Test]
@@ -90,7 +90,7 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetImageResolutionDifference(files);
-        Assert.AreEqual(new Tuple<int, int>(375, 225), diff);
+        Assert.That(diff, Is.EqualTo(new Tuple<int, int>(375, 225)));
     }
     
     [Test]
@@ -103,7 +103,7 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetImageResolutionDifference(files);
-        Assert.AreEqual(new Tuple<int, int>(225, 375), diff);
+        Assert.That(diff, Is.EqualTo(new Tuple<int, int>(225, 375)));
     }
 
     [Test]
@@ -111,7 +111,7 @@ public class ComperingMethodsTest
     {
         var diff = ComperingMethods.GetImageResolution(_testFileDirectory + @"Images\225x225.png");
         
-        Assert.AreEqual(new Tuple<int, int>(225, 225), diff);
+        Assert.That(diff, Is.EqualTo(new Tuple<int, int>(225, 225)));
     }
 
     [Test]
@@ -119,7 +119,7 @@ public class ComperingMethodsTest
     {
         var diff = ComperingMethods.GetImageResolution(_testFileDirectory + @"Images\600x450.jpg");
         
-        Assert.AreEqual(new Tuple<int, int>(600, 450), diff);
+        Assert.That(diff, Is.EqualTo(new Tuple<int, int>(600, 450)));
     }
     
     [Test]
@@ -127,7 +127,7 @@ public class ComperingMethodsTest
     {
         var diff = ComperingMethods.GetImageResolution(_testFileDirectory + @"Images\450x600.tiff");
         
-        Assert.AreEqual(new Tuple<int, int>(450, 600), diff);
+        Assert.That(diff, Is.EqualTo(new Tuple<int, int>(450, 600)));
     }
 
     [Test]
@@ -136,9 +136,9 @@ public class ComperingMethodsTest
         var files = new FilePair
         (
             _testFileDirectory + @"TestDocuments\NoImage3Pages.docx",
-            "fmt/413",
+            "fmt/412",
             _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/139"
+            "fmt/1756"
         );
         
         var diff = ComperingMethods.GetPageCountDifference(files);
@@ -151,13 +151,13 @@ public class ComperingMethodsTest
         var files = new FilePair
         (
             _testFileDirectory + @"TestDocuments\Image8Pages.docx",
-            "fmt/413",
+            "fmt/412",
             _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/139"
+            "fmt/1756"
         );
         
         var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.AreEqual(5, diff);
+        Assert.That(diff, Is.EqualTo(5));
     }
     
     [Test]
@@ -168,11 +168,11 @@ public class ComperingMethodsTest
             _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
             "fmt/276",
             _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/139"
+            "fmt/1756"
         );
         
         var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.AreEqual(5, diff);
+        Assert.That(diff, Is.EqualTo(5));
     }
 
     [Test]
@@ -187,6 +187,6 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.AreEqual(0, diff);
+        Assert.That(diff, Is.EqualTo(0));
     }
 }

@@ -58,7 +58,7 @@ public class FileManager
     private readonly string oDirectory;
     private readonly string nDirectory;
     private List<FilePair> filePairs;
-    private List<string> pairlessFiles;
+    private readonly List<string> pairlessFiles;
     private readonly IFileSystem _fileSystem;
 
     public List<FilePair> GetFilePairs() => filePairs;
