@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using Aspose.Slides;
+using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using MetadataExtractor;
@@ -127,6 +128,75 @@ public static class ComperingMethods
             return null;
         }
 
+        return -1;
+    }
+
+    public static int? GetPageCountDifferenceExif(FilePair files)
+    {
+        try
+        {
+            var originalPages = GetPageCountExif(files.OriginalFilePath, files.OriginalFileFormat);
+            var newPages = GetPageCountExif(files.NewFilePath, files.NewFileFormat);
+            
+            if(originalPages == null || newPages == null) return null;
+            if(originalPages == -1 || newPages == -1) return -1;
+            
+            return int.Abs((int)(originalPages - newPages));
+        }
+        catch
+        {
+            return null;
+        }
+    }
+    
+    public static int? GetPageCountExif(string path, string format)
+    {
+        var result = ExifToolStatic.GetExifData([path], GlobalVariables.ExifPath);
+        
+        if(result == null || result.Count == 0) return null;
+        
+        if (FormatCodes.PronomCodesDOCX.Contains(format))
+        {
+            try
+            {
+                //Unboxing the value
+                var unboxed = (long)result[0]["Pages"];
+                return (int)unboxed;
+            }
+            catch { return null; }
+        }
+
+        if (FormatCodes.PronomCodesODT.Contains(format))
+        {
+            try
+            {
+                var unboxed = (long)result[0]["Document-statisticPage-count"];
+                return (int)unboxed;
+            }
+            catch { return null; }
+        }
+
+        if (FormatCodes.PronomCodesPDF.Contains(format) || FormatCodes.PronomCodesPDFA.Contains(format))
+        {
+            try
+            {
+                var unboxed = (long)result[0]["PageCount"];
+                return (int)unboxed;
+            }
+            catch { return null; }
+        }
+        
+        //Does not work for OpenDocument Presentations
+        if (FormatCodes.PronomCodesPresentationDocuments.Contains(format) && !FormatCodes.PronomCodesODP.Contains(format))
+        {
+            try
+            {
+                var unboxed = (long)result[0]["Slides"];
+                return (int)unboxed;
+            }
+            catch { return null; }
+        }
+        
         return -1;
     }
     

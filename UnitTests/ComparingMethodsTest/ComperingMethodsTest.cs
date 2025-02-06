@@ -142,7 +142,7 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.AreEqual(0, diff);
+        Assert.That(diff, Is.EqualTo(0));
     }
     
     [Test]
@@ -187,6 +187,66 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetPageCountDifference(files);
+        Assert.That(diff, Is.EqualTo(0));
+    }
+    
+    [Test]
+    public void GetPageCountDifferenceExifTest_3DOCX_3ODT()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.docx",
+            "fmt/412",
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
+            "fmt/1756"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.EqualTo(0));
+    }
+    
+    [Test]
+    public void GetPageCountDifferenceExifTest_8DOCX_3ODT()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"TestDocuments\Image8Pages.docx",
+            "fmt/412",
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
+            "fmt/1756"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.EqualTo(5));
+    }
+    
+    [Test]
+    public void GetPageCountDifferenceExifTest_8PDF_3DOCX()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/276",
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
+            "fmt/1756"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.EqualTo(5));
+    }
+
+    [Test]
+    public void GetPageCountDifferenceExifTest_2PPT_2PDF()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
+            "fmt/126",
+            _testFileDirectory + @"PowerPoint\presentation_without_animations.pdf",
+            "fmt/19"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
         Assert.That(diff, Is.EqualTo(0));
     }
 
