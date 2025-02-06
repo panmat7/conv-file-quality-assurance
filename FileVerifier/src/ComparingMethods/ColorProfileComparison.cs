@@ -53,21 +53,27 @@ public static class ColorProfileComparison
         var oImages = ExtractImagesFromPdf(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
         
-        // TODO
-        // Check if there are more than one image in each PDF file
-        
-        return CompareColorProfiles(oImages.First(), nImages.First());
+        // If there are different number of images in the PDF files, it means there is a loss of data and we fail the test
+        if (oImages.Count != nImages.Count)
+        {
+            return false;
+        }
+        // If there is only one image in each PDF file, we compare the color profiles of the images
+        if (oImages.Count == 1 && nImages.Count == 1)
+        {
+            return CompareColorProfiles(oImages.First(), nImages.First());
+        }
+        // If there are multiple images in the PDF files, we compare the color profiles of each image
+        return !(from oImage in oImages from nImage in nImages where !CompareColorProfiles(oImage, nImage) select oImage).Any();
     }
     
     public static bool ImageToPdfColorProfileComparison(FilePair files)
     {
         using var oImage = new MagickImage(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
-        
-        // TODO
+
         // Check if more than one image is extracted from the PDF file
-        
-        return CompareColorProfiles(oImage, nImages.First());
+        return nImages.Count <= 1 && CompareColorProfiles(oImage, nImages.First());
     }
 
     /// <summary>
