@@ -99,7 +99,7 @@ public static class ColorProfileComparison
     public static bool PowerPointToPdfColorProfileComparison(FilePair files)
     {
         var oImages = ExtractImagesFromPowerPoint(files.OriginalFilePath);
-        var nImages = ExtractImagesFromPdf(files.NewFileFormat);
+        var nImages = ExtractImagesFromPdf(files.NewFilePath);
 
         // TODO: What if images are not in same order in original and new?
 
