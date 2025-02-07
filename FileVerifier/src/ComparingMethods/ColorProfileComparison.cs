@@ -79,7 +79,7 @@ public static class ColorProfileComparison
             return CompareColorProfiles(oImages.First(), nImages.First());
         }
         // If there are multiple images in the PDF files, we compare the color profiles of each image
-        return !(from oImage in oImages from nImage in nImages where !CompareColorProfiles(oImage, nImage) select oImage).Any();
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
     }
     
     /// <summary>

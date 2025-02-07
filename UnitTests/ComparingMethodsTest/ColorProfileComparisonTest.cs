@@ -330,6 +330,17 @@ public class FileColorProfileComparison : TestBase
         var result = ColorProfileComparison.FileColorProfileComparison(files);
         Assert.True(result); // PDF to PDF with same color profile should pass
     }
+
+    [Fact]
+    public void TestPowerPointToPdf()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_two_type_color_profile.pptx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_two_type_color_profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.True(result); // Two files where color profiles match should pass
+    }
     
     [Fact]
     public void TestImageToImageDifferentProfile()
