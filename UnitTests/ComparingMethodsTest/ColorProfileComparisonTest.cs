@@ -82,7 +82,7 @@ public class ImageToPdfColorProfileComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
         var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.pdf");
         
-        var files = new FilePair(oFilePath, "fmt-44", nFilePath, "fmt/477");
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/477");
         var result = ColorProfileComparison.ImageToPdfColorProfileComparison(files);
         Assert.True(result); // Image to PDF with same color profile should pass
     }
@@ -93,7 +93,7 @@ public class ImageToPdfColorProfileComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
         var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-AdobeRGB-1.pdf");
         
-        var files = new FilePair(oFilePath, "fmt-44", nFilePath, "fmt/477");
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/477");
         var result = ColorProfileComparison.ImageToPdfColorProfileComparison(files);
         Assert.False(result); // Image to PDF with different color profile should fail
     }
@@ -104,7 +104,7 @@ public class ImageToPdfColorProfileComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.jpg");
         var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.pdf");
         
-        var files = new FilePair(oFilePath, "fmt-44", nFilePath, "fmt/477");
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/477");
         var result = ColorProfileComparison.ImageToPdfColorProfileComparison(files);
         Assert.False(result); // Original file without profile should fail
     }
@@ -115,7 +115,7 @@ public class ImageToPdfColorProfileComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
         var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.pdf");
         
-        var files = new FilePair(oFilePath, "fmt-44", nFilePath, "fmt/477");
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/477");
         var result = ColorProfileComparison.ImageToPdfColorProfileComparison(files);
         Assert.False(result); // New file without profile should fail
     }
@@ -143,6 +143,17 @@ public class PdfToPdfColorProfileComparisonTest : TestBase
         var files = new FilePair(oFilePath, "fmt/477", nFilePath, "fmt/477");
         var result = ColorProfileComparison.PdfToPdfColorProfileComparison(files);
         Assert.False(result); // PDF to PDF with different color profile should fail
+    }
+    
+    [Fact]
+    public void TestBothNoProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.pdf");
+        var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.pdf");
+        
+        var files = new FilePair(oFilePath, "fmt/477", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.PdfToPdfColorProfileComparison(files);
+        Assert.True(result); // Two files without profile should pass
     }
     
     [Fact]
@@ -176,7 +187,7 @@ public class ImageToImageColorProfileComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
         var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-2.jpg");
         
-        var files = new FilePair(oFilePath, "fmt-44", nFilePath, "fmt-44");
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/41");
         var result = ColorProfileComparison.ImageToImageColorProfileComparison(files);
         Assert.True(result); // Two files with same color profile should pass
     }
@@ -187,7 +198,7 @@ public class ImageToImageColorProfileComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
         var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-AdobeRGB-1.jpg");
         
-        var files = new FilePair(oFilePath, "fmt-44", nFilePath, "fmt-44");
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/41");
         var result = ColorProfileComparison.ImageToImageColorProfileComparison(files);
         Assert.False(result); // Two files with different color profile should fail
     }
@@ -198,7 +209,7 @@ public class ImageToImageColorProfileComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.jpg");
         var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
         
-        var files = new FilePair(oFilePath, "fmt-44", nFilePath, "fmt-44");
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/41");
         var result = ColorProfileComparison.ImageToImageColorProfileComparison(files);
         Assert.False(result); // Original file without profile should fail
     }
@@ -209,7 +220,7 @@ public class ImageToImageColorProfileComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
         var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.jpg");
         
-        var files = new FilePair(oFilePath, "fmt-44", nFilePath, "fmt-44");
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/41");
         var result = ColorProfileComparison.ImageToImageColorProfileComparison(files);
         Assert.False(result); // New file without profile should fail
     }
@@ -220,8 +231,66 @@ public class ImageToImageColorProfileComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.jpg");
         var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-without-profile.jpg");
 
-        var files = new FilePair(oFilePath, "fmt-44", nFilePath, "fmt-44");
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/41");
         var result = ColorProfileComparison.ImageToImageColorProfileComparison(files);
         Assert.True(result); // Two files without profile should pass
+    }
+}
+
+public class FileColorProfileComparison : TestBase
+{
+    [Fact]
+    public void TestImageToImage()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
+        var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-2.jpg");
+        
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/41");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.True(result); // Image to Image with same color profile should pass
+    }
+    
+    [Fact]
+    public void TestImageToPdf()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
+        var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.pdf");
+        
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.True(result); // Image to PDF with same color profile should pass
+    }
+    
+    [Fact]
+    public void TestPdfToPdf()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.pdf");
+        var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-2.pdf");
+        
+        var files = new FilePair(oFilePath, "fmt/477", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.True(result); // PDF to PDF with same color profile should pass
+    }
+    
+    [Fact]
+    public void TestImageToImageDifferentProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
+        var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-AdobeRGB-1.jpg");
+        
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/41");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.False(result); // Image to Image with different color profile should fail
+    }
+
+    [Fact]
+    public void TestImageToPdfDifferentProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.jpg");
+        var nFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-AdobeRGB-1.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.False(result); // Image to PDF with different color profile should fail
     }
 }

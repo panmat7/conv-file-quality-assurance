@@ -106,7 +106,8 @@ public static class FormatCodes
     
     public static readonly List<string> PronomCodesPPTM = 
     [
-        "fmt/479"
+        "fmt/479",
+        "fmt/487"
     ];
     
     public static readonly List<string> PronomCodesPPTX = 
@@ -120,10 +121,57 @@ public static class FormatCodes
         "fmt/139"
     ];
     
+    public static readonly List<string> PronomCodesPOT =
+    [
+        "fmt/126"
+    ];
+    
+    public static readonly List<string> PronomCodesPPS =
+    [
+        "fmt/126"
+    ];
+    
+    public static readonly List<string> PronomCodesPPSX =
+    [
+        "fmt/629"
+    ];
+    
+    public static readonly List<string> PronomCodesPPSM =
+    [
+        "fmt/630"
+    ];
+    
+    public static readonly List<string> PronomCodesPOTX =
+    [
+        "fmt/631"
+    ];
+    
+    public static readonly List<string> PronomCodesPOTM =
+    [
+        "fmt/633"
+    ];
+    
+    public static readonly List<string> PronomCodesXML =
+    [
+        "fmt/101"
+    ];
+
+    public static readonly List<string> PronomCodesXMLBasedPowerPoint = PronomCodesPPTX
+        .Concat(PronomCodesPPSX)
+        .Concat(PronomCodesPOTX)
+        .ToList();
+    
     public static readonly List<string> PronomCodesPresentationDocuments = PronomCodesPPT
         .Concat(PronomCodesPPTM)
         .Concat(PronomCodesPPTX)
         .Concat(PronomCodesODP)
+        .Concat(PronomCodesPOT)
+        .Concat(PronomCodesPPS)
+        .Concat(PronomCodesPOTM)
+        .Concat(PronomCodesPOTX)
+        .Concat(PronomCodesPPSX)
+        .Concat(PronomCodesPPSM)
+        .Concat(PronomCodesXML)
         .ToList();
     
     //SPREADSHEETS

@@ -1,10 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using ImageMagick;
 using UglyToad.PdfPig;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -26,11 +32,13 @@ public static class ColorProfileComparison
             {
                 _ when FormatCodes.PronomCodesImages.Contains(oFormat) && FormatCodes.PronomCodesImages.Contains(nFormat) 
                     => ImageToImageColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesImages.Contains(oFormat) && FormatCodes.PronomCodesPDF.Contains(nFormat)
+                _ when FormatCodes.PronomCodesImages.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => ImageToPdfColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesPDF.Contains(oFormat) && FormatCodes.PronomCodesPDF.Contains(nFormat) =>
+                _ when FormatCodes.PronomCodesPDFA.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat) =>
                     PdfToPdfColorProfileComparison(files),
-                _ => false
+                _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
+                    => PowerPointToPdfColorProfileComparison(files),
+                _ => throw new Exception("Unsupported comparison format.")
             };
         }
         catch (Exception e)
@@ -38,9 +46,13 @@ public static class ColorProfileComparison
             Console.WriteLine($"Error while comparing color profiles: {e.Message}");
             return false; // If checking for color profile fails it automatically fails the test
         }
-        
     }
     
+    /// <summary>
+    /// Compares the color profiles of two images
+    /// </summary>
+    /// <param name="files"></param>
+    /// <returns></returns>
     public static bool ImageToImageColorProfileComparison(FilePair files)
     {
         using var oImage = new MagickImage(files.OriginalFilePath);
@@ -48,6 +60,11 @@ public static class ColorProfileComparison
         return CompareColorProfiles(oImage, nImage);
     }
     
+    /// <summary>
+    /// Compares the color profiles of two PDF files
+    /// </summary>
+    /// <param name="files"></param>
+    /// <returns></returns>
     public static bool PdfToPdfColorProfileComparison(FilePair files)
     {
         var oImages = ExtractImagesFromPdf(files.OriginalFilePath);
@@ -67,19 +84,47 @@ public static class ColorProfileComparison
         return !(from oImage in oImages from nImage in nImages where !CompareColorProfiles(oImage, nImage) select oImage).Any();
     }
     
+    /// <summary>
+    /// Compares the color profile of an image and a PDF file
+    /// </summary>
+    /// <param name="files"></param>
+    /// <returns></returns>
     public static bool ImageToPdfColorProfileComparison(FilePair files)
     {
         using var oImage = new MagickImage(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
-
+        
         // Check if more than one image is extracted from the PDF file
         return nImages.Count <= 1 && CompareColorProfiles(oImage, nImages.First());
+    }
+    
+    public static bool PowerPointToPdfColorProfileComparison(FilePair files)
+    {
+        var oImages = ExtractImagesFromPowerPoint(files.OriginalFilePath);
+        var nImages = ExtractImagesFromPdf(files.NewFileFormat);
+
+        // TODO: What if images are not in same order in original and new?
+
+        return !(from oImage in oImages from nImage in nImages where !CompareColorProfiles(oImage, nImage) select oImage).Any();
+    }
+
+    public static bool WordToPdfColorProfileComparison(FilePair files)
+    {
+        // TODO: Implement Word to PDF color profile comparison
+        return true;
+    }
+
+    public static bool ExcelToPdfColorProfileComparison(FilePair files)
+    {
+        // TODO: Implement Excel to PDF color profile comparison
+        return true;
     }
 
     /// <summary>
     /// Extracts images from a PDF file
     /// </summary>
     /// <param name="filePath"></param>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <returns></returns>
     private static List<MagickImage> ExtractImagesFromPdf(string filePath)
     {
@@ -98,10 +143,27 @@ public static class ColorProfileComparison
                 extractedImages.Add((MagickImage)magickImage.Clone());
             }
         }
-
         return extractedImages;
     }
+
+    private static List<MagickImage> ExtractImagesFromPowerPoint(string filePath)
+    {
+        using var zip = ZipFile.OpenRead(filePath);
     
+        var images = zip.Entries
+            .Where(e => e.FullName.StartsWith("ppt/media/", StringComparison.OrdinalIgnoreCase))
+            .Select(e =>
+            {
+                using var stream = e.Open();
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return new MagickImage(memoryStream.ToArray());
+            })
+            .ToList();
+    
+        return images;
+    }
+
     /// <summary>
     /// Function checks that embedded color profile for two images are the same
     /// </summary>

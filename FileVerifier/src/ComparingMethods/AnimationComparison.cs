@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using Aspose.Slides;
+using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -33,8 +34,9 @@ public static class AnimationComparison
         
         // Does not conduct the test if the original file is not of PowerPoint format or
         // if both original and new files are of PowerPoint format
-        if (!IsPowerPointFile(files.OriginalFileFormat) || 
-            IsPowerPointFile(files.OriginalFileFormat) && IsPowerPointFile(files.NewFileFormat)) return true;
+        if (!FormatCodes.PronomCodesPresentationDocuments.Contains(files.OriginalFileFormat) ||
+            FormatCodes.PronomCodesPresentationDocuments.Contains(files.OriginalFileFormat) &&
+            FormatCodes.PronomCodesPresentationDocuments.Contains(files.NewFileFormat)) return true;
         
         // Check for animations in the PowerPoint file
         try
@@ -52,14 +54,7 @@ public static class AnimationComparison
             return false; // If checking for animations fails it automatically fails the test
         }
     }
-
-    /// <summary>
-    /// Checks if the file format is of one of the PowerPoint formats
-    /// </summary>
-    /// <param name="fileFormat"> The id of the file format being checked  </param>
-    /// <returns> Returns whether if it is of PowerPoint format </returns>
-    public static bool IsPowerPointFile(string fileFormat) => PowerPointFormats.Contains(fileFormat);
-
+    
     /// <summary>
     /// Checks if the pptx file contains animations
     /// </summary>
