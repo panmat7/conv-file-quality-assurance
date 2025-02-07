@@ -1,5 +1,6 @@
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
+using AvaloniaDraft.Helpers;
 using Xunit;
 using Assert = Xunit.Assert;
 
@@ -15,7 +16,7 @@ public class IsPowerPointFileTests
     [InlineData(null, false)]      // Null
     public void TestIsPowerPointFile(string? format, bool expected)
     {
-        var result = format != null && AnimationComparison.IsPowerPointFile(format);
+        var result = format != null && FormatCodes.PronomCodesPresentationDocuments.Contains(format);
         Assert.Equal(expected, result);
     }
 }
