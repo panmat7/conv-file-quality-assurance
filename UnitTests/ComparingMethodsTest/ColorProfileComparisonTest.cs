@@ -126,7 +126,7 @@ public class PdfToPdfColorProfileComparisonTest : TestBase
     [Fact]
     public void TestBothSameProfile()
     {
-        var oFilePath = Path.Combine(TestFileDirectory, "Images", "image-with-profile-sRGB-1.pdf");
+        var oFilePath = Path.Combine(TestFileDirectory, "PDF", "image-with-profile-sRGB-1.pdf");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "image-with-profile-sRGB-2.pdf");
         
         var files = new FilePair(oFilePath, "fmt/477", nFilePath, "fmt/477");
@@ -240,7 +240,7 @@ public class ImageToImageColorProfileComparisonTest : TestBase
 public class PowerPointToPdfColorProfileComparisonTest : TestBase
 {
     [Fact]
-    public void TestOnlySameProfileSuccess()
+    public void TestOneProfileSuccess()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_one_type_color_profile.pptx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_one_type_color_profile.pdf");
@@ -250,10 +250,50 @@ public class PowerPointToPdfColorProfileComparisonTest : TestBase
         Assert.True(result); // Two files where color profiles match should pass
     }
     
-    // TODO: Test different color profile in file
-    // TODO: Test wrong scenario
-    // TODO: Test file has one image with color profile and one without
-    // TODO: Test no profile present
+    [Fact]
+    public void TestTwoProfileSuccess()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_two_type_color_profile.pptx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_two_type_color_profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.PowerPointToPdfColorProfileComparison(files);
+        Assert.True(result); // Two files where color profiles match should pass
+    }
+    
+    [Fact]
+    public void TestOneFileNoProfiles()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_two_type_color_profile.pptx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_two_type_color_profile_wrong.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.PowerPointToPdfColorProfileComparison(files);
+        Assert.False(result); // New file is missing profiles and so test should fail
+    }
+    
+    [Fact]
+    public void TestOneProfilePresentOneMissingInEachFile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_one_type_color_profile_and_one_missing.pptx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_one_type_color_profile_and_one_missing.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.PowerPointToPdfColorProfileComparison(files);
+        Assert.True(result); // Two files where color profiles match should pass
+    }
+    
+    [Fact]
+    public void TestBothNoProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_no_color_profile.pptx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_no_color_profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.PowerPointToPdfColorProfileComparison(files);
+        Assert.True(result); // Two files where neither has profiles should pass
+    }
+
 }
 
 public class FileColorProfileComparison : TestBase

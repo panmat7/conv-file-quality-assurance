@@ -103,7 +103,7 @@ public static class ColorProfileComparison
 
         // TODO: What if images are not in same order in original and new?
 
-        return !(from oImage in oImages from nImage in nImages where !CompareColorProfiles(oImage, nImage) select oImage).Any();
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
     }
 
     public static bool WordToPdfColorProfileComparison(FilePair files)
