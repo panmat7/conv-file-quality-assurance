@@ -1,6 +1,5 @@
 ﻿using AvaloniaDraft.FileManager;
 using System;
-using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using Aspose.Slides;
@@ -13,17 +12,6 @@ namespace AvaloniaDraft.ComparingMethods;
 /// </summary>
 public static class AnimationComparison
 {
-    
-    /// <summary>
-    /// Contains all the PowerPoint formats
-    /// </summary>
-    private static readonly HashSet<string> PowerPointFormats =
-    [
-        "fmt/215", "fmt/126", "fmt/125", "x-fmt/88", "fmt/1748", "fmt/1747", "fmt/1867", "fmt/1866",
-        "fmt/179", "x-fmt/87", "fmt/181", "fmt/180", "fmt/182", "x-fmt/216", "x-sfw/40", "x-sfw/278", "fmt/629",
-        "fmt/630", "fmt/631", "fmt/632", "fmt/633", "fmt/636", "fmt/487", "fmt/101"
-    ];
-    
     /// <summary>
     /// Checks if the original file is of PowerPoint format and if it contains animations
     /// </summary>
@@ -44,7 +32,8 @@ public static class AnimationComparison
             // Handle check based on PowerPoint file format
             return files.OriginalFileFormat switch
             {
-                "fmt/215" => CheckPptxFormatForAnimation(files.OriginalFilePath),
+                _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(files.OriginalFileFormat)
+                    => CheckXmlBasedFormatForAnimation(files.OriginalFilePath),
                 _ => CheckOtherFormatsForAnimation(files.OriginalFilePath)
             };
         }
@@ -60,7 +49,7 @@ public static class AnimationComparison
     /// </summary>
     /// <param name="filePath"> File path to file </param>
     /// <returns> Returns whether if animations were found </returns>
-    public static bool CheckPptxFormatForAnimation(string filePath)
+    public static bool CheckXmlBasedFormatForAnimation(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
         // Gather all slides

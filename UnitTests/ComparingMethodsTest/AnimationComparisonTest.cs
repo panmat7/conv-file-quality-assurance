@@ -107,7 +107,7 @@ public class CheckPptxFormatForAnimationTests : TestBase
     public void TestPptxFileWithAnimations()
     {
         var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_animations.pptx");
-        var result = AnimationComparison.CheckPptxFormatForAnimation(filePath);
+        var result = AnimationComparison.CheckXmlBasedFormatForAnimation(filePath);
         Assert.False(result); // File with animations should fail
     }
 
@@ -115,7 +115,7 @@ public class CheckPptxFormatForAnimationTests : TestBase
     public void TestPptxFileWithoutAnimations()
     {
         var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.pptx");
-        var result = AnimationComparison.CheckPptxFormatForAnimation(filePath);
+        var result = AnimationComparison.CheckXmlBasedFormatForAnimation(filePath);
         Assert.True(result); // File without animations should pass
     }
 }
