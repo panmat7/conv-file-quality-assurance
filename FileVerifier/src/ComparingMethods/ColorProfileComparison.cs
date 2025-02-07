@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using ImageMagick;
 using UglyToad.PdfPig;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 
 namespace AvaloniaDraft.ComparingMethods;
+
+// TODO: What if files do not have images
 
 public static class ColorProfileComparison
 {
