@@ -11,6 +11,9 @@ using System.IO.Compression;
 namespace AvaloniaDraft.ComparingMethods;
 
 // TODO: What if files do not have images
+// TODO: What if the same image is used multiple times. Only one image is then stored in XML
+// TODO: What if images are not in same order in original and new?
+// TODO: What if converted image to pdf and pdf does not have an image?
 
 public static class ColorProfileComparison
 {
@@ -36,6 +39,8 @@ public static class ColorProfileComparison
                     PdfToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => XmlBasedPowerPointToPdfColorProfileComparison(files),
+                _ when FormatCodes.PronomCodesDOX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
+                    => DocxToPdfColorProfileComparison(files),
                 _ => throw new Exception("Unsupported comparison format.")
             };
         }
@@ -96,22 +101,32 @@ public static class ColorProfileComparison
         return nImages.Count <= 1 && CompareColorProfiles(oImage, nImages.First());
     }
     
+    /// <summary>
+    /// Compares the color profile of a xml based PowerPoint and a PDF file
+    /// </summary>
+    /// <param name="files"></param>
+    /// <returns></returns>
     public static bool XmlBasedPowerPointToPdfColorProfileComparison(FilePair files)
     {
         var oImages = ExtractImagesFromXmlBasedPowerPoint(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
 
-        // TODO: What if images are not in same order in original and new?
-
-        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
+        return (oImages.Count == 0 && nImages.Count == 0) || (oImages.Count == nImages.Count && !oImages
+            .Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any());
     }
 
+    /// <summary>
+    /// Compares the color profile of a docx file and a PDF file
+    /// </summary>
+    /// <param name="files"></param>
+    /// <returns></returns>
     public static bool DocxToPdfColorProfileComparison(FilePair files)
     {
         var oImages = ExtractImagesFromDocx(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
         
-        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
+        return (oImages.Count == 0 && nImages.Count == 0) || (oImages.Count == nImages.Count && !oImages
+            .Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any());
     }
 
     public static bool ExcelToPdfColorProfileComparison(FilePair files)

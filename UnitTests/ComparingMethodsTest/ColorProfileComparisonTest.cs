@@ -237,6 +237,64 @@ public class ImageToImageColorProfileComparisonTest : TestBase
     }
 }
 
+public class DocxToPdfColorProfileComparisonTest : TestBase
+{
+    [Fact]
+    public void TestImagesOfDifferentProfiles()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "word_with_two_images_of_different_profile.docx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_two_images_of_different_profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/412", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.DocxToPdfColorProfileComparison(files);
+        Assert.True(result); // Two files with same color profiles should pass
+    }
+    
+    [Fact]
+    public void TestImagesOfSameProfiles()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "word_with_two_images_of_same_profile.docx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_two_images_of_same_profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/412", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.DocxToPdfColorProfileComparison(files);
+        Assert.True(result); // Two files with same color profiles should pass
+    }
+    
+    [Fact]
+    public void TestImagesWithOneMissingProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "word_with_two_images_with_one_missing_profile.docx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_two_images_with_one_missing_profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/412", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.DocxToPdfColorProfileComparison(files);
+        Assert.True(result); // Two files with same color profiles should pass
+    }
+    
+    [Fact]
+    public void TestImagesWithMissingProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "word_with_images_with_no_profile.docx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_images_with_no_profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/412", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.DocxToPdfColorProfileComparison(files);
+        Assert.True(result); // Two files with same color profiles should pass
+    }
+    
+    [Fact]
+    public void TestNoImages()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "word_with_no_images.docx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_no_images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/412", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.DocxToPdfColorProfileComparison(files);
+        Assert.True(result); // If there are no images it cant fail the test
+    }
+}
+
 public class PowerPointToPdfColorProfileComparisonTest : TestBase
 {
     [Fact]
@@ -362,5 +420,16 @@ public class FileColorProfileComparison : TestBase
         var files = new FilePair(oFilePath, "fmt/41", nFilePath, "fmt/477");
         var result = ColorProfileComparison.FileColorProfileComparison(files);
         Assert.False(result); // Image to PDF with different color profile should fail
+    }
+
+    [Fact]
+    public void TestDocxToPdf()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "word_with_two_images_of_different_profile.docx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_two_images_of_different_profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/412", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.True(result); // Two files where color profiles match should pass
     }
 }
