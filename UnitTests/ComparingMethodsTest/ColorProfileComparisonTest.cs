@@ -246,7 +246,7 @@ public class PowerPointToPdfColorProfileComparisonTest : TestBase
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_one_type_color_profile.pdf");
 
         var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
-        var result = ColorProfileComparison.PowerPointToPdfColorProfileComparison(files);
+        var result = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(files);
         Assert.True(result); // Two files where color profiles match should pass
     }
     
@@ -257,7 +257,7 @@ public class PowerPointToPdfColorProfileComparisonTest : TestBase
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_two_type_color_profile.pdf");
 
         var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
-        var result = ColorProfileComparison.PowerPointToPdfColorProfileComparison(files);
+        var result = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(files);
         Assert.True(result); // Two files where color profiles match should pass
     }
     
@@ -268,7 +268,7 @@ public class PowerPointToPdfColorProfileComparisonTest : TestBase
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_two_type_color_profile_wrong.pdf");
 
         var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
-        var result = ColorProfileComparison.PowerPointToPdfColorProfileComparison(files);
+        var result = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(files);
         Assert.False(result); // New file is missing profiles and so test should fail
     }
     
@@ -279,7 +279,7 @@ public class PowerPointToPdfColorProfileComparisonTest : TestBase
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_one_type_color_profile_and_one_missing.pdf");
 
         var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
-        var result = ColorProfileComparison.PowerPointToPdfColorProfileComparison(files);
+        var result = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(files);
         Assert.True(result); // Two files where color profiles match should pass
     }
     
@@ -290,7 +290,7 @@ public class PowerPointToPdfColorProfileComparisonTest : TestBase
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_with_no_color_profile.pdf");
 
         var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
-        var result = ColorProfileComparison.PowerPointToPdfColorProfileComparison(files);
+        var result = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(files);
         Assert.True(result); // Two files where neither has profiles should pass
     }
 

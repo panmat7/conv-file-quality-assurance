@@ -35,7 +35,7 @@ public static class ColorProfileComparison
                 _ when FormatCodes.PronomCodesPDFA.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat) =>
                     PdfToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
-                    => PowerPointToPdfColorProfileComparison(files),
+                    => XmlBasedPowerPointToPdfColorProfileComparison(files),
                 _ => throw new Exception("Unsupported comparison format.")
             };
         }
@@ -96,9 +96,9 @@ public static class ColorProfileComparison
         return nImages.Count <= 1 && CompareColorProfiles(oImage, nImages.First());
     }
     
-    public static bool PowerPointToPdfColorProfileComparison(FilePair files)
+    public static bool XmlBasedPowerPointToPdfColorProfileComparison(FilePair files)
     {
-        var oImages = ExtractImagesFromPowerPoint(files.OriginalFilePath);
+        var oImages = ExtractImagesFromXmlBasedPowerPoint(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
 
         // TODO: What if images are not in same order in original and new?
@@ -106,10 +106,12 @@ public static class ColorProfileComparison
         return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
     }
 
-    public static bool WordToPdfColorProfileComparison(FilePair files)
+    public static bool DocxToPdfColorProfileComparison(FilePair files)
     {
-        // TODO: Implement Word to PDF color profile comparison
-        return true;
+        var oImages = ExtractImagesFromDocx(files.OriginalFilePath);
+        var nImages = ExtractImagesFromPdf(files.NewFilePath);
+        
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
     }
 
     public static bool ExcelToPdfColorProfileComparison(FilePair files)
@@ -144,7 +146,12 @@ public static class ColorProfileComparison
         return extractedImages;
     }
 
-    private static List<MagickImage> ExtractImagesFromPowerPoint(string filePath)
+    /// <summary>
+    /// Extracts all images from a xml based power point format
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    private static List<MagickImage> ExtractImagesFromXmlBasedPowerPoint(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
     
@@ -159,6 +166,29 @@ public static class ColorProfileComparison
             })
             .ToList();
     
+        return images;
+    }
+    
+    /// <summary>
+    /// Extracts all images from a .docx file
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    private static List<MagickImage> ExtractImagesFromDocx(string filePath)
+    {
+        using var zip = ZipFile.OpenRead(filePath);
+
+        var images = zip.Entries
+            .Where(e => e.FullName.StartsWith("word/media/", StringComparison.OrdinalIgnoreCase))
+            .Select(e =>
+            {
+                using var stream = e.Open();
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return new MagickImage(memoryStream.ToArray());
+            })
+            .ToList();
+
         return images;
     }
 
