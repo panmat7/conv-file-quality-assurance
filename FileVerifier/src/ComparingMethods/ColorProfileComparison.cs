@@ -14,6 +14,7 @@ namespace AvaloniaDraft.ComparingMethods;
 // TODO: What if the same image is used multiple times. Only one image is then stored in XML
 // TODO: What if images are not in same order in original and new?
 // TODO: What if converted image to pdf and pdf does not have an image?
+// TODO: Does color space and gamma need to be considered?
 
 public static class ColorProfileComparison
 {
