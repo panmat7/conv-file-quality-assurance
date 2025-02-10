@@ -15,6 +15,9 @@ namespace AvaloniaDraft.ComparingMethods;
 // TODO: What if images are not in same order in original and new?
 // TODO: What if converted image to pdf and pdf does not have an image?
 // TODO: Does color space and gamma need to be considered?
+// TODO: In excel files if images are too wide they get cut and divided between the next page in a pdf.
+// Causing the image to split into two separate images.
+// TODO: Current way to extract images and their color profile does not work for images inside of cells.
 
 public static class ColorProfileComparison
 {
@@ -42,6 +45,8 @@ public static class ColorProfileComparison
                     => XmlBasedPowerPointToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesDOX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => DocxToPdfColorProfileComparison(files),
+                _ when FormatCodes.PronomCodesXLSX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
+                    => XlsxToPdfColorProfileComparison(files),
                 _ => throw new Exception("Unsupported comparison format.")
             };
         }
@@ -130,10 +135,13 @@ public static class ColorProfileComparison
             .Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any());
     }
 
-    public static bool ExcelToPdfColorProfileComparison(FilePair files)
+    public static bool XlsxToPdfColorProfileComparison(FilePair files)
     {
-        // TODO: Implement Excel to PDF color profile comparison
-        return true;
+        var oImages = ExtractImagesFromXlsx(files.OriginalFilePath);
+        var nImages = ExtractImagesFromPdf(files.NewFilePath);
+        
+        return (oImages.Count == 0 && nImages.Count == 0) || (oImages.Count == nImages.Count && !oImages
+            .Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any());
     }
 
     /// <summary>
@@ -196,6 +204,29 @@ public static class ColorProfileComparison
 
         var images = zip.Entries
             .Where(e => e.FullName.StartsWith("word/media/", StringComparison.OrdinalIgnoreCase))
+            .Select(e =>
+            {
+                using var stream = e.Open();
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return new MagickImage(memoryStream.ToArray());
+            })
+            .ToList();
+
+        return images;
+    }
+    
+    /// <summary>
+    /// Extracts all images from a .xlsx file
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    private static List<MagickImage> ExtractImagesFromXlsx(string filePath)
+    {
+        using var zip = ZipFile.OpenRead(filePath);
+
+        var images = zip.Entries
+            .Where(e => e.FullName.StartsWith("xl/media/", StringComparison.OrdinalIgnoreCase))
             .Select(e =>
             {
                 using var stream = e.Open();

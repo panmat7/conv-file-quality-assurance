@@ -354,6 +354,53 @@ public class PowerPointToPdfColorProfileComparisonTest : TestBase
 
 }
 
+public class XlsxToPdfColorProfileComparison : TestBase
+{
+    [Fact]
+    public void TestOneProfileMissingInCells()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_one_missing_profile_in_cells.xlsx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_one_missing_profile_in_cells.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/214", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.XlsxToPdfColorProfileComparison(files);
+        Assert.True(result);
+    }
+    
+    [Fact]
+    public void TestOneProfileMissingOverAndInCells()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_one_missing_profile_over_cells.xlsx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_one_missing_profile_over_cells.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/214", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.XlsxToPdfColorProfileComparison(files);
+        Assert.True(result);
+    }
+    
+    [Fact]
+    public void TestDifferentProfileOverAndInCells()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_two_images_of_different_profile_over_cells.xlsx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_two_images_of_different_profile_over_cells.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/214", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.XlsxToPdfColorProfileComparison(files);
+        Assert.True(result);
+    }
+    
+    [Fact]
+    public void TestSameProfileInCells()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_two_images_of_same_profile_in_cells.xlsx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_two_images_of_same_profile_in_cells.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/214", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.XlsxToPdfColorProfileComparison(files);
+        Assert.True(result);
+    }
+}
+
 public class FileColorProfileComparison : TestBase
 {
     [Fact]

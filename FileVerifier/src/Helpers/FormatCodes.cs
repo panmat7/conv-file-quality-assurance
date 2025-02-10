@@ -112,7 +112,7 @@ public static class FormatCodes
     
     public static readonly List<string> PronomCodesPPTX = 
     [
-        "fmt/214",
+        
         "fmt/215"
     ];
     
@@ -187,7 +187,7 @@ public static class FormatCodes
     
     public static readonly List<string> PronomCodesXLSX = 
     [
-        "fmt/215"
+        "fmt/214"
     ];
     
     public static readonly List<string> PronomCodesODS = 
