@@ -199,6 +199,21 @@ public static class FormatCodes
         "fmt/43", //JPEG 1.01
         "fmt/44", //JPEG 1.02
     ];
+
+    public static readonly ImmutableList<string> PronomCodesTIFF = 
+    [
+        "fmt/7", //Tagged Image File Format 3
+        "fmt/8", //Tagged Image File Format 4
+        "fmt/9", //Tagged Image File Format 5
+        "fmt/10", //Tagged Image File Format 6
+        
+        "fmt/353" //Tagged Image File Format
+    ];
+
+    public static readonly ImmutableList<string> PronomCodesBMP =
+    [
+            
+    ];
     
     public static readonly ImmutableList<string> PronomCodesGIF = 
     [
@@ -208,6 +223,8 @@ public static class FormatCodes
     
     public static readonly ImmutableList<string> PronomCodesImages = PronomCodesPNG
         .Concat(PronomCodesJPEG)
+        .Concat(PronomCodesTIFF)
+        .Concat(PronomCodesBMP)
         .Concat(PronomCodesGIF)
         .ToImmutableList();
 }

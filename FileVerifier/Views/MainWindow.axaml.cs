@@ -96,7 +96,7 @@ public partial class MainWindow : Window
         
         var f = new FileManager.FileManager(InputPath, OutputPath);
         f.GetSiegfriedFormats();
-        f.WritePairs();
+        f.TestStartThreads();
     }
 
     private void AppendMessageToConsole(string text)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Threading;
 
 namespace AvaloniaDraft.FileManager;
 
@@ -15,6 +16,7 @@ public class FilePair
     public string OriginalFileFormat { get; set; }
     public string NewFilePath { get; set; }
     public string NewFileFormat { get; set; }
+    public bool Done { get; set; }
 
     public FilePair(string oFilePath, string nFilePath)
     {
@@ -22,7 +24,7 @@ public class FilePair
         OriginalFileFormat = "";
         NewFilePath = nFilePath;
         NewFileFormat = "";
-        
+        Done = false;
     }
 
     public FilePair(string oFilePath, string oFileFormat, string nFilePath, string newFileFormat)
@@ -31,6 +33,7 @@ public class FilePair
         OriginalFileFormat = oFileFormat;
         NewFilePath = nFilePath;
         NewFileFormat = newFileFormat;
+        Done = false;
     }
 
     public override bool Equals(object? obj)
@@ -60,6 +63,11 @@ public class FileManager
     private List<FilePair> filePairs;
     private readonly List<string> pairlessFiles;
     private readonly IFileSystem _fileSystem;
+    private int filesDone = 0;
+    
+    //Theading
+    private int CurrentThreads = 0;
+    private static readonly object _lock = new object();
 
     public List<FilePair> GetFilePairs() => filePairs;
     public List<string> GetPairlessFiles() => pairlessFiles;
@@ -109,6 +117,67 @@ public class FileManager
     public void GetSiegfriedFormats()
     {
         Siegfried.GetFileFormats(oDirectory, nDirectory, ref filePairs);
+    }
+
+    public void TestStartThreads()
+    {
+        var maxThreads = 8; //Read from options later
+        var fileCount = filePairs.Count;
+        
+        Console.WriteLine($"MAXTHREADS: {maxThreads}");
+        Console.WriteLine($"FILES TO DO: {fileCount}");
+        
+        while (filesDone < fileCount)
+        {
+            Console.WriteLine($"Files Done: {filesDone}/{fileCount}. Using Threads: {CurrentThreads}. Available Threads: {maxThreads - CurrentThreads}.");
+
+            lock (_lock)
+            {
+                if (CurrentThreads < maxThreads)
+                {
+                    var assigned = 0;
+                    if (new Random().Next() % 2 == 0)
+                    {
+                        assigned = new Random().Next(1, 4);
+                        if (maxThreads < CurrentThreads + (1 + assigned))
+                        {
+                            assigned = maxThreads - CurrentThreads - 1;
+                        }
+                    }
+                    
+                    CurrentThreads += (1 + assigned);
+                    var thread = new Thread(ThreadTest);
+                    thread.Start(assigned);
+                }
+            }
+            
+            Thread.Sleep(100);
+        }
+        
+        Console.WriteLine($"Done with {filePairs.Count} pairs.");
+    }
+
+    private void ThreadTest(object assignedThreads)
+    {
+        var assigned = (int)assignedThreads;
+        
+        try
+        {
+            Console.WriteLine($"Thread #{CurrentThreads} started");
+            var random = new Random();
+            var randomInterval = random.Next(500, 1750);
+            Thread.Sleep(randomInterval);
+            Console.WriteLine(
+                $"Thread #{CurrentThreads} finished after {randomInterval} ms, returning {assigned} threads");
+        }
+        finally
+        {
+            lock (_lock)
+            {
+                CurrentThreads -= (assigned + 1);
+                filesDone++;
+            }
+        }
     }
     
     /// <summary>
