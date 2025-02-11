@@ -29,6 +29,7 @@ public static class MetadataStandarizer
         {
             if (metadata.AdditionalProperties.TryGetValue("PNG", out var pngData))
             {
+                //Height width
                 if (pngData.TryGetProperty("ImageWidth", out var w))
                 {
                     standardized.Add("ImgWidth", w.GetInt32());
@@ -39,6 +40,7 @@ public static class MetadataStandarizer
                     standardized.Add("ImgHeight", h.GetInt32());
                 }
                 
+                //Color data
                 if (pngData.TryGetProperty("BitDepth", out var depth))
                 {
                     standardized.Add("BitDepth", depth.GetInt32());
@@ -70,6 +72,7 @@ public static class MetadataStandarizer
                     standardized.Add("Gamma", gamma.GetDecimal());
                 }
                 
+                //Physical units
                 if (pngData.TryGetProperty("PixelsPerUnitX", out var ppux))
                 {
                     standardized.Add("PPUnitX", ppux.GetInt32());
@@ -88,8 +91,11 @@ public static class MetadataStandarizer
         } 
         else if (FormatCodes.PronomCodesJPEG.Contains(format))
         {
+            //Height and width
             standardized.Add("ImgWidth", metadata.File["ImageWidth"]);
             standardized.Add("ImgHeight", metadata.File["ImageHeight"]);
+            
+            //Color data
             standardized.Add("BitDepth", metadata.File["BitsPerSample"]);
 
             switch (metadata.File["ColorComponents"])
@@ -99,6 +105,7 @@ public static class MetadataStandarizer
                 default: standardized.Add("ColorType", ""); break;
             }
             
+            //Physical units
             if (metadata.AdditionalProperties.TryGetValue("JFIF", out var jfifData))
             {
                 if (jfifData.TryGetProperty("ResolutionUnit", out var resUnit))
@@ -116,8 +123,9 @@ public static class MetadataStandarizer
                     standardized.Add("PPUnitY", yRes.GetInt32());
                 }
             }
-
-            if (metadata.AdditionalProperties.TryGetValue("EXIF", out var exifData) && !standardized.ContainsKey("PixelUnit"))
+            
+            //Could be stored other places depending on file
+            if (!standardized.ContainsKey("PixelUnit") && metadata.AdditionalProperties.TryGetValue("EXIF", out var exifData))
             {
                 if (exifData.TryGetProperty("ResolutionUnit", out var resUnit))
                 {
@@ -134,7 +142,7 @@ public static class MetadataStandarizer
                     standardized.Add("PPUnitY", yRes.GetInt32());
                 }
             }
-
+            
             if (standardized.TryAdd("PixelUnit", "inches"))
             {
                 //Assuming default values
@@ -143,18 +151,105 @@ public static class MetadataStandarizer
             }
             
         }
+        else if (FormatCodes.PronomCodesBMP.Contains(format))
+        {
+            //Height and width
+            standardized.Add("ImgWidth", metadata.File["ImageWidth"]);
+            standardized.Add("ImgHeight", metadata.File["ImageHeight"]);
+
+            //Color data
+            var bitdepth = metadata.File["BitDepth"];
+            switch (bitdepth)
+            {
+                //This probably would require some confirmation. Based on my current info it seems correct but I am unsure
+                //if these could be some variations triggered by side properties.
+                case 1: standardized.Add("BitDepth", 1); standardized.Add("ColorType", "Mono"); break;
+                case 2: standardized.Add("BitDepth", 2); standardized.Add("ColorType", "Index"); break;
+                case 4: standardized.Add("BitDepth", 4); standardized.Add("ColorType", "Index"); break;
+                case 8: standardized.Add("BitDepth", 8); standardized.Add("ColorType", "Index"); break;
+                case 16: standardized.Add("BitDepth", 16); standardized.Add("ColorType", "RGB"); break; //High Color (565 or 555)
+                case 24: standardized.Add("BitDepth", 8); standardized.Add("ColorType", "RGB"); break;
+                case 32: standardized.Add("BitDepth", 8); standardized.Add("ColorType", "RGBA"); break;
+            }
+            
+            //Physical units
+            standardized["PPUnitX"] = metadata.File["PixelsPerMeterX"];
+            standardized["PPUnitY"] = metadata.File["PixelsPerMeterY"];
+            standardized["PixelUnit"] = "meters";
+            
+        }
         else if (FormatCodes.PronomCodesTIFF.Contains(format))
         {
-            //TODO
-        }
-        else if (FormatCodes.PronomCodesBMP.Contains(format))
-        
-        if (metadata.AdditionalProperties.TryGetValue("ICC_Profile", out var iccp))
-        {
-            if (iccp.TryGetProperty("PixelUnits", out var pu))
+            if (metadata.AdditionalProperties.TryGetValue("EXIF", out var exifData))
             {
-                standardized.Add("PixelUnit", pu.GetString() ?? "");
+                //Height and width
+                if (exifData.TryGetProperty("ImageWidth", out var w))
+                {
+                    standardized.Add("ImgWidth", w.GetInt32());
+                }
+                
+                if (exifData.TryGetProperty("ImageHeight", out var h))
+                {
+                    standardized.Add("ImgHeight", h.GetInt32());
+                }
+                
+                //Color data
+                if (exifData.TryGetProperty("BitsPerSample", out var bitdepth))
+                {
+                    var type = bitdepth.GetType();
+                    
+                    //When no separation between RGB, represented as number
+                    if(type == typeof(int)) {
+                        var bitspersample = bitdepth.GetInt32();
+
+                        switch (bitspersample)
+                        {
+                            case 1:
+                                standardized.Add("BitDepth", 1);
+                                standardized.Add("ColorType", "Mono");
+                                break;
+                            case 4:
+                                standardized.Add("BitDepth", 2);
+                                standardized.Add("ColorType", "Index");
+                                break;
+                            case 8:
+                                standardized.Add("BitDepth", 8);
+                                standardized.Add("ColorType", "Index");
+                                break;
+                        }
+                    }
+                    
+                    //Otherwise represented as string
+                    if (type == typeof(string))
+                    {
+                        var bitspersample = bitdepth.GetString() ?? "";
+
+                        switch (bitspersample)
+                        {
+                            case "8 8 8": standardized.Add("BitDepth", 8); standardized.Add("ColorType", "RGB"); break;
+                            case "8 8 8 8": standardized.Add("BitDepth", 8); standardized.Add("ColorType", "RGBA"); break;
+                        }
+                    }
+                }
+                
+                //Physical units
+                if (exifData.TryGetProperty("ResolutionUnit", out var resUnit))
+                {
+                    standardized.Add("PixelUnit", resUnit.GetString() ?? "");
+                }
+
+                if (exifData.TryGetProperty("XResolution", out var xRes))
+                {
+                    standardized.Add("PPUnitX", xRes.GetInt32());
+                }
+
+                if (exifData.TryGetProperty("YResolution", out var yRes))
+                {
+                    standardized.Add("PPUnitY", yRes.GetInt32());
+                }
             }
+            
+            
         }
         
         return standardized;

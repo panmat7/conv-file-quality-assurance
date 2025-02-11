@@ -212,7 +212,12 @@ public static class FormatCodes
 
     public static readonly ImmutableList<string> PronomCodesBMP =
     [
-            
+        "fmt/114", //Windows Bitmap 1.0
+        "fmt/115", //Windows Bitmap 2.0
+        "fmt/116", //Windows Bitmap 3.0
+        "fmt/117", //Windows Bitmap 3.0 NT
+        "fmt/118", //Windows Bitmap 4.0
+        "fmt/119"  //Windows Bitmap 5.0
     ];
     
     public static readonly ImmutableList<string> PronomCodesGIF = 
