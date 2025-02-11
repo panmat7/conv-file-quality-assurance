@@ -11,14 +11,9 @@ using System.Xml.Linq;
 
 namespace AvaloniaDraft.ComparingMethods;
 
-// TODO: What if files do not have images
+// TODO: Several cases need to be included
 // TODO: What if the same image is used multiple times. Only one image is then stored in XML
 // TODO: What if images are not in same order in original and new?
-// TODO: What if converted image to pdf and pdf does not have an image?
-// TODO: Does color space and gamma need to be considered?
-// TODO: In excel files if images are too wide they get cut and divided between the next page in a pdf.
-// Causing the image to split into two separate images.
-// TODO: Current way to extract images and their color profile does not work for images inside of cells.
 
 public static class ColorProfileComparison
 {
@@ -79,6 +74,9 @@ public static class ColorProfileComparison
     {
         var oImages = ExtractImagesFromPdf(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
+
+        // If there are no images no test is done and we return true
+        if (oImages.Count < 1) return true;
         
         // If there are different number of images in the PDF files, it means there is a loss of data and we fail the test
         if (oImages.Count != nImages.Count)
@@ -118,6 +116,9 @@ public static class ColorProfileComparison
         var oImages = ExtractImagesFromXmlBasedPowerPoint(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
 
+        // If there are no images no test is done and we return true
+        if (oImages.Count < 1) return true;
+        
         return (oImages.Count == 0 && nImages.Count == 0) || (oImages.Count == nImages.Count && !oImages
             .Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any());
     }
@@ -132,6 +133,9 @@ public static class ColorProfileComparison
         var oImages = ExtractImagesFromDocx(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
         
+        // If there are no images no test is done and we return true
+        if (oImages.Count < 1) return true;
+        
         return (oImages.Count == 0 && nImages.Count == 0) || (oImages.Count == nImages.Count && !oImages
             .Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any());
     }
@@ -140,12 +144,17 @@ public static class ColorProfileComparison
     {
         var imagesOverCells = GetNonAnchoredImagesFromXlsx(files.OriginalFilePath);
         
+        // Get the array position of images
         var imageNumbersOverCells = imagesOverCells.Select(image => int.Parse(new string(image
             .Where(char.IsDigit).ToArray())) - 1).ToList();
         
         var oImages = ExtractImagesFromXlsx(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
         
+        // If there are no images no test is done and we return true
+        if (oImages.Count < 1) return true;
+        
+        // Do comparison only on images that are not drawn over cell
         return !oImages.Where((t, i) => imageNumbersOverCells.Count != 0 && 
                                         imageNumbersOverCells.Contains(i) && 
                                         !CompareColorProfiles(t, nImages[i])).Any();
