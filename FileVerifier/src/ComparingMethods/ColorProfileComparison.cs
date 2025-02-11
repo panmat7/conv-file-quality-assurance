@@ -7,6 +7,7 @@ using ImageMagick;
 using UglyToad.PdfPig;
 using System.IO;
 using System.IO.Compression;
+using System.Xml.Linq;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -137,11 +138,17 @@ public static class ColorProfileComparison
 
     public static bool XlsxToPdfColorProfileComparison(FilePair files)
     {
+        var imagesOverCells = GetNonAnchoredImagesFromXlsx(files.OriginalFilePath);
+        
+        var imageNumbersOverCells = imagesOverCells.Select(image => int.Parse(new string(image
+            .Where(char.IsDigit).ToArray())) - 1).ToList();
+        
         var oImages = ExtractImagesFromXlsx(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
         
-        return (oImages.Count == 0 && nImages.Count == 0) || (oImages.Count == nImages.Count && !oImages
-            .Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any());
+        return !oImages.Where((t, i) => imageNumbersOverCells.Count != 0 && 
+                                        imageNumbersOverCells.Contains(i) && 
+                                        !CompareColorProfiles(t, nImages[i])).Any();
     }
 
     /// <summary>
@@ -171,7 +178,7 @@ public static class ColorProfileComparison
     }
 
     /// <summary>
-    /// Extracts all images from a xml based power point format
+    /// Extracts all images from a xml based PowerPoint format
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
@@ -260,5 +267,61 @@ public static class ColorProfileComparison
             _ => nProfile != null && // If only one image has a color profile it means loss of data
                  oProfile.Equals(nProfile)
         };
+    }
+    
+    /// <summary>
+    /// This function returns a list of all image names used in a xlsx spreadsheet. This is mostly used to determine which
+    /// images are drawn inside of cells. Images inside of cells do not store data on color profile and so a way to ignore
+    /// these images is necessary. Getting the names of the images inside of cells is not possible so instead names of all
+    /// other images are found to filter them out.
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static List<string> GetNonAnchoredImagesFromXlsx(string filePath)
+    {
+        var imageNames = new List<string>();
+
+        using (var archive = ZipFile.Open(filePath, ZipArchiveMode.Read))
+        {
+            foreach (var entry in archive.Entries)
+            {
+                // Check for drawing XML files in 'xl/drawings/'
+                if (!entry.FullName.StartsWith("xl/drawings/drawing") || !entry.FullName.EndsWith(".xml")) continue;
+                using var stream = entry.Open();
+                using var reader = new StreamReader(stream);
+                var doc = XDocument.Load(reader);
+
+                XNamespace a = "http://schemas.openxmlformats.org/drawingml/2006/main";
+                XNamespace r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+
+                foreach (var blip in doc.Descendants(a + "blip"))
+                {
+                    var embedId = blip.Attribute(r + "embed")?.Value;
+                    if (string.IsNullOrEmpty(embedId)) continue;
+
+                    // Construct .rels path with forward slashes
+                    var drawingDir = Path.GetDirectoryName(entry.FullName)?.Replace('\\', '/');
+                    var relsPath = $"{drawingDir}/_rels/{Path.GetFileName(entry.FullName)}.rels";
+
+                    var relsEntry = archive.GetEntry(relsPath);
+                    if (relsEntry == null) continue;
+
+                    using var relsStream = relsEntry.Open();
+                    using var relsReader = new StreamReader(relsStream);
+                    var relsDoc = XDocument.Load(relsReader);
+                    XNamespace relsNs = "http://schemas.openxmlformats.org/package/2006/relationships";
+
+                    var relationship = relsDoc.Descendants(relsNs + "Relationship")
+                        .FirstOrDefault(rel =>
+                            (string)rel.Attribute("Id")! == embedId &&
+                            (string)rel.Attribute("Type")! == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+
+                    if (relationship == null) continue;
+                    var target = (string)relationship.Attribute("Target")!;
+                    imageNames.Add(Path.GetFileName(target));
+                }
+            }
+        }
+        return imageNames.Distinct().ToList(); // Ensure unique names
     }
 }

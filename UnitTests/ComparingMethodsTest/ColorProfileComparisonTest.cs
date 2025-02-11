@@ -401,7 +401,22 @@ public class XlsxToPdfColorProfileComparison : TestBase
     }
 }
 
-public class FileColorProfileComparison : TestBase
+public class GetNonAnchoredImagesFromXlsxTest : TestBase
+{
+    [Fact]
+    public void TestRetrieveImages()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "Spreadsheet", 
+            "excel_with_two_images_of_different_profile_over_cells.xlsx");
+
+        var expected = new List<string> { "image2.jpg" };
+        var result = ColorProfileComparison.GetNonAnchoredImagesFromXlsx(filePath);
+        
+        Assert.Equal(expected, result);
+    }
+}
+
+public class FileColorProfileComparisonTest : TestBase
 {
     [Fact]
     public void TestImageToImage()
@@ -478,5 +493,16 @@ public class FileColorProfileComparison : TestBase
         var files = new FilePair(oFilePath, "fmt/412", nFilePath, "fmt/477");
         var result = ColorProfileComparison.FileColorProfileComparison(files);
         Assert.True(result); // Two files where color profiles match should pass
+    }
+
+    [Fact]
+    public void TestXlsxToPdf()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_two_images_of_different_profile_over_cells.xlsx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_two_images_of_different_profile_over_cells.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/214", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.True(result);
     }
 }
