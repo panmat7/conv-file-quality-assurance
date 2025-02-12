@@ -30,8 +30,8 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border BorderBrush="Red" BorderThickness="2" Grid.Row="0" Padding="10" 
-                Background="#FF4444">
+        <Border BorderBrush="#56A3A6" BorderThickness="2" Grid.Row="0" Padding="10" 
+                Background="#56A3A6">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="20">
                     <Button x:Name="HomeButton" Content="Home" 
@@ -43,10 +43,6 @@
                             BorderThickness="0" FontSize="16"
                             Click="SettingsButton_Click"/>
                 </StackPanel>
-
-                <TextBlock Text="FileVerifier" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Foreground="White" FontSize="24" FontWeight="Bold" Grid.Column="1"/>
             </Grid>
         </Border>
 
@@ -57,8 +53,8 @@
         </ContentControl>
 
         <!-- Footer -->
-        <Border Grid.Row="2" BorderBrush="#FF4444" BorderThickness="2" CornerRadius="5" 
-                Background="#FF4444" Padding="10">
+        <Border Grid.Row="2" BorderBrush="#56A3A6" BorderThickness="2" CornerRadius="5" 
+                Background="#56A3A6" Padding="10">
             <TextBlock Text="© An application by Petter, Snorre, Mateusz, and Fredrik" 
                        HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White"/>
         </Border>
