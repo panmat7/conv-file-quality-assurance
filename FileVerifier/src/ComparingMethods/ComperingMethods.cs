@@ -145,7 +145,7 @@ public static class ComperingMethods
     /// <exception cref="ArgumentNullException">Thrown when any of the input file paths are null or empty.</exception>
     /// <exception cref="IOException">Thrown when there's an issue reading the image files (e.g., unsupported format or file corruption).</exception>
     /// <exception cref="Exception">Thrown for any unexpected error that may occur during the comparison process.</exception>
-    public static double PbpImageComparing(FilePair files)
+    public static double PbpImageComparing(FilePair files) // thread allowed to start parameter
     {
         var path1 = files.OriginalFilePath;
         var path2 = files.NewFilePath;
