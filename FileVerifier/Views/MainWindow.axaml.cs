@@ -106,6 +106,7 @@ public partial class MainWindow : Window
     {
         if (string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
         
+        // For Input folder files
         AppendMessageToConsole("INPUT:");
         var files = Directory.GetFiles(InputPath);
         AppendMessageToConsole($"Number of files in Input folder: {files.Length}");
@@ -116,7 +117,7 @@ public partial class MainWindow : Window
             AppendMessageToConsole($"{keyValuePair.Key}: {keyValuePair.Value}");
         }
         
-        
+        // For Output folder files
         AppendMessageToConsole("OUTPUT:");
         files = Directory.GetFiles(OutputPath);
         AppendMessageToConsole($"Number of files in Output folder: {files.Length}");

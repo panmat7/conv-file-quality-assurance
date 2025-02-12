@@ -40,68 +40,80 @@ public static class Siegfried
     /// <param name="files">The list of file pairs from both directories</param>
     public static void GetFileFormats(string originalDir, string newDir, ref List<FilePair> files)
     {
+        string terminal = "";
+        string arguments = "";
+        string windowsTerminal = "powershell.exe";
+        string linuxTerminal = "/bin/bash";
+        string windowsArguments = $"-ExecutionPolicy Bypass -Command \"sf -json {originalDir}; sf -json {newDir}\"";
+        string linuxArguments = $"-c \"sf -json {originalDir}; sf -json {newDir}\"";
+        
         if (OperatingSystem.IsWindows())
         {
-            //Using powershell to run siegfried (REQUIRES LOCAL INSTALLATION AND PRESENCE IN PATH)
-            var psi = new ProcessStartInfo
-            {
-                FileName = "powershell.exe",
-                Arguments = $"-ExecutionPolicy Bypass -Command \"sf -json {originalDir}; sf -json {newDir}\"",
-                CreateNoWindow = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                RedirectStandardError = true,
-            };
-    
-            using var process = new Process();
-            process.StartInfo = psi;
-           
-            try { process.Start(); }
-            catch(Exception ex)
-            {
-                throw new Exception($"Unable to start powershell.exe and Siegfried: {ex.Message}");
-            }
-            
-            //Currently error-prone - if one of the files is empty the entire json sequence if broken.
-            var output = process.StandardOutput.ReadToEnd();
-            var error = process.StandardError.ReadToEnd();
-            
-            if (!string.IsNullOrEmpty(error)) throw new Exception(error);
-            
-            //Output currently contains two json object separated by a new line, needs to be split 
-            var outputSep = output.Split("\n");
-            outputSep = outputSep.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-            
-            //Should always result in array of length 2 - a JSON object per command
-            if (outputSep.Length != 2) throw new Exception("Invalid Siegfried output");
-            
-            var originalOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[0]);
-            var newOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[1]);
-            
-            if(originalOutput == null || newOutput == null) throw new Exception("Invalid Siegfried output");
-            
-            //Removing files with no matches TODO: Log them
-            originalOutput.Files = originalOutput.Files.Where(f => f.Matches.Count > 0).ToList();
-            newOutput.Files = newOutput.Files.Where(f => f.Matches.Count > 0).ToList();
-            
-            //Assign files their format
-            foreach (var file in files)
-            {
-                file.OriginalFileFormat = originalOutput.Files.First(
-                        f => f.Name == file.OriginalFilePath)
-                    .Matches[0].id;
-                
-                file.NewFileFormat = newOutput.Files.First(
-                    f => f.Name == file.NewFilePath)
-                    .Matches[0].id;
-            }
-        
-            process.WaitForExit();
+            terminal = windowsTerminal;
+            arguments = windowsArguments;
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            terminal = linuxTerminal;
+            arguments = linuxArguments;
         }
 
-        if (OperatingSystem.IsLinux())
+        //Using powershell to run siegfried (REQUIRES LOCAL INSTALLATION AND PRESENCE IN PATH)
+        var processInfo = new ProcessStartInfo
         {
-            //TODO
+            FileName = terminal,
+            Arguments = arguments,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            RedirectStandardError = true,
+        };
+
+        using var process = new Process();
+        process.StartInfo = processInfo;
+       
+        try { process.Start(); }
+        catch(Exception ex)
+        {
+            throw new Exception($"Unable to start powershell.exe and Siegfried: {ex.Message}");
         }
+        
+        //Currently error-prone - if one of the files is empty the entire json sequence if broken.
+        var output = process.StandardOutput.ReadToEnd();
+        var error = process.StandardError.ReadToEnd();
+        
+        if (!string.IsNullOrEmpty(error)) throw new Exception(error);
+        
+        //Output currently contains two json object separated by a new line, needs to be split 
+        var outputSep = output.Split("\n");
+        outputSep = outputSep.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+        
+        //Should always result in array of length 2 - a JSON object per command
+        if (outputSep.Length != 2) throw new Exception("Invalid Siegfried output");
+        
+        var originalOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[0]);
+        var newOutput = JsonSerializer.Deserialize<SiegfriedOutputJson>(outputSep[1]);
+        
+        if(originalOutput == null || newOutput == null) throw new Exception("Invalid Siegfried output");
+        
+        //Removing files with no matches TODO: Log them
+        originalOutput.Files = originalOutput.Files.Where(f => f.Matches.Count > 0).ToList();
+        newOutput.Files = newOutput.Files.Where(f => f.Matches.Count > 0).ToList();
+        
+        //Assign files their format
+        foreach (var file in files)
+        {
+            Console.WriteLine($"{file.OriginalFilePath} - {file.NewFilePath}");
+            file.OriginalFileFormat = originalOutput.Files.First(
+                    f => f.Name == file.OriginalFilePath)
+                .Matches[0].id;
+            
+            file.NewFileFormat = newOutput.Files.First(
+                f => f.Name == file.NewFilePath)
+                .Matches[0].id;
+        }
+        process.WaitForExit();
     }
+    
+    
 }
