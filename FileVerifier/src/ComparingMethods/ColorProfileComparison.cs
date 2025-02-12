@@ -119,8 +119,7 @@ public static class ColorProfileComparison
         // If there are no images no test is done and we return true
         if (oImages.Count < 1) return true;
         
-        return (oImages.Count == 0 && nImages.Count == 0) || (oImages.Count == nImages.Count && !oImages
-            .Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any());
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
     }
 
     /// <summary>
@@ -136,8 +135,7 @@ public static class ColorProfileComparison
         // If there are no images no test is done and we return true
         if (oImages.Count < 1) return true;
         
-        return (oImages.Count == 0 && nImages.Count == 0) || (oImages.Count == nImages.Count && !oImages
-            .Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any());
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
     }
 
     public static bool XlsxToPdfColorProfileComparison(FilePair files)
