@@ -43,7 +43,7 @@ public static class ColorProfileComparison
                     => DocxToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesXLSX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => XlsxToPdfColorProfileComparison(files),
-                _ => throw new Exception("Unsupported comparison format.")
+                _ => throw new NotSupportedException("Unsupported comparison format.")
             };
         }
         catch (Exception e)
@@ -86,7 +86,7 @@ public static class ColorProfileComparison
         // If there is only one image in each PDF file, we compare the color profiles of the images
         if (oImages.Count == 1 && nImages.Count == 1)
         {
-            return CompareColorProfiles(oImages.First(), nImages.First());
+            return CompareColorProfiles(oImages[0], nImages[0]);
         }
         // If there are multiple images in the PDF files, we compare the color profiles of each image
         return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
@@ -103,7 +103,7 @@ public static class ColorProfileComparison
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
         
         // Check if more than one image is extracted from the PDF file
-        return nImages.Count <= 1 && CompareColorProfiles(oImage, nImages.First());
+        return nImages.Count <= 1 && CompareColorProfiles(oImage, nImages[0]);
     }
     
     /// <summary>
@@ -292,45 +292,73 @@ public static class ColorProfileComparison
 
         using (var archive = ZipFile.Open(filePath, ZipArchiveMode.Read))
         {
-            foreach (var entry in archive.Entries)
-            {
-                // Check for drawing XML files in 'xl/drawings/'
-                if (!entry.FullName.StartsWith("xl/drawings/drawing") || !entry.FullName.EndsWith(".xml")) continue;
-                using var stream = entry.Open();
-                using var reader = new StreamReader(stream);
-                var doc = XDocument.Load(reader);
+            var drawingEntries = archive.Entries
+                .Where(entry => entry.FullName.StartsWith("xl/drawings/drawing") && entry.FullName.EndsWith(".xml"));
 
-                XNamespace a = "http://schemas.openxmlformats.org/drawingml/2006/main";
-                XNamespace r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-
-                foreach (var blip in doc.Descendants(a + "blip"))
-                {
-                    var embedId = blip.Attribute(r + "embed")?.Value;
-                    if (string.IsNullOrEmpty(embedId)) continue;
-
-                    // Construct .rels path with forward slashes
-                    var drawingDir = Path.GetDirectoryName(entry.FullName)?.Replace('\\', '/');
-                    var relsPath = $"{drawingDir}/_rels/{Path.GetFileName(entry.FullName)}.rels";
-
-                    var relsEntry = archive.GetEntry(relsPath);
-                    if (relsEntry == null) continue;
-
-                    using var relsStream = relsEntry.Open();
-                    using var relsReader = new StreamReader(relsStream);
-                    var relsDoc = XDocument.Load(relsReader);
-                    XNamespace relsNs = "http://schemas.openxmlformats.org/package/2006/relationships";
-
-                    var relationship = relsDoc.Descendants(relsNs + "Relationship")
-                        .FirstOrDefault(rel =>
-                            (string)rel.Attribute("Id")! == embedId &&
-                            (string)rel.Attribute("Type")! == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-
-                    if (relationship == null) continue;
-                    var target = (string)relationship.Attribute("Target")!;
-                    imageNames.Add(Path.GetFileName(target));
-                }
-            }
+            imageNames.AddRange(from entry in drawingEntries let doc = LoadXDocument(entry) 
+                let blipElements = GetBlipElements(doc) from blip in blipElements 
+                let embedId = blip
+                    .Attribute(XNamespace.Get("http://schemas.openxmlformats.org/officeDocument/2006/relationships") 
+                               + "embed")?.Value where !string.IsNullOrEmpty(embedId) 
+                let relsEntry = GetRelsEntry(archive, entry) select GetRelationship(relsEntry, embedId) 
+                into relationship select (string)relationship?.Attribute("Target")! into target 
+                select Path.GetFileName(target));
         }
         return imageNames.Distinct().ToList(); // Ensure unique names
+    }
+
+    /// <summary>
+    /// Load an XDocument from a ZipArchiveEntry
+    /// </summary>
+    /// <param name="entry"></param>
+    /// <returns></returns>
+    private static XDocument LoadXDocument(ZipArchiveEntry entry)
+    {
+        using var stream = entry.Open();
+        using var reader = new StreamReader(stream);
+        return XDocument.Load(reader);
+    }
+
+    /// <summary>
+    /// Get all blip elements from a drawing XML
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    private static IEnumerable<XElement> GetBlipElements(XDocument doc)
+    {
+        XNamespace a = "http://schemas.openxmlformats.org/drawingml/2006/main";
+        return doc.Descendants(a + "blip");
+    }
+
+    /// <summary>
+    /// Get the _rels entry for a drawing entry
+    /// </summary>
+    /// <param name="archive"></param>
+    /// <param name="entry"></param>
+    /// <returns></returns>
+    private static ZipArchiveEntry? GetRelsEntry(ZipArchive archive, ZipArchiveEntry entry)
+    {
+        var drawingDir = Path.GetDirectoryName(entry.FullName)?.Replace('\\', '/');
+        var relsPath = $"{drawingDir}/_rels/{Path.GetFileName(entry.FullName)}.rels";
+        return archive.GetEntry(relsPath);
+    }
+
+    /// <summary>
+    /// Get the relationship for an embedId
+    /// </summary>
+    /// <param name="relsEntry"></param>
+    /// <param name="embedId"></param>
+    /// <returns></returns>
+    private static XElement? GetRelationship(ZipArchiveEntry? relsEntry, string embedId)
+    {
+        using var relsStream = relsEntry?.Open();
+        if (relsStream == null) return null;
+        using var relsReader = new StreamReader(relsStream);
+        var relsDoc = XDocument.Load(relsReader);
+        XNamespace relsNs = "http://schemas.openxmlformats.org/package/2006/relationships";
+        return relsDoc.Descendants(relsNs + "Relationship")
+            .FirstOrDefault(rel =>
+                (string)rel.Attribute("Id")! == embedId &&
+                (string)rel.Attribute("Type")! == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
     }
 }
