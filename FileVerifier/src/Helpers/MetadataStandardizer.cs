@@ -61,47 +61,18 @@ public static class MetadataStandardizer
         else
             standardized.Add("ColorType", "");
         
-        if (pngDictionary.TryGetValue("SRGBRendering", out var r) && r.Value<string>() is string rs)
-            standardized.Add("Rendering", rs);
-        else
-            standardized.Add("Rendering", "");
-        
-        
-        if (pngDictionary.TryGetValue("Gamma", out var g) && g.Value<double>() is double gd)
-            standardized.Add("Gamma", gd);
-        else
-            standardized.Add("Gamma", 0.0);
-        
-        //Physical units
-        if (pngDictionary.TryGetValue("PixelsPerUnitX", out var ppux) && ppux.Value<int>() is int ppuxi)
-            standardized.Add("PPUnitX", ppuxi);
-        else
-            standardized.Add("PPUnitX", 0);
-        
-        if (pngDictionary.TryGetValue("PixelsPerUnitY", out var ppuy) && ppuy.Value<int>() is int ppuyi)
-            standardized.Add("PPUnitY", ppuyi);
-        else
-            standardized.Add("PPUnitY", 0);
-        
-        if (pngDictionary.TryGetValue("PixelUnits", out var pu) && pu.Value<string>() is string pus)
-            standardized.Add("PixelUnit", pus);
-        else
-            standardized.Add("Rendering", "");
+        standardized["Rendering"] = pngDictionary.TryGetValue("SRGBRendering", out var r) ? r.Value<string?>() ?? "" : "";
+        standardized["Gamma"] = pngDictionary.TryGetValue("Gamma", out var g) ? g.Value<double?>() ?? 0.0 : 0.0;
+        standardized["PPUnitX"] = pngDictionary.TryGetValue("PixelsPerUnitX", out var ppux) ? ppux.Value<int?>() ?? 0 : 0;
+        standardized["PPUnitY"] = pngDictionary.TryGetValue("PixelsPerUnitY", out var ppuy) ? ppuy.Value<int?>() ?? 0 : 0;
+        standardized["PixelUnit"] = pngDictionary.TryGetValue("PixelUnits", out var pu) ? pu.Value<string?>() ?? "" : "";
     }
 
     private static void ProcessJPEG(ImageMetadata metadata, ref Dictionary<string, object> standardized)
     {
         //Height and width
-        try
-        {
-            standardized.Add("ImgWidth", metadata.File["ImageWidth"]);
-            standardized.Add("ImgHeight", metadata.File["ImageHeight"]);
-        }
-        catch
-        {
-            standardized.Add("ImgWidth", 0);
-            standardized.Add("ImgHeight", 0);
-        }
+        standardized["ImgWidth"] = metadata.File.TryGetValue("ImageWidth", out var width) ? width : 0;
+        standardized["ImgHeight"] = metadata.File.TryGetValue("ImageHeight", out var height) ? height : 0;
 
         //Color data
         try
@@ -126,21 +97,9 @@ public static class MetadataStandardizer
         if (metadata.AdditionalProperties.TryGetValue("JFIF", out var jfifData) &&
             jfifData is JObject jfifDictionary)
         {
-            if (jfifDictionary.TryGetValue("ResolutionUnit", out var ru) &&
-                ru.Value<string>() is string resolutionUnit)
-                standardized.Add("PixelUnit", resolutionUnit);
-            else
-                standardized.Add("ResolutionUnit", "");
-            
-            if (jfifDictionary.TryGetValue("XResolution", out var xres) && xres.Value<int?>() is int xResolution)
-                standardized.Add("PPUnitX", xResolution);
-            else
-                standardized.Add("PPUnitX", 0);
-            
-            if (jfifDictionary.TryGetValue("YResolution", out var yres) && yres.Value<int?>() is int yResolution)
-                standardized.Add("PPUnitY", yResolution);
-            else
-                standardized.Add("PPUnitY", 0);
+            standardized["PixelUnit"] = jfifDictionary.TryGetValue("ResolutionUnit", out var ru) ? ru.Value<string?>() ?? "" : "";
+            standardized["PPUnitX"] = jfifDictionary.TryGetValue("XResolution", out var xres) ? xres.Value<int?>() ?? 0 : 0;
+            standardized["PPUnitY"] = jfifDictionary.TryGetValue("YResolution", out var yres) ? yres.Value<int?>() ?? 0 : 0;
         }
 
         // EXIF metadata extraction (if JFIF is missing)
@@ -148,21 +107,9 @@ public static class MetadataStandardizer
             metadata.AdditionalProperties.TryGetValue("EXIF", out var exifData) &&
             exifData is JObject exifDictionary)
         {
-            if (exifDictionary.TryGetValue("ResolutionUnit", out var ru) &&
-                ru.Value<string>() is string resolutionUnit)
-                standardized.Add("PixelUnit", resolutionUnit);
-            else
-                standardized.Add("PixelUnit", "");
-            
-            if (exifDictionary.TryGetValue("XResolution", out var xres) && xres.Value<int?>() is int xResolution)
-                standardized.Add("PPUnitX", xResolution);
-            else
-                standardized.Add("PPUnitX", 0);
-            
-            if (exifDictionary.TryGetValue("YResolution", out var yres) && yres.Value<int?>() is int yResolution)
-                standardized.Add("PPUnitY", yResolution);
-            else
-                standardized.Add("PPUnitY", 0);
+            standardized["PixelUnit"] = exifDictionary.TryGetValue("ResolutionUnit", out var ru) ? ru.Value<string?>() ?? "" : "";
+            standardized["PPUnitX"] = exifDictionary.TryGetValue("XResolution", out var xres) ? xres.Value<int?>() ?? 0 : 0;
+            standardized["PPUnitY"] = exifDictionary.TryGetValue("YResolution", out var yres) ? yres.Value<int?>() ?? 0 : 0;
         }
 
         // If PixelUnit is still missing, assume defaults
@@ -177,16 +124,8 @@ public static class MetadataStandardizer
     private static void ProcessBMP(ImageMetadata metadata, ref Dictionary<string, object> standardized)
     {
         //Height and width
-        try
-        {
-            standardized.Add("ImgWidth", metadata.File["ImageWidth"]);
-            standardized.Add("ImgHeight", metadata.File["ImageHeight"]);
-        }
-        catch
-        {
-            standardized.Add("ImgWidth", 0);
-            standardized.Add("ImgHeight", 0);
-        }
+        standardized["ImgWidth"] = metadata.File.TryGetValue("ImageWidth", out var w) ? w : 0;
+        standardized["ImgHeight"] = metadata.File.TryGetValue("ImageHeight", out var h) ? h : 0;
 
         try
         {
@@ -232,19 +171,10 @@ public static class MetadataStandardizer
             standardized.TryAdd("ColorType", "");
         }
         
-        try
-        {
-            //Physical units
-            standardized["PPUnitX"] = metadata.File["PixelsPerMeterX"];
-            standardized["PPUnitY"] = metadata.File["PixelsPerMeterY"];
-            standardized["PixelUnit"] = "meters";
-        }
-        catch
-        {
-            standardized.TryAdd("PPUnitX", 0);
-            standardized.TryAdd("PPUnitY", 0);
-            standardized.TryAdd("PixelUnit", "");
-        }
+        //Physical units
+        standardized["PPUnitX"] = metadata.File.TryGetValue("PixelsPerMeterX", out var ppmx) ? ppmx : 0;
+        standardized["PPUnitY"] = metadata.File.TryGetValue("PixelsPerMeterY", out var ppmy) ? ppmy : 0;
+        standardized["PixelUnit"] = "meters";
     }
 
     private static void ProcessTIFF(ImageMetadata metadata, ref Dictionary<string, object> standardized)
@@ -254,16 +184,8 @@ public static class MetadataStandardizer
             return;
 
         //Height and width
-        try
-        {
-            standardized.Add("ImgWidth", metadata.File["ImageWidth"]);
-            standardized.Add("ImgHeight", metadata.File["ImageHeight"]);
-        }
-        catch
-        {
-            standardized.Add("ImgWidth", 0);
-            standardized.Add("ImgHeight", 0);
-        }
+        standardized["ImgWidth"] = exifDictionary.TryGetValue("ImageWidth", out var w) ? w : 0;
+        standardized["ImgHeight"] = exifDictionary.TryGetValue("ImageHeight", out var h) ? h : 0;
 
         //Color data
         try
@@ -306,9 +228,8 @@ public static class MetadataStandardizer
             standardized.TryAdd("ColorType", "");
         }
         
-     
-        standardized.Add("PixelUnit", exifDictionary["ResolutionUnit"] ?? "");
-        standardized.Add("PPUnitX", exifDictionary["XResolution"] ?? 0);
-        standardized.Add("PPUnitY", exifDictionary["YResolution"] ?? 0);
+        standardized["PixelUnit"] = exifDictionary.TryGetValue("ResolutionUnit", out var ru) ? ru ?? "" : "";
+        standardized["PPUnitX"] = exifDictionary.TryGetValue("XResolution", out var xres) ? xres.Value<int?>() ?? 0 : 0;
+        standardized["PPUnitY"] = exifDictionary.TryGetValue("YResolution", out var yres) ? yres.Value<int?>() ?? 0 : 0;
     }
 }
