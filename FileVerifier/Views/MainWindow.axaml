@@ -77,6 +77,13 @@
                     
                 </TextBox>
                 
+                <Button Grid.Column="3" Grid.Row="7" HorizontalAlignment="Right" 
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        Margin="5"
+                        Click="Load_OnClick">Load
+                </Button>
+                
                 <Button Grid.Column="3" Grid.Row="8" HorizontalAlignment="Right" 
                         VerticalAlignment="Center"
                         FontSize="18"

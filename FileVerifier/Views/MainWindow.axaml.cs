@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Aspose.Words.Fields;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -98,6 +101,36 @@ public partial class MainWindow : Window
         f.GetSiegfriedFormats();
         f.WritePairs();
     }
+    
+    private void Load_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
+        
+        AppendMessageToConsole("INPUT:");
+        var files = Directory.GetFiles(InputPath);
+        AppendMessageToConsole($"Number of files in Input folder: {files.Length}");
+        var inputExtensions = GetFileExtensions(files);
+        AppendMessageToConsole("All file extensions in input folder:");
+        foreach (var keyValuePair in inputExtensions.OrderBy(x => x.Key))
+        {
+            AppendMessageToConsole($"{keyValuePair.Key}: {keyValuePair.Value}");
+        }
+        
+        
+        AppendMessageToConsole("OUTPUT:");
+        files = Directory.GetFiles(OutputPath);
+        AppendMessageToConsole($"Number of files in Output folder: {files.Length}");
+        var outputExtensions = GetFileExtensions(files);
+        AppendMessageToConsole("All file extensions in output folder:");
+        foreach (var keyValuePair in outputExtensions.OrderBy(x => x.Key))
+        {
+            AppendMessageToConsole($"{keyValuePair.Key}: {keyValuePair.Value}");
+        }
+
+        var f = new FileManager.FileManager(InputPath, OutputPath);
+        f.GetSiegfriedFormats();
+        f.WritePairs();
+    }
 
     private void AppendMessageToConsole(string text)
     {
@@ -108,5 +141,20 @@ public partial class MainWindow : Window
         
         Console.Text += text;
         Console.CaretIndex = Console.Text.Length;
+    }
+
+    private Dictionary<string, int> GetFileExtensions(string[] files)
+    {
+        Dictionary<string, int> fileCount = new Dictionary<string, int>();
+        foreach (var file in files)
+        {
+            string extension = Path.GetExtension(file).ToLower();
+            if (string.IsNullOrEmpty(extension)) 
+                extension = "*";
+            if (fileCount.ContainsKey(extension))
+                fileCount[extension]++;
+            else fileCount.Add(extension, 1);
+        }
+        return fileCount;
     }
 }
