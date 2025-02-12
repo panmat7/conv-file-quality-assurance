@@ -26,8 +26,8 @@
                 Name="InputButton" Click="InputButton_OnClick"
                 PointerEntered="InputButton_OnPointerEntered"
                 PointerExited="InputButton_OnPointerExited"
-                Background="#56A3A6" Foreground="White" 
-                BorderBrush="#4C9294" BorderThickness="1" 
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="1" 
                 Padding="10,5">
             Select
         </Button>
@@ -38,8 +38,8 @@
                 Name="OutputButton" Click="InputButton_OnClick"
                 PointerEntered="InputButton_OnPointerEntered"
                 PointerExited="InputButton_OnPointerExited"
-                Background="#56A3A6" Foreground="White" 
-                BorderBrush="#4C9294" BorderThickness="1" 
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="1" 
                 Padding="10,5">
             Select
         </Button>
@@ -73,8 +73,8 @@
                 FontSize="18"
                 Margin="5"
                 Click="Start_OnClick"
-                Background="#56A3A6" Foreground="White" 
-                BorderBrush="#4C9294" BorderThickness="2">
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="2">
             Start
         </Button>
     </Grid>

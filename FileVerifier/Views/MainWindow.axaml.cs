@@ -19,7 +19,7 @@ public partial class MainWindow : Window
         SettingsButton.Background = new SolidColorBrush(Colors.Transparent);
 
         // Set active button style
-        button.Background = new SolidColorBrush(0xFFCC0000);
+        button.Background = new SolidColorBrush(Color.Parse("#107F37"));
     }
 
     private void HomeButton_Click(object sender, RoutedEventArgs e)
