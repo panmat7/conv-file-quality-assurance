@@ -1,10 +1,10 @@
 using System;
 using System.IO;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using AvaloniaDraft.FileManager;
 
 namespace AvaloniaDraft.Views;
 
@@ -22,7 +22,10 @@ public partial class HomeView : UserControl
 
     private async void InputButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        var result = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel == null) return;
+
+        var result = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
             Title = "Select Folder",
             AllowMultiple = false
