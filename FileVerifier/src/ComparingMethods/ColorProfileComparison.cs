@@ -39,7 +39,7 @@ public static class ColorProfileComparison
                     PdfToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => XmlBasedPowerPointToPdfColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesDOX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
+                _ when FormatCodes.PronomCodesDOCX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => DocxToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesXLSX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => XlsxToPdfColorProfileComparison(files),
