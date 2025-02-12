@@ -32,8 +32,8 @@ public class ExifToolStaticTest
         var filePath2 = _testFileDirectory + @"Images\450x450.png";
 
         var path = ExifToolStatic.GetExifPath();
-        var result1 = ExifToolStatic.GetExifData([filePath1, filePath2]);
-        var result2 = ExifToolStatic.GetExifData([filePath1, filePath2], path);
+        var result1 = ExifToolStatic.GetExifDataDictionary([filePath1, filePath2]);
+        var result2 = ExifToolStatic.GetExifDataDictionary([filePath1, filePath2], path);
 
         Assert.That(result1 != null && result1.Count > 0, Is.True);
         Assert.That(result2 != null && result2.Count > 0, Is.True);

@@ -151,7 +151,7 @@ public static class ComperingMethods
     
     public static int? GetPageCountExif(string path, string format)
     {
-        var result = ExifToolStatic.GetExifData([path], GlobalVariables.ExifPath);
+        var result = ExifToolStatic.GetExifDataDictionary([path], GlobalVariables.ExifPath);
         
         if(result == null || result.Count == 0) return null;
 
@@ -206,14 +206,8 @@ public static class ComperingMethods
         return originalTags.Except(newTags).Select(n => n.Name).ToList();
     }
 
-    public static List<Dictionary<string, object>>? GetMissingMetadataExif(FilePair files)
+    public static List<Dictionary<string, object>>? GetMetadataExif(string path)
     {
-        var result = ExifToolStatic.GetExifData([files.OriginalFilePath, files.NewFilePath], GlobalVariables.ExifPath);
-        
-        if(result is not { Count: 2 }) return null;
-        
-        //TODO
-
-        return null;
+        return ExifToolStatic.GetExifDataDictionary([path], GlobalVariables.ExifPath);
     }
 }

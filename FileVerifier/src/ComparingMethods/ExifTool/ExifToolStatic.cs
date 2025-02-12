@@ -2,10 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace AvaloniaDraft.ComparingMethods.ExifTool;
+
+public class ImageMetadata
+{
+    public string SourceFile { get; set; }
+    public Dictionary<string, object> ExifTool { get; set; }
+    public Dictionary<string, object> File { get; set; }
+    
+    [JsonExtensionData]
+    public IDictionary<string, object> AdditionalProperties { get; set; }
+}
 
 /// <summary>
 /// Class <c>ExifTool</c> is responsible for the programs communication with ExifTool
@@ -17,7 +27,7 @@ public static class ExifToolStatic
     /// </summary>
     /// <param name="filenames">List of files that the metadata is to be extracted from</param>
     /// <returns>List of dictionaries contacting all metadata for each file</returns>
-    public static List<Dictionary<string, object>>? GetExifData(string[] filenames, string? path = null)
+    private static string? GetExifData(string[] filenames, string? path = null)
     {
         ProcessStartInfo psi;
         
@@ -26,7 +36,7 @@ public static class ExifToolStatic
             psi = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = $"exiftool -j -quiet {string.Join(" ", filenames)}",
+                Arguments = $"exiftool -j -quiet -g {string.Join(" ", filenames)}",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -38,7 +48,7 @@ public static class ExifToolStatic
             psi = new ProcessStartInfo
             {
                 FileName = path,
-                Arguments = $"-j -quiet {string.Join(" ", filenames)}",
+                Arguments = $"-j -quiet -g \"{string.Join(" ", filenames)}\"",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -46,8 +56,6 @@ public static class ExifToolStatic
             };
         }
         
-        
-
         using var process = new Process();
         process.StartInfo = psi;
         process.Start();
@@ -62,10 +70,19 @@ public static class ExifToolStatic
         
         process.WaitForExit();
 
+        return output;
+    }
+
+    public static List<Dictionary<string, object>>? GetExifDataDictionary(string[] filenames, string? path = null)
+    {
+        var output = GetExifData(filenames, path);
+
+        if (output == null) return null;
+        
         List<Dictionary<string, object>>? metadata;
         try
         {
-            metadata = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(output);
+            metadata =  JsonSerializer.Deserialize<List<Dictionary<string, object>>>(output);
         }
         catch (Exception e)
         {
@@ -73,6 +90,27 @@ public static class ExifToolStatic
             return null;
         }
 
+        return metadata;
+
+    }
+    
+    public static List<ImageMetadata>? GetExifDataImageMetadata(string[] files, string? path = null)
+    {
+        var output = GetExifData(files, path);
+        
+        if (output == null) return null;
+        
+        List<ImageMetadata>? metadata;
+        try
+        {
+            metadata = JsonConvert.DeserializeObject<List<ImageMetadata>>(output);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error parsing exiftool output: {e.Message}");
+            return null;
+        }
+        
         return metadata;
     }
 
