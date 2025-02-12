@@ -218,7 +218,7 @@ public static class ComperingMethods
         catch (Exception ex)
         {
             Console.WriteLine($"Error: {ex}");
-            return 0; // Return 0 similarity in case of error
+            return -1; // Return 0 similarity in case of error
         }
     }
 

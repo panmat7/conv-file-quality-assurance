@@ -88,6 +88,27 @@
         <TabItem Header="Settings">
             *Settings go here*
         </TabItem>
+        <TabItem Header="PBP">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+            
+                <!-- Input -->
+                <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5">Input Folder</TextBlock>
+                <Button Grid.Column="1" Grid.Row="0" Margin="5"
+                        Name="PBPInputButton" Click="InputButton_OnClick"
+                        PointerEntered="InputButton_OnPointerEntered"
+                        PointerExited="InputButton_OnPointerExited">
+                    Select
+                </Button>
+            </Grid>
+        </TabItem>
     </TabControl>
 
 </Window>
