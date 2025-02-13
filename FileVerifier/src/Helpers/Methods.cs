@@ -19,7 +19,7 @@ namespace AvaloniaDraft.Helpers
 
 
     /// <summary>
-    /// A helper class containing lists of comparison methods
+    /// A helper class containing the comparison methods
     /// </summary>
     public static class Methods
     {

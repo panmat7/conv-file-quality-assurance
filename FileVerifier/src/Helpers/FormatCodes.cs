@@ -15,6 +15,46 @@ namespace AvaloniaDraft.Helpers;
  * !!!README!!!
  **********************/
 
+
+public static class FileExtensions
+{
+    public static readonly ImmutableList<string> list =
+    [
+        "doc",
+        "docm",
+        "docx",
+        "dot",
+        "dotm",
+        "dotx",
+        "odt",
+        "pdf",
+        "pdf1A",
+        "pdf2A",
+        "pdf3A",
+        "pdf4A",
+        "ppt",
+        "pptm",
+        "pptx",
+        "odp",
+        "pot",
+        "pps",
+        "ppsx",
+        "ppsm",
+        "potx",
+        "potm",
+        "xml",
+        "xls",
+        "xlsm",
+        "xlsx",
+        "ods",
+        "csv",
+        "png",
+        "jpeg",
+        "gif"
+    ];
+
+}
+
 /// <summary>
 /// A helper class containing lists of PRONOM codes for file formats and groups
 /// </summary>
