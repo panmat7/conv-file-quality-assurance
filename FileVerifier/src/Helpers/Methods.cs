@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AvaloniaDraft.src.Helpers
+namespace AvaloniaDraft.Helpers
 {    public struct Method
     {
         public string Name { get; }
