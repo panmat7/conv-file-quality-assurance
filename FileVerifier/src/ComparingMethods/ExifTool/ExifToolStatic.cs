@@ -27,16 +27,30 @@ public static class ExifToolStatic
     /// </summary>
     /// <param name="filenames">List of files that the metadata is to be extracted from</param>
     /// <returns>List of dictionaries contacting all metadata for each file</returns>
-    private static string? GetExifData(string[] filenames, string? path = null)
+    private static string? GetExifData(string[] filenames, string? path = null, bool group = true)
     {
         ProcessStartInfo psi;
+
+        var commandPowershell = "";
+        var commandExifTool = "";
+        
+        if (group)
+        {
+            commandPowershell = $"exiftool -j -quiet -g {string.Join(" ", filenames)}";
+            commandExifTool = $"-j -quiet -g {string.Join(" ", filenames)}";
+        }
+        else
+        {
+            commandPowershell = $"exiftool -j -quiet {string.Join(" ", filenames)}";
+            commandExifTool = $"-j -quiet {string.Join(" ", filenames)}";
+        }
         
         if (path == null)
         {
             psi = new ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = $"exiftool -j -quiet -g {string.Join(" ", filenames)}",
+                Arguments = commandPowershell,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -48,7 +62,7 @@ public static class ExifToolStatic
             psi = new ProcessStartInfo
             {
                 FileName = path,
-                Arguments = $"-j -quiet -g \"{string.Join(" ", filenames)}\"",
+                Arguments = commandExifTool,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -73,9 +87,9 @@ public static class ExifToolStatic
         return output;
     }
 
-    public static List<Dictionary<string, object>>? GetExifDataDictionary(string[] filenames, string? path = null)
+    public static List<Dictionary<string, object>>? GetExifDataDictionary(string[] filenames, string? path = null, bool group = true)
     {
-        var output = GetExifData(filenames, path);
+        var output = GetExifData(filenames, path, group);
 
         if (output == null) return null;
         

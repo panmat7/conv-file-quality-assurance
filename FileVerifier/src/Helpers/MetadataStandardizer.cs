@@ -1,20 +1,157 @@
 using System;
 using System.Collections.Generic;
+using Aspose.Slides.LowCode;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using Newtonsoft.Json.Linq;
+using Convert = System.Convert;
 
 
 namespace AvaloniaDraft.Helpers;
 
+public enum ColorType
+{
+    Mono,
+    G,
+    GA,
+    Index,
+    RGB,
+    RGBA,
+    Other,
+    Unknown
+}
+
+public class StandardizedImageMetadata
+{
+    public string Path { get; set; } = "";
+    public string Name { get; set; } = "";
+
+    public int ImgWidth { get; set; } = 0;
+    public int ImgHeight { get; set; } = 0;
+
+    public int BitDepth { get; set; } = 0;
+    public ColorType ColorType { get; set; } = ColorType.Unknown;
+
+    public double Gamma { get; set; } = 0.0;
+    public string Rendering {get; set;} = "";
+
+    public int PPUnitX { get; set; } = 0;
+    public int PPUnitY { get; set; } = 0;
+    public string PUnit { get; set; } = "";
+
+    public Dictionary<string, object> AdditionalValues = new();
+
+    /// <summary>
+    /// Verifies if image resolution has been set
+    /// </summary>
+    /// <returns>True or false</returns>
+    public bool VerifyResolution()
+    {
+        return (ImgWidth != 0 && ImgHeight != 0);
+    }
+    
+    /// <summary>
+    /// Verifies if bit depth has been set
+    /// </summary>
+    /// <returns>True or false</returns>
+    public bool VerifyBitDepth()
+    {
+        return (BitDepth != 0);
+    }
+    
+    /// <summary>
+    /// Verifies if colortype has been set/is known
+    /// </summary>
+    /// <returns>True or false</returns>
+    public bool VerifyColorType()
+    {
+        return (ColorType != ColorType.Unknown);
+    }
+    
+    /// <summary>
+    /// Verifies if physical units have been set
+    /// </summary>
+    /// <returns>True or false</returns>
+    public bool VerifyPhysicalUnits()
+    {
+        return (PPUnitX != 0 && PPUnitY != 0 && PUnit != "");
+    }
+    
+    /// <summary>
+    /// Checks if the images share resolution
+    /// </summary>
+    /// <param name="img2">Image to compare with</param>
+    /// <returns>True or false</returns>
+    public bool CompareResolution(StandardizedImageMetadata img2)
+    {
+        return (img2.ImgWidth == ImgWidth && img2.ImgHeight == ImgHeight);
+    }
+    
+    /// <summary>
+    /// Checks if two images have the same bit depth
+    /// </summary>
+    /// <param name="img2">Image to compare with</param>
+    /// <returns>True or false</returns>
+    public bool CompareBitDepth(StandardizedImageMetadata img2)
+    {
+        return (img2.BitDepth == BitDepth);
+    }
+
+    /// <summary>
+    /// Checks if two images have the same color type
+    /// </summary>
+    /// <param name="img2">Image to compare with</param>
+    /// <returns>True or false</returns>
+    public bool CompareColorType(StandardizedImageMetadata img2)
+    {
+        return (img2.ColorType == ColorType);
+    }
+    
+    /// <summary>
+    /// Checks if two images have the same physical units
+    /// </summary>
+    /// <param name="img2">Image to compare with</param>
+    /// <returns>True or false</returns>
+    public bool ComparePhysicalUnits(StandardizedImageMetadata img2)
+    {
+        return (img2.PPUnitX == PPUnitX && img2.PPUnitY == PPUnitY && img2.PUnit == PUnit);
+    }
+    
+    /// <summary>
+    /// Checks if two images have the same physical units, converts if needed
+    /// </summary>
+    /// <param name="img2">Image to compare with</param>
+    /// <returns>True or false</returns>
+    public bool ComparePhysicalUnitsFlexible(StandardizedImageMetadata img2)
+    {
+        var oXcm = ConvertToCm(PUnit, PPUnitX);
+        var oYcm = ConvertToCm(PUnit, PPUnitY);
+        var nXcm = ConvertToCm(img2.PUnit, img2.PPUnitX);
+        var nYcm = ConvertToCm(img2.PUnit, img2.PPUnitY);
+        
+        return oXcm == nXcm && oYcm == nYcm;
+    }
+    
+    private static int ConvertToCm(string unit, int value)
+    {
+        return unit.ToLower() switch
+        {
+            "cm" => value,
+            "m" => value * 100,
+            "inch" or "inches" => (int)Math.Round(value * 2.54),
+            _ => throw new ArgumentException($"Unknown unit: {unit}")
+        };
+    }
+}
+
 public static class MetadataStandardizer
 {
     
-    public static Dictionary<string, object> StandardizeImageMetadata(ImageMetadata metadata, string format)
+    public static StandardizedImageMetadata StandardizeImageMetadata(ImageMetadata metadata, string format)
     {
-        var standardized = new Dictionary<string, object>();
+        var standardized = new StandardizedImageMetadata();
         
-        standardized.Add("Path", metadata.SourceFile);
-        standardized.Add("Name", metadata.File["FileName"]);
+        standardized.Path = metadata.SourceFile;
+        standardized.Name = (metadata.File.TryGetValue("FileName", out var n) ? n.ToString() : "") ?? "";
         
         if (FormatCodes.PronomCodesPNG.Contains(format))
         {
@@ -37,95 +174,122 @@ public static class MetadataStandardizer
         return standardized;
     }
 
-    private static void ProcessPNG(ImageMetadata metadata, ref Dictionary<string, object> standardized)
+    private static void ProcessPNG(ImageMetadata metadata, ref StandardizedImageMetadata standardized)
     {
         if (!metadata.AdditionalProperties.TryGetValue("PNG", out var pngData)) return;
         if (pngData is not JObject pngDictionary) return;
         
-        standardized["ImgWidth"] = pngDictionary.TryGetValue("ImageWidth", out var w) ? w.Value<int?>() ?? 0 : 0;
-        standardized["ImgHeight"] = pngDictionary.TryGetValue("ImageHeight", out var h) ? h.Value<int?>() ?? 0 : 0;
-        standardized["BitDepth"] = pngDictionary.TryGetValue("BitDepth", out var dp) ? dp.Value<int?>() ?? 0 : 0;
+        standardized.ImgWidth = pngDictionary.TryGetValue("ImageWidth", out var w) ? w.Value<int?>() ?? 0 : 0;
+        standardized.ImgHeight = pngDictionary.TryGetValue("ImageHeight", out var h) ? h.Value<int?>() ?? 0 : 0;
+        standardized.BitDepth = pngDictionary.TryGetValue("BitDepth", out var dp) ? dp.Value<int?>() ?? 0 : 0;
         
-        if (pngDictionary.TryGetValue("ColorType", out var ct) && ct.Value<string>() is string cts)
+        if (pngDictionary.TryGetValue("ColorType", out var ct) && ct.Value<string>() is { } cts)
         {
             switch (cts)
             {
-                case "Greyscale": standardized.Add("ColorType", "G"); break;
-                case "RGB": standardized.Add("ColorType", "RGB"); break;
-                case "Palette": standardized.Add("ColorType", "Index"); break;
-                case "Grayscale with Alpha": standardized.Add("ColorType", "GA"); break;
-                case "RGB with Alpha": standardized.Add("ColorType", "RGBA"); break;
-                default: standardized.Add("ColorType", cts); break;
+                case "Greyscale": standardized.ColorType = ColorType.G; break;
+                case "RGB": standardized.ColorType = ColorType.RGB; break;
+                case "Palette": standardized.ColorType = ColorType.Index; break;
+                case "Grayscale with Alpha": standardized.ColorType = ColorType.GA; break;
+                case "RGB with Alpha": standardized.ColorType = ColorType.RGBA; break;
+                default: standardized.ColorType = ColorType.Other; break;
             }
         }
         else
-            standardized.Add("ColorType", "");
+            standardized.ColorType = ColorType.Unknown;
         
-        standardized["Rendering"] = pngDictionary.TryGetValue("SRGBRendering", out var r) ? r.Value<string?>() ?? "" : "";
-        standardized["Gamma"] = pngDictionary.TryGetValue("Gamma", out var g) ? g.Value<double?>() ?? 0.0 : 0.0;
-        standardized["PPUnitX"] = pngDictionary.TryGetValue("PixelsPerUnitX", out var ppux) ? ppux.Value<int?>() ?? 0 : 0;
-        standardized["PPUnitY"] = pngDictionary.TryGetValue("PixelsPerUnitY", out var ppuy) ? ppuy.Value<int?>() ?? 0 : 0;
-        standardized["PixelUnit"] = pngDictionary.TryGetValue("PixelUnits", out var pu) ? pu.Value<string?>() ?? "" : "";
+        standardized.Rendering = pngDictionary.TryGetValue("SRGBRendering", out var r) ? r.Value<string?>() ?? "" : "";
+        standardized.Gamma = pngDictionary.TryGetValue("Gamma", out var g) ? g.Value<double?>() ?? 0.0 : 0.0;
+        standardized.PPUnitX = pngDictionary.TryGetValue("PixelsPerUnitX", out var ppux) ? ppux.Value<int?>() ?? 0 : 0;
+        standardized.PPUnitY = pngDictionary.TryGetValue("PixelsPerUnitY", out var ppuy) ? ppuy.Value<int?>() ?? 0 : 0;
+        standardized.PUnit = pngDictionary.TryGetValue("PixelUnits", out var pu) ? pu.Value<string?>() ?? "" : "";
+        
+        //Getting rest
+        foreach (var additional in metadata.AdditionalProperties)
+        {
+            if (additional.Key != "PNG" && additional.Key != "ICC_Profile" && !standardized.AdditionalValues.ContainsKey(additional.Key))
+            {
+                standardized.AdditionalValues.Add(additional.Key, additional.Value);
+            }
+        }
     }
 
-    private static void ProcessJPEG(ImageMetadata metadata, ref Dictionary<string, object> standardized)
+    private static void ProcessJPEG(ImageMetadata metadata, ref StandardizedImageMetadata standardized)
     {
         //Height and width
-        standardized["ImgWidth"] = metadata.File.TryGetValue("ImageWidth", out var width) ? width : 0;
-        standardized["ImgHeight"] = metadata.File.TryGetValue("ImageHeight", out var height) ? height : 0;
+        standardized.ImgWidth = metadata.File.TryGetValue("ImageWidth", out var w) && w is int iw 
+            ? iw
+            : ConvertToInt(w);
+        standardized.ImgHeight = metadata.File.TryGetValue("ImageHeight", out var h) && h is int ih
+            ? ih
+            : ConvertToInt(h);
 
         //Color data
         try
         {
             var colorComp = Convert.ToInt64(metadata.File["ColorComponents"]);
-            switch (colorComp)
+            standardized.ColorType = colorComp switch
             {
                 //This requires further research - there is more nuance in color type extraction
-                case 1: standardized.Add("ColorType", "G"); break;
-                case 3: standardized.Add("ColorType", "RGB"); break;
-                default: standardized.Add("ColorType", ""); break;
-            }
-            standardized.Add("BitDepth", metadata.File["BitsPerSample"]);
+                1 => ColorType.G,
+                3 => ColorType.RGB,
+                _ => ColorType.Other
+            };
+            standardized.BitDepth = metadata.File.TryGetValue("BitsPerSample", out var bp) && bp is int ibp
+                ? ibp
+                : ConvertToInt(bp);
         }
         catch
         {
-            standardized.TryAdd("BitDepth", 0);
-            standardized.TryAdd("ColorType", "");
+            // ignored as failure values are set in constructor 
         }
 
         // JFIF metadata extraction
         if (metadata.AdditionalProperties.TryGetValue("JFIF", out var jfifData) &&
             jfifData is JObject jfifDictionary)
         {
-            standardized["PixelUnit"] = jfifDictionary.TryGetValue("ResolutionUnit", out var ru) ? ru.Value<string?>() ?? "" : "";
-            standardized["PPUnitX"] = jfifDictionary.TryGetValue("XResolution", out var xres) ? xres.Value<int?>() ?? 0 : 0;
-            standardized["PPUnitY"] = jfifDictionary.TryGetValue("YResolution", out var yres) ? yres.Value<int?>() ?? 0 : 0;
+            standardized.PUnit = jfifDictionary.TryGetValue("ResolutionUnit", out var ru) ? ru.Value<string?>() ?? "" : "";
+            standardized.PPUnitX = jfifDictionary.TryGetValue("XResolution", out var xres) ? xres.Value<int?>() ?? 0 : 0;
+            standardized.PPUnitY = jfifDictionary.TryGetValue("YResolution", out var yres) ? yres.Value<int?>() ?? 0 : 0;
         }
 
         // EXIF metadata extraction (if JFIF is missing)
-        if (!standardized.ContainsKey("PixelUnit") &&
+        if (standardized.PUnit == "" &&
             metadata.AdditionalProperties.TryGetValue("EXIF", out var exifData) &&
             exifData is JObject exifDictionary)
         {
-            standardized["PixelUnit"] = exifDictionary.TryGetValue("ResolutionUnit", out var ru) ? ru.Value<string?>() ?? "" : "";
-            standardized["PPUnitX"] = exifDictionary.TryGetValue("XResolution", out var xres) ? xres.Value<int?>() ?? 0 : 0;
-            standardized["PPUnitY"] = exifDictionary.TryGetValue("YResolution", out var yres) ? yres.Value<int?>() ?? 0 : 0;
+            standardized.PUnit = exifDictionary.TryGetValue("ResolutionUnit", out var ru) ? ru.Value<string?>() ?? "" : "";
+            standardized.PPUnitX = exifDictionary.TryGetValue("XResolution", out var xres) ? xres.Value<int?>() ?? 0 : 0;
+            standardized.PPUnitY = exifDictionary.TryGetValue("YResolution", out var yres) ? yres.Value<int?>() ?? 0 : 0;
         }
 
         // If PixelUnit is still missing, assume defaults
-        if (!standardized.ContainsKey("PixelUnit"))
+        if (standardized.PUnit == "")
         {
-            standardized.Add("PixelUnit", "inches");
-            standardized.Add("PPUnitX", 72);
-            standardized.Add("PPUnitY", 72);
+            standardized.PUnit = "inches";
+            standardized.PPUnitX = 72;
+            standardized.PPUnitY = 72;
+        }
+
+        foreach (var additional in metadata.AdditionalProperties)
+        {
+            if (additional.Key != "JFIF" && additional.Key != "EXIF" && additional.Key != "ICC_Profile" &&  
+                !standardized.AdditionalValues.ContainsKey(additional.Key))
+            {
+                standardized.AdditionalValues.Add(additional.Key, additional.Value);
+            }
         }
     }
 
-    private static void ProcessBMP(ImageMetadata metadata, ref Dictionary<string, object> standardized)
+    private static void ProcessBMP(ImageMetadata metadata, ref StandardizedImageMetadata standardized)
     {
         //Height and width
-        standardized["ImgWidth"] = metadata.File.TryGetValue("ImageWidth", out var w) ? w : 0;
-        standardized["ImgHeight"] = metadata.File.TryGetValue("ImageHeight", out var h) ? h : 0;
+        standardized.ImgWidth = metadata.File.TryGetValue("ImageWidth", out var w) && w is int iw 
+                ? iw
+                : ConvertToInt(w);
+        standardized.ImgHeight = metadata.File.TryGetValue("ImageHeight", out var h) && h is int ih
+                ? ih
+                : ConvertToInt(h);
 
         try
         {
@@ -136,56 +300,69 @@ public static class MetadataStandardizer
                 //This probably would require some confirmation. Based on my current info it seems correct, but I am unsure
                 //if these could be some variations triggered by side properties.
                 case 1:
-                    standardized.Add("BitDepth", 1);
-                    standardized.Add("ColorType", "Mono");
+                    standardized.BitDepth = 1;
+                    standardized.ColorType = ColorType.Mono;
                     break;
                 case 2:
-                    standardized.Add("BitDepth", 2);
-                    standardized.Add("ColorType", "Index");
+                    standardized.BitDepth = 2;
+                    standardized.ColorType = ColorType.Index;
                     break;
                 case 4:
-                    standardized.Add("BitDepth", 4);
-                    standardized.Add("ColorType", "Index");
+                    standardized.BitDepth = 4;
+                    standardized.ColorType = ColorType.Index;
                     break;
                 case 8:
-                    standardized.Add("BitDepth", 8);
-                    standardized.Add("ColorType", "Index");
+                    standardized.BitDepth = 8;
+                    standardized.ColorType = ColorType.Index;
                     break;
                 case 16:
-                    standardized.Add("BitDepth", 16);
-                    standardized.Add("ColorType", "RGB");
+                    standardized.BitDepth = 16;
+                    standardized.ColorType = ColorType.RGB;
                     break; //High Color (565 or 555)
                 case 24:
-                    standardized.Add("BitDepth", 8);
-                    standardized.Add("ColorType", "RGB");
+                    standardized.BitDepth = 8;
+                    standardized.ColorType = ColorType.RGB;
                     break;
                 case 32:
-                    standardized.Add("BitDepth", 8);
-                    standardized.Add("ColorType", "RGBA");
+                    standardized.BitDepth = 8;
+                    standardized.ColorType = ColorType.RGBA;
                     break;
             }
         }
         catch
         {
-            standardized.TryAdd("BitDepth", 0);
-            standardized.TryAdd("ColorType", "");
+            // ignored as failure values are set in constructor 
         }
         
         //Physical units
-        standardized["PPUnitX"] = metadata.File.TryGetValue("PixelsPerMeterX", out var ppmx) ? ppmx : 0;
-        standardized["PPUnitY"] = metadata.File.TryGetValue("PixelsPerMeterY", out var ppmy) ? ppmy : 0;
-        standardized["PixelUnit"] = "meters";
+        standardized.PPUnitX = metadata.File.TryGetValue("PixelsPerMeterX", out var ppmx) && ppmx is int intPpmx 
+            ? intPpmx 
+            : ConvertToInt(ppmx);
+
+        standardized.PPUnitY = metadata.File.TryGetValue("PixelsPerMeterY", out var ppmy) && ppmy is int intPpmy 
+            ? intPpmy 
+            : ConvertToInt(ppmy);
+        
+        standardized.PUnit = "meters";
+
+        foreach (var additional in metadata.AdditionalProperties)
+        {
+            if (additional.Key != "ICC_Profile" && !standardized.AdditionalValues.ContainsKey(additional.Key))
+            {
+                standardized.AdditionalValues.Add(additional.Key, additional.Value);
+            }
+        }
     }
 
-    private static void ProcessTIFF(ImageMetadata metadata, ref Dictionary<string, object> standardized)
+    private static void ProcessTIFF(ImageMetadata metadata, ref StandardizedImageMetadata standardized)
     {
         if (!metadata.AdditionalProperties.TryGetValue("EXIF", out var exifData) ||
             exifData is not JObject exifDictionary)
             return;
 
         //Height and width
-        standardized["ImgWidth"] = exifDictionary.TryGetValue("ImageWidth", out var w) ? w : 0;
-        standardized["ImgHeight"] = exifDictionary.TryGetValue("ImageHeight", out var h) ? h : 0;
+        standardized.ImgWidth = exifDictionary.TryGetValue("ImageWidth", out var w) ? w.Value<int?>() ?? 0 : 0;
+        standardized.ImgHeight = exifDictionary.TryGetValue("ImageHeight", out var h) ? h .Value<int?>() ?? 0 : 0;
 
         //Color data
         try
@@ -194,16 +371,16 @@ public static class MetadataStandardizer
             switch (bitdepth)
             {
                 case 1:
-                    standardized.Add("BitDepth", 1);
-                    standardized.Add("ColorType", "Mono");
+                    standardized.BitDepth = 1;
+                    standardized.ColorType = ColorType.Mono;
                     break;
                 case 4:
-                    standardized.Add("BitDepth", 2);
-                    standardized.Add("ColorType", "Index");
+                    standardized.BitDepth = 2;
+                    standardized.ColorType = ColorType.Index;
                     break;
                 case 8:
-                    standardized.Add("BitDepth", 8);
-                    standardized.Add("ColorType", "Index");
+                    standardized.BitDepth = 8;
+                    standardized.ColorType = ColorType.Index;
                     break;
             }
         }
@@ -213,23 +390,47 @@ public static class MetadataStandardizer
             switch (bitdepth)
             {
                 case "8 8 8":
-                    standardized.Add("BitDepth", 8);
-                    standardized.Add("ColorType", "RGB");
+                    standardized.BitDepth = 8;
+                    standardized.ColorType = ColorType.RGB;
                     break;
                 case "8 8 8 8":
-                    standardized.Add("BitDepth", 8);
-                    standardized.Add("ColorType", "RGBA");
+                    standardized.BitDepth = 8;
+                    standardized.ColorType = ColorType.RGBA;
                     break;
             }
         }
         catch
         {
-            standardized.TryAdd("BitDepth", 0);
-            standardized.TryAdd("ColorType", "");
+            // ignored as failure values are set in constructor 
         }
         
-        standardized["PixelUnit"] = exifDictionary.TryGetValue("ResolutionUnit", out var ru) ? ru ?? "" : "";
-        standardized["PPUnitX"] = exifDictionary.TryGetValue("XResolution", out var xres) ? xres.Value<int?>() ?? 0 : 0;
-        standardized["PPUnitY"] = exifDictionary.TryGetValue("YResolution", out var yres) ? yres.Value<int?>() ?? 0 : 0;
+        standardized.PUnit = exifDictionary.TryGetValue("ResolutionUnit", out var ru) ? ru.Value<string>() ?? "" : "";
+        standardized.PPUnitX = exifDictionary.TryGetValue("XResolution", out var xres) ? xres.Value<int?>() ?? 0 : 0;
+        standardized.PPUnitY = exifDictionary.TryGetValue("YResolution", out var yres) ? yres.Value<int?>() ?? 0 : 0;
+
+        foreach (var additional in metadata.AdditionalProperties)
+        {
+            if (additional.Key != "EXIF" && additional.Key != "ICC_Profile" && !standardized.AdditionalValues.ContainsKey(additional.Key))
+            {
+                standardized.AdditionalValues.Add(additional.Key, additional.Value);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Tries to convert a value to int
+    /// </summary>
+    /// <param name="value">Object to convert</param>
+    /// <returns>The converted value</returns>
+    private static int ConvertToInt(object? value)
+    {
+        return value switch
+        {
+            int intValue => intValue, // Already an int
+            long longValue => (int)longValue, // Safe conversion (possible truncation)
+            double doubleValue => (int)doubleValue, // Possible loss of precision
+            string strValue when int.TryParse(strValue, out int parsedInt) => parsedInt, // Convert from string
+            _ => 0 // Default value if conversion fails
+        };
     }
 }

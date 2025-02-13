@@ -2,17 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection.Metadata;
+using System.Text.Json;
 using Aspose.Slides;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
-using MetadataExtractor;
-using MetadataExtractor.Formats.FileSystem;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata;
 using UglyToad.PdfPig;
 using Document = Aspose.Words.Document;
+using ImageMetadata = AvaloniaDraft.ComparingMethods.ExifTool.ImageMetadata;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -130,7 +131,12 @@ public static class ComperingMethods
 
         return -1;
     }
-
+    
+    /// <summary>
+    /// Returns the page count using ExifTool to extract it from metadata
+    /// </summary>
+    /// <param name="files">Pair of files which are to be compared</param>
+    /// <returns>Either a positive integer with page count difference, -1 meaning error while getting pages or null meaning not supported file type</returns>
     public static int? GetPageCountDifferenceExif(FilePair files)
     {
         try
@@ -149,65 +155,129 @@ public static class ComperingMethods
         }
     }
     
+    /// <summary>
+    /// Returns the number of pages for a specific document
+    /// </summary>
+    /// <param name="path">Absolute path to the document</param>
+    /// <param name="format">PRONOM code of the file type</param>
+    /// <returns>Either a positive integer with page count, -1 meaning error while getting pages or null meaning not supported file type</returns>
     public static int? GetPageCountExif(string path, string format)
     {
-        var result = ExifToolStatic.GetExifDataDictionary([path], GlobalVariables.ExifPath);
+        var result = ExifToolStatic.GetExifDataDictionary([path], GlobalVariables.ExifPath, false);
         
         if(result == null || result.Count == 0) return null;
 
         try
         {
+            var propertyName = "";
+            
             if (FormatCodes.PronomCodesDOCX.Contains(format))
             {
                 //Unboxing the value
-                var unboxed = (long)result[0]["Pages"];
-                return (int)unboxed;
+                propertyName = "Pages";
             }
 
             if (FormatCodes.PronomCodesODT.Contains(format))
             {
-                var unboxed = (long)result[0]["Document-statisticPage-count"];
-                return (int)unboxed;
+                propertyName = "Document-statisticPage-count";
             }
-
+            
             if (FormatCodes.PronomCodesPDF.Contains(format) || FormatCodes.PronomCodesPDFA.Contains(format))
             {
-                var unboxed = (long)result[0]["PageCount"];
-                return (int)unboxed;
+                propertyName = "PageCount";
             }
         
             //Does not work for OpenDocument Presentations
             if (FormatCodes.PronomCodesPresentationDocuments.Contains(format) && !FormatCodes.PronomCodesODP.Contains(format))
             {
-                var unboxed = (long)result[0]["Slides"];
-                return (int)unboxed;
+                propertyName = "Slides";
             }
+
+            if (propertyName == "")
+                return null;
+            
+            var unboxed = result[0].TryGetValue(propertyName, out var pages) && pages is JsonElement jpages && jpages.TryGetInt32(out int ipages)
+                ? ipages
+                : 0;
+            return unboxed;
         }
-        catch { return null; }
-        
-        
-        
-        return -1;
+        catch { return -1; }
     }
     
     /// <summary>
-    /// Returns all metadata that is present in the original file, but is missing in the new file
+    /// Returns a list of all metadata missing or wrongly written in the files.
     /// </summary>
-    /// <param name="files">The files which are to be compared</param>
-    /// <returns>List of the names of all missing metadata</returns>
-    public static List<string> GetMissingImageMetadata(FilePair files)
+    /// <param name="files">Files to be checked</param>
+    /// <returns>Dictionary of error-type to error-description. Null meaning error while getting data. Empty list meaning no errors.</returns>
+    public static Dictionary<string, string>? GetMissingOrWrongImageMetadataExif(FilePair files)
     {
-        var metadataOriginal = ImageMetadataReader.ReadMetadata(files.OriginalFilePath);
-        var metadataNew = ImageMetadataReader.ReadMetadata(files.NewFilePath);
+        //Get metadata
+        var metaOriginal = ExifToolStatic.GetExifDataImageMetadata([files.OriginalFilePath], GlobalVariables.ExifPath)?[0];
+        var metaNew = ExifToolStatic.GetExifDataImageMetadata([files.NewFilePath], GlobalVariables.ExifPath)?[0];
 
-        var originalTags = metadataOriginal.SelectMany(m => m.Tags).Distinct().ToList();
-        var newTags = metadataNew.SelectMany(m => m.Tags).Distinct().ToList();
+        if (metaOriginal == null || metaNew == null) return null;
         
-        return originalTags.Except(newTags).Select(n => n.Name).ToList();
-    }
+        //Standardize
+        var originalStandardized = MetadataStandardizer.StandardizeImageMetadata(metaOriginal, files.OriginalFileFormat);
+        var newStandardized = MetadataStandardizer.StandardizeImageMetadata(metaNew, files.NewFileFormat);
+        
+        var errors = new System.Collections.Generic.Dictionary<string, string>();
+        
+        //Check properties, note errors and mismatches
+        if (!originalStandardized.VerifyResolution())
+        {
+            errors["ImageResolutionOriginal"] = "Error trying to get original image resolution";
+        }
+        
+        if(!newStandardized.VerifyResolution())
+        {
+            errors["ImageResolutionNew"] = "Error trying to get new image resolution";
+        }
+        
+        if (!originalStandardized.CompareResolution(newStandardized))
+        {
+            errors["ImageResolution"] = "Mismatched resolution between images";
+        }
 
-    public static List<Dictionary<string, object>>? GetMetadataExif(string path)
-    {
-        return ExifToolStatic.GetExifDataDictionary([path], GlobalVariables.ExifPath);
+        if (!originalStandardized.VerifyBitDepth())
+        {
+            errors["BitDepthOriginal"] = "Error trying to get original image bit-depth";
+        }
+
+        if (!newStandardized.VerifyBitDepth())
+        {
+            errors["BitDepthNew"] = "Error trying to get new image bit-depth";
+        }
+
+        if (!originalStandardized.CompareBitDepth(newStandardized))
+        {
+            errors["BitDepth"] = "Mismatched resolution between images";
+        }
+        
+        if (!originalStandardized.VerifyColorType())
+        {
+            errors["ColorTypeOriginal"] = "Error trying to get original image color type";
+        }
+
+        if (!newStandardized.VerifyColorType())
+        {
+            errors["ColorTypeNew"] = "Error trying to get new image color type";
+        }
+
+        if (!originalStandardized.CompareColorType(newStandardized))
+        {
+            errors["ColorType"] = "Mismatched color type between images";
+        }
+
+        if(!originalStandardized.VerifyPhysicalUnits() || !newStandardized.VerifyPhysicalUnits())
+        {
+            errors["PhysicalUnitsMissing"] = "Error trying to get original physical units";
+        }
+        else if(!originalStandardized.ComparePhysicalUnits(newStandardized))
+        {
+            errors["PhysicalUnits"] = "Mismatched physical units between images";
+        }
+        
+        return errors;
     }
 }

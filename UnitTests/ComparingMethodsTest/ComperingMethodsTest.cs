@@ -266,4 +266,24 @@ public class ComperingMethodsTest
         
         Assert.That(count1 is 8 && count2 is 3);
     }
+
+    [Test]
+    public void GetMissingOrWrongImageMetadataExifTest_JPG_TIFF()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"Images\600x450.jpg",
+            "fmt/43",
+            _testFileDirectory + @"Images\450x600.tiff",
+            "fmt/353"
+        );
+        
+        var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+
+        if (result is null) Assert.Fail();
+        
+        if(result.Count != 1 || !result.ContainsKey("ImageResolution")) Assert.Fail();
+        
+        Assert.Pass();
+    }
 }
