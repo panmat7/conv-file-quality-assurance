@@ -13,20 +13,20 @@ namespace AvaloniaDraft.FileManager;
 public static class Siegfried
 {
     //Three classes used to parse siegfried output
-    private class SiegfriedOutputJson(string version, List<SiegfriedFile> files)
+    private sealed class SiegfriedOutputJson(string version, List<SiegfriedFile> files)
     {
         [JsonPropertyName("siegfried")] public string Version { get; set; } = version;
         [JsonPropertyName("files")] public List<SiegfriedFile> Files { get; set; } = files;
     }
 
-    private class SiegfriedFile(string name, string errors, List<SiegfriedMatches> matches)
+    private sealed class SiegfriedFile(string name, string errors, List<SiegfriedMatches> matches)
     {
         [JsonPropertyName("filename")] public string Name { get; set; } = name;
         [JsonPropertyName("errors")] public string Errors { get; set; } = errors;
         [JsonPropertyName("matches")] public List<SiegfriedMatches> Matches { get; set; } = matches;
     }
 
-    private class SiegfriedMatches(string ns, string id)
+    private sealed class SiegfriedMatches(string ns, string id)
     {
         [JsonPropertyName("ns")] public string ns { get; set; } = ns;
         [JsonPropertyName("id")] public string id { get; set; } = id;

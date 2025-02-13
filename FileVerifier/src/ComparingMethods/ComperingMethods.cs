@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -76,9 +76,6 @@ public static class ComperingMethods
     /// <returns>Either a positive integer with the page difference, -1 meaning error while getting pages or null meaning not supported file type</returns>
     public static int? GetPageCountDifference(FilePair files)
     {
-        var originalPageCount = 0;
-        var newPageCount = 0;
-
         try
         {
             var originalPages = GetPageCount(files.OriginalFilePath, files.OriginalFileFormat);
@@ -103,6 +100,12 @@ public static class ComperingMethods
     /// <returns>Either a positive integer with page count, -1 meaning error while getting pages or null meaning not supported file type</returns>
     public static int? GetPageCount(string path, string format)
     {
+        var check1 = FormatCodes.PronomCodesPresentationDocuments;
+        var check2 = FormatCodes.PronomCodesTextDocuments;
+        var check3 = FormatCodes.PronomCodesPDF;
+        var check4 = FormatCodes.PronomCodesPDFA;
+        
+        
         try
         {
             //Text documents
