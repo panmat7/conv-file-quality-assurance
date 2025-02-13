@@ -15,10 +15,8 @@ namespace AvaloniaDraft.Options;
 /// </summary>
 class Options
 {
-    private Dictionary<string, Dictionary<string, bool>> formatsEnabled;
-
+    private Dictionary<string, Dictionary<string, bool>> fileFormatsEnabled;
     private Dictionary<string, bool> methodsEnabled;
-    private Dictionary<string, bool> filetypesEnabled;
 
     public int? specifiedThreadCount { get; set; }
     public bool errorOnUnsupportedFileType { get; set; }
@@ -26,11 +24,9 @@ class Options
 
     public Options(string? optionsJSONSrc = null)
     {
-        InitializeEnabledFormats();
-
+        fileFormatsEnabled = new Dictionary<string, Dictionary<string, bool>>();
 
         methodsEnabled = new Dictionary<string, bool>();
-        filetypesEnabled = new Dictionary<string, bool>();
 
         if (optionsJSONSrc != null)
         {
@@ -42,12 +38,14 @@ class Options
         }
     }
 
+    /// <summary>
+    /// Initialize enabled formats
+    /// </summary>
     public void InitializeEnabledFormats()
     {
-        formatsEnabled = new Dictionary<string, Dictionary<string, bool>>();
-
         var extensions = FileExtensions.list;
 
+        // Get every field of FormatCodes, which are lists of pronom uids for every file type
         var fcFields = typeof(FormatCodes).GetFields();
         foreach (var f in fcFields)
         {
@@ -59,12 +57,12 @@ class Options
                 var prefix = "PronomCodes";
                 if (name.StartsWith(prefix))
                 {
-                    var ext = name.Substring(prefix.Length);
+                    var ext = name.Substring(prefix.Length).ToLower();
                     if (extensions.Contains(ext))
                     {
                         foreach (var fmt in list)
                         {
-                            formatsEnabled[ext][fmt] = true;
+                            fileFormatsEnabled[ext][fmt] = true;
                         }
                     }
                 }
@@ -107,24 +105,40 @@ class Options
 
 
     /// <summary>
-    /// Get if a method is enabled or not
+    /// Get if a file format is enabled or not
     /// </summary>
-    /// /// <param name="filetype">The file type</param>
-    public bool? GetFiletype(string filetype)
+    /// /// <param name="pronomUID">The file type</param>
+    public bool? GetFileFormat(string pronomUID)
     {
-        if (!filetypesEnabled.ContainsKey(filetype)) return null;
+        foreach (var ft in fileFormatsEnabled.Keys)
+        {
+            if (fileFormatsEnabled[ft].ContainsKey(pronomUID))
+            {
+                return fileFormatsEnabled[ft][pronomUID];
+            }
+        }
 
-        return filetypesEnabled[filetype];
+        return null;
     }
 
     /// <summary>
     /// Set a file type to be enabled or not
     /// </summary>
-    /// /// <param name="filetype">The file type</param>
+    /// /// <param name="pronomUID">The file type</param>
     /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
-    public void SetFiletype(string filetype, bool? setTo = null)
+    public void SetFormat(string pronomUID, bool? setTo = null)
     {
-        if (!filetypesEnabled.ContainsKey(filetype)) return;
+        string? filetype = null;
+        foreach (var ft in fileFormatsEnabled.Keys)
+        {
+            if (fileFormatsEnabled[ft].ContainsKey(pronomUID))
+            {
+                filetype = ft;
+                break;
+            }
+        }
+
+        if (filetype == null) return;
 
         bool value;
         if (setTo != null)
@@ -133,12 +147,32 @@ class Options
         }
         else
         {
-            value = !filetypesEnabled[filetype];
+            value = !fileFormatsEnabled[filetype][pronomUID];
         }
 
-        filetypesEnabled[filetype] = value;
+
+        fileFormatsEnabled[filetype][pronomUID] = value;
     }
 
+    /// <summary>
+    /// Set all file formats of a filetype to be enabled or not
+    /// </summary>
+    /// <param name="filetype">The file type</param>
+    /// <param name="setTo">Enable or not</param>
+    public void SetFiletype(string filetype, bool setTo)
+    {
+        if (!fileFormatsEnabled.ContainsKey(filetype)) return;
+
+        foreach (var fmt in fileFormatsEnabled[filetype].Keys)
+        {
+            fileFormatsEnabled[filetype][fmt] = setTo;
+        }
+    }
+
+
+    /// <summary>
+    /// Set the options to their default values
+    /// </summary>
     public void SetDefaultSettings()
     {
         foreach (var m in Methods.GetList())
@@ -146,20 +180,26 @@ class Options
             methodsEnabled[m.Name] = true;
         }
 
-        /*foreach (var ft in FileTypes.GetList())
-        {
-            filetypesEnabled[ft] = true;
-        }*/
+        InitializeEnabledFormats();
 
         specifiedThreadCount = null;
         errorOnUnsupportedFileType = false;
     }
 
+    /// <summary>
+    /// Export the current options to a JSON file
+    /// </summary>
+    /// <param name="dir">The directory where the JSON file is to be exported</param>
     public void ExportJSON(string dir)
     {
         // TODO
     }
 
+
+    /// <summary>
+    /// Import option values from a JSON file
+    /// </summary>
+    /// <param name="src">The JSON file to import</param>
     public void ImportJSON(string src)
     {
         // TODO
