@@ -1,8 +1,91 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:convertors="clr-namespace:AvaloniaDraft.Convertors"
              x:Class="AvaloniaDraft.Views.SettingsView">
+    
+    <!-- Declare the converter as a resource -->
+    <UserControl.Resources>
+        <convertors:SliderValueConverter x:Key="SliderValueConverter"/>
+    </UserControl.Resources>
+    
     <Grid Margin="20">
-        <TextBlock Text="Settings Content" HorizontalAlignment="Center" 
-                   VerticalAlignment="Center" Foreground="White"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+            <Button
+                    VerticalAlignment="Center"
+                    FontSize="18"
+                    Margin="5"
+                    Background="#139A43" Foreground="White"
+                    BorderBrush="#0DAB76" BorderThickness="2">
+                Reset Settings
+            </Button>
+            <Button
+                    VerticalAlignment="Center"
+                    FontSize="18"
+                    Margin="5"
+                    Background="#139A43" Foreground="White"
+                    BorderBrush="#0DAB76" BorderThickness="2">
+                Save Settings
+            </Button>
+            <ComboBox SelectedIndex="0" VerticalAlignment="Center" FontSize="18">
+                <ComboBoxItem>Default</ComboBoxItem>
+                <ComboBoxItem>Custom Settings 1</ComboBoxItem>
+                <ComboBoxItem>Custom Settings 2</ComboBoxItem>
+                <ComboBoxItem>Custom Settings 3</ComboBoxItem>
+            </ComboBox>
+        </StackPanel>
+        <ScrollViewer Grid.Row="1">
+            <StackPanel>
+                <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                    <Expander.Header>General</Expander.Header>
+                    <StackPanel>
+                        <CheckBox>Ignore Unsupported File Formats</CheckBox>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- TextBlock for "Comparison Threshold" -->
+                            <TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
+            
+                            <!-- TextBlock to display the slider value -->
+                            <TextBlock Text="{Binding Value, ElementName=Slider, Converter=
+                            {StaticResource SliderValueConverter}}" Width="100" 
+                                       Foreground="White" Margin="5,0,5,0" VerticalAlignment="Center"/>
+            
+                            <!-- Slider control -->
+                            <Slider x:Name="Slider" Width="600" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Expander>
+                <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                    <Expander.Header>Size Comparison</Expander.Header>
+                    <CheckBox>Enable Size Comparison</CheckBox>
+                </Expander>
+                <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                    <Expander.Header>Image Resolution Comparison</Expander.Header>
+                    <CheckBox>Enable Image Resolution Comparison</CheckBox>
+                </Expander>
+                <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                    <Expander.Header>Color Profile Comparison</Expander.Header>
+                    <CheckBox>Enable Color Profile Comparison</CheckBox>
+                </Expander>
+                <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                    <Expander.Header>Font Comparison</Expander.Header>
+                    <CheckBox>Enable Font Comparison</CheckBox>
+                </Expander>
+                <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                    <Expander.Header>Point By Point Comparison</Expander.Header>
+                    <CheckBox>Enable Point By Point Comparison</CheckBox>
+                </Expander>
+                <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                    <Expander.Header>Page Count Comparison</Expander.Header>
+                    <CheckBox>Enable Page Count Comparison</CheckBox>
+                </Expander>
+                <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch">
+                    <Expander.Header>Animation Comparison</Expander.Header>
+                    <CheckBox>Enable Animation Comparison</CheckBox>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

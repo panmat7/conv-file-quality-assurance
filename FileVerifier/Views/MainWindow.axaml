@@ -9,7 +9,8 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico"
         Title="FileVerifier"
-        Width="1080" Height="680" Foreground="#333333">
+        Width="1080" Height="680" Foreground="#333333"
+        WindowStartupLocation="CenterScreen">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
