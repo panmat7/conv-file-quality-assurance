@@ -11,6 +11,7 @@ using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Metadata;
+using SixLabors.ImageSharp.PixelFormats;
 using UglyToad.PdfPig;
 using Document = Aspose.Words.Document;
 using ImageMetadata = AvaloniaDraft.ComparingMethods.ExifTool.ImageMetadata;
@@ -279,5 +280,44 @@ public static class ComperingMethods
         }
         
         return errors;
+    }
+    
+    /// <summary>
+    /// Checks if an image contains transparency by checking if any of the pixels has an A value bellow 255
+    /// </summary>
+    /// <param name="filePath">Absolute path to the image</param>
+    /// <param name="format">PRONOM code of the file type</param>
+    /// <returns>True or false</returns>
+    public static bool ContainsTransparency(string filePath, string format)
+    {
+        //Only PNG and TIFF support transparency
+        if (!FormatCodes.PronomCodesPNG.Contains(format) && !FormatCodes.PronomCodesTIFF.Contains(format)) return false;
+
+        using var image = Image.Load(filePath);
+        
+        //Trying to ensure rgba32 format
+        if (image is not Image<Rgba32> rgbaImage)
+        {
+            rgbaImage = image.CloneAs<Rgba32>();
+        }
+            
+        var harTransparency = false;
+        
+        rgbaImage.ProcessPixelRows(accessor => {
+                for (int i = 0; i < accessor.Height; i++)
+                {
+                    var row = accessor.GetRowSpan(i);
+
+                    for (int j = 0; j < row.Length; j++)
+                    {
+                        if (row[j].A == 255) continue;
+                        harTransparency = true;
+                        return;
+                    }
+                }
+            }
+        );
+            
+        return harTransparency;
     }
 }

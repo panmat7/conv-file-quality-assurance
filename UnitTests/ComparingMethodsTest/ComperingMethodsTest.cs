@@ -286,4 +286,44 @@ public class ComperingMethodsTest
         
         Assert.Pass();
     }
+
+    [Test]
+    public void ContainsTransparencyTest_PNG_NoTransparency()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\225x225.png", "fmt/11");
+        
+        Assert.That(res, Is.False);
+    }
+    
+    [Test]
+    public void ContainsTransparencyTest_TIFF_NoTransparency()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\450x600.tiff", "fmt/353");
+        
+        Assert.That(res, Is.False);
+    }
+    
+    [Test]
+    public void ContainsTransparencyTest_JPG()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\600x450.jpg", "fmt/43");
+        
+        Assert.That(res, Is.False);
+    }
+    
+    [Test]
+    public void ContainsTransparencyTest_PNG_Transparency()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T225x225.png", "fmt/11");
+        
+        Assert.That(res, Is.True);
+    }
+    
+    [Test]
+    public void ContainsTransparencyTest_TIFF_Transparency()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T450x600.tiff", "fmt/353");
+        
+        Assert.That(res, Is.True);
+    }
 }
