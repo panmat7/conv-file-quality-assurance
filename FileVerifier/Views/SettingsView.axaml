@@ -44,15 +44,17 @@
                     <StackPanel>
                         <CheckBox>Ignore Unsupported File Formats</CheckBox>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <!-- TextBlock for "Comparison Threshold" -->
                             <TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
-            
-                            <!-- TextBlock to display the slider value -->
-                            <TextBlock Text="{Binding Value, ElementName=Slider, Converter=
-                            {StaticResource SliderValueConverter}}" Width="100" 
-                                       Foreground="White" Margin="5,0,5,0" VerticalAlignment="Center"/>
-            
-                            <!-- Slider control -->
+                            
+                            <!-- Replaced TextBlock with TextBox -->
+                            <TextBox 
+                                Text="{Binding Value, ElementName=Slider, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
+                                Width="50"
+                                Margin="5,0,5,0"
+                                VerticalAlignment="Center"/>
+                            
+                            <TextBlock Text="%" VerticalAlignment="Center" Foreground="White" Width="50"></TextBlock>
+                            
                             <Slider x:Name="Slider" Width="600" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </StackPanel>
