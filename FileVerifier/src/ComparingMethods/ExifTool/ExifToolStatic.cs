@@ -31,8 +31,8 @@ public static class ExifToolStatic
     {
         ProcessStartInfo psi;
 
-        var commandPowershell = "";
-        var commandExifTool = "";
+        string commandPowershell;
+        string commandExifTool;
         
         if (group)
         {
