@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.Helpers;
 
@@ -64,6 +65,12 @@ public static class VerificationPipelines
         }
         finally
         {
+            var random = new Random();
+            var num = random.Next(200, 2000);
+            
+            Thread.Sleep(num);
+            Console.WriteLine("THREAD ENDING");
+            
             updateThreadCount(-(1 + additionalThreads)); //Ensuring that this happens even if something fails
             markDone();
         }

@@ -18,6 +18,7 @@ public class FilePair
     public string NewFilePath { get; set; }
     public string NewFileFormat { get; set; }
     public bool Done { get; set; }
+    public bool InProcess { get; set; }
 
     public FilePair(string oFilePath, string nFilePath)
     {
@@ -26,6 +27,7 @@ public class FilePair
         NewFilePath = nFilePath;
         NewFileFormat = "";
         Done = false;
+        InProcess = false;
     }
 
     public FilePair(string oFilePath, string oFileFormat, string nFilePath, string newFileFormat)
@@ -35,9 +37,12 @@ public class FilePair
         NewFilePath = nFilePath;
         NewFileFormat = newFileFormat;
         Done = false;
+        InProcess = false;
     }
     
     public void UpdateDone() => Done = true;
+    
+    public void StartProcess() => InProcess = true;
     
     public override bool Equals(object? obj)
     {
@@ -70,6 +75,8 @@ public class FileManager
     //Theading
     private int CurrentThreads = 0;
     private static readonly object _lock = new object();
+    private static readonly object _listLock = new object();
+    private readonly List<Thread> _threads = new();
 
     public List<FilePair> GetFilePairs() => filePairs;
     public List<string> GetPairlessFiles() => pairlessFiles;
@@ -133,10 +140,15 @@ public class FileManager
         {
             lock (_lock)
             {
+                Console.WriteLine($"Using {CurrentThreads} threads of {maxThreads} threads.");
+                
                 if (CurrentThreads < maxThreads)
                 {
-                    var pair = filePairs.FirstOrDefault((p) => !p.Done);
-                    if (pair == null) break; //We are done
+                    var pair = filePairs.FirstOrDefault((p) => !p.InProcess && !p.Done);
+                    if (pair == null) break; //We are done, everything either in progress or done
+                    
+                    pair.StartProcess();
+                    Console.WriteLine($"Done with {filePairs.IndexOf(pair)} files out of {filePairs.Count} files.");
                     
                     var assigned = GetAdditionalThreadCount(pair);
                     if (maxThreads < CurrentThreads + (1 + assigned))
@@ -144,6 +156,7 @@ public class FileManager
 
                     if (SelectAndStartPipeline(pair, assigned))
                     {
+                        Console.WriteLine($"THREAD STARTED");
                         CurrentThreads += (1 + assigned); //Main thread + additional assigned
                     }
                     else
@@ -155,6 +168,13 @@ public class FileManager
             }
             
             Thread.Sleep(150);
+        }
+
+        AwaitThreads(); //Awaiting all remaining threads
+        
+        foreach (var file in filePairs)
+        {
+            Console.WriteLine($"This file is verified: {file.Done}");
         }
     }
     
@@ -168,14 +188,33 @@ public class FileManager
     {
         Action<FilePair, int, Action<int>, Action>? pipeline = null;
         
+        //Get the correct pipeline
         if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
         {
             pipeline = VerificationPipelines.GetPNGPipelines(pair.NewFileFormat);
         }
-
-        if (pipeline == null) return false;
         
-        pipeline(pair, assigned, ReturnUsedThreadsAndFinishFile, () => pair.UpdateDone());
+        if (pipeline == null) return false; //None found
+        
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                pipeline(pair, assigned, ReturnUsedThreadsAndFinishFile, () => pair.UpdateDone());
+            }
+            finally
+            {
+                lock (_listLock)
+                {
+                    _threads.Remove(Thread.CurrentThread); //When finished, remove from list
+                }
+            }
+        });
+        
+        lock (_listLock) _threads.Add(thread); //Add the thread to list of currently active
+        
+        thread.Start();
+        
         return true;
     }
 
@@ -200,6 +239,23 @@ public class FileManager
         {
             CurrentThreads += change;
         }
+    }
+    
+    /// <summary>
+    /// Waits till all threads inside _threads finish
+    /// </summary>
+    private void AwaitThreads()
+    {
+        List<Thread> toAwait;
+        
+        lock (_listLock) toAwait = new List<Thread>(_threads);
+        
+        foreach (var t in toAwait)
+        {
+            t.Join();
+        }
+        
+        lock (_listLock) _threads.Clear();
     }
     
     /// <summary>
