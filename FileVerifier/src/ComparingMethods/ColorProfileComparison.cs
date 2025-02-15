@@ -11,10 +11,6 @@ using System.Xml.Linq;
 
 namespace AvaloniaDraft.ComparingMethods;
 
-// TODO: Several cases need to be included
-// TODO: What if the same image is used multiple times. Only one image is then stored in XML
-// TODO: What if images are not in same order in original and new?
-
 public static class ColorProfileComparison
 {
     /// <summary>
@@ -36,7 +32,7 @@ public static class ColorProfileComparison
                 _ when FormatCodes.PronomCodesImages.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => ImageToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesPDFA.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat) =>
-                    PdfToPdfColorProfileComparison(files),
+                       PdfToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => XmlBasedPowerPointToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesDOCX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
@@ -167,22 +163,29 @@ public static class ColorProfileComparison
     private static List<MagickImage> ExtractImagesFromPdf(string filePath)
     {
         var extractedImages = new List<MagickImage>();
+    
+        // Hash set to store the hash of the image content to avoid duplicates where the same image is used multiple times
+        var imageHashes = new HashSet<string>();
 
         using var pdfDocument = PdfDocument.Open(filePath);
         foreach (var page in pdfDocument.GetPages())
         {
-            var images = page.GetImages();
+            var images = page.GetImages().ToList();
 
-            foreach (var image in images)
+            // Only extract images that are not already in the hash set
+            foreach (var rawBytes in from image in images select image.RawBytes.ToArray() into rawBytes 
+                     let hash = Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(rawBytes)) 
+                     where imageHashes.Add(hash) select rawBytes)
             {
-                // Convert the raw image bytes to a MagickImage
-                using var magickImage = new MagickImage(image.RawBytes);
-                // Clone the image to avoid disposing it when the using block ends
+                using var magickImage = new MagickImage(rawBytes);
                 extractedImages.Add((MagickImage)magickImage.Clone());
             }
         }
+
         return extractedImages;
     }
+
+
 
     /// <summary>
     /// Extracts all images from a xml based PowerPoint format

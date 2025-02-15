@@ -512,4 +512,15 @@ public class FileColorProfileComparisonTest : TestBase
         var result = ColorProfileComparison.FileColorProfileComparison(files);
         Assert.That(result, Is.True);
     }
+
+    [Test]
+    public void TestSameImageUsedMultipleTimes()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation-with-same-image-multiple-times.pptx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation-with-same-image-multiple-times.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.That(result, Is.True); // Two files where color profiles match should pass
+    }
 }
