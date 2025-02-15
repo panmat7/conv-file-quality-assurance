@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
+using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.FileManager;
 
@@ -117,6 +118,70 @@ public class FileManager
     public void GetSiegfriedFormats()
     {
         Siegfried.GetFileFormats(oDirectory, nDirectory, ref filePairs);
+    }
+
+    public void StartVerification()
+    {
+        var maxThreads = 8; //Read from options
+        var fileCount = filePairs.Count;
+        
+        //Continuing untill done with all files
+        while (filesDone < fileCount)
+        {
+            lock (_lock)
+            {
+                if (CurrentThreads < maxThreads)
+                {
+                    var assigned = GetAdditionalThreadCount(filePairs[filesDone]);
+                    if (maxThreads < CurrentThreads + (1 + assigned))
+                        assigned = maxThreads - CurrentThreads - 1; //Making sure we dont create too many threads
+
+                    if (SelectAndStartPipeline(filePairs[filesDone], assigned))
+                    {
+                        CurrentThreads += (1 + assigned); //Main thread + additional assigned
+                    }
+                    else
+                    {
+                        //TODO: Log error, not supported conversion
+                    }
+                    
+                }
+            }
+            
+            Thread.Sleep(150);
+        }
+    }
+    
+    /// <summary>
+    /// Selects and starts a verification pipeline based on 
+    /// </summary>
+    /// <param name="pair">Files to be compared</param>
+    /// <param name="assigned">Additional thread budget assigned to the pipeline</param>
+    /// <returns>False if no pipeline was found (meaning unsupported verification)</returns>
+    private bool SelectAndStartPipeline(FilePair pair, int assigned)
+    {
+        Action<FilePair, int>? pipeline = null;
+        
+        if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
+        {
+            pipeline = VerificationPipelines.GetPNGPipelines(pair.NewFileFormat);
+        }
+
+        if (pipeline == null) return false;
+        
+        pipeline(pair, assigned);
+        return true;
+    }
+
+    /// <summary>
+    /// Calculates the number of threads that should be assigned to a file verification process. 
+    /// </summary>
+    /// <param name="filePair">The pair of files</param>
+    /// <returns>The recommended number of additional threads</returns>
+    private int GetAdditionalThreadCount(FilePair filePair)
+    {
+        //TODO: The actual calculation
+        return 0;
     }
 
     public void TestStartThreads()
