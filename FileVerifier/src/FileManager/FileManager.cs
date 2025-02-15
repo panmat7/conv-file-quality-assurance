@@ -36,7 +36,9 @@ public class FilePair
         NewFileFormat = newFileFormat;
         Done = false;
     }
-
+    
+    public void UpdateDone() => Done = true;
+    
     public override bool Equals(object? obj)
     {
         if (obj is FilePair fp)
@@ -64,7 +66,6 @@ public class FileManager
     private List<FilePair> filePairs;
     private readonly List<string> pairlessFiles;
     private readonly IFileSystem _fileSystem;
-    private int filesDone = 0;
     
     //Theading
     private int CurrentThreads = 0;
@@ -119,24 +120,29 @@ public class FileManager
     {
         Siegfried.GetFileFormats(oDirectory, nDirectory, ref filePairs);
     }
-
+    
+    /// <summary>
+    /// Starts the verification process. Continues until all files are checked.
+    /// </summary>
     public void StartVerification()
     {
         var maxThreads = 8; //Read from options
-        var fileCount = filePairs.Count;
         
-        //Continuing untill done with all files
-        while (filesDone < fileCount)
+        //Continuing until done with all files
+        while (true)
         {
             lock (_lock)
             {
                 if (CurrentThreads < maxThreads)
                 {
-                    var assigned = GetAdditionalThreadCount(filePairs[filesDone]);
+                    var pair = filePairs.FirstOrDefault((p) => !p.Done);
+                    if (pair == null) break; //We are done
+                    
+                    var assigned = GetAdditionalThreadCount(pair);
                     if (maxThreads < CurrentThreads + (1 + assigned))
-                        assigned = maxThreads - CurrentThreads - 1; //Making sure we dont create too many threads
+                        assigned = maxThreads - CurrentThreads - 1; //Making sure we don't create too many threads
 
-                    if (SelectAndStartPipeline(filePairs[filesDone], assigned))
+                    if (SelectAndStartPipeline(pair, assigned))
                     {
                         CurrentThreads += (1 + assigned); //Main thread + additional assigned
                     }
@@ -160,7 +166,7 @@ public class FileManager
     /// <returns>False if no pipeline was found (meaning unsupported verification)</returns>
     private bool SelectAndStartPipeline(FilePair pair, int assigned)
     {
-        Action<FilePair, int>? pipeline = null;
+        Action<FilePair, int, Action<int>, Action>? pipeline = null;
         
         if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
         {
@@ -169,7 +175,7 @@ public class FileManager
 
         if (pipeline == null) return false;
         
-        pipeline(pair, assigned);
+        pipeline(pair, assigned, ReturnUsedThreadsAndFinishFile, () => pair.UpdateDone());
         return true;
     }
 
@@ -184,64 +190,15 @@ public class FileManager
         return 0;
     }
 
-    public void TestStartThreads()
+    /// <summary>
+    /// Safely updates current threads and signals file as done
+    /// </summary>
+    /// <param name="change">The change in thread count</param>
+    public void ReturnUsedThreadsAndFinishFile(int change)
     {
-        var maxThreads = 8; //Read from options later
-        var fileCount = filePairs.Count;
-        
-        Console.WriteLine($"MAXTHREADS: {maxThreads}");
-        Console.WriteLine($"FILES TO DO: {fileCount}");
-        
-        while (filesDone < fileCount)
+        lock (_lock)
         {
-            Console.WriteLine($"Files Done: {filesDone}/{fileCount}. Using Threads: {CurrentThreads}. Available Threads: {maxThreads - CurrentThreads}.");
-
-            lock (_lock)
-            {
-                if (CurrentThreads < maxThreads)
-                {
-                    var assigned = 0;
-                    if (new Random().Next() % 2 == 0)
-                    {
-                        assigned = new Random().Next(1, 4);
-                        if (maxThreads < CurrentThreads + (1 + assigned))
-                        {
-                            assigned = maxThreads - CurrentThreads - 1;
-                        }
-                    }
-                    
-                    CurrentThreads += (1 + assigned);
-                    var thread = new Thread(ThreadTest);
-                    thread.Start(assigned);
-                }
-            }
-            
-            Thread.Sleep(100);
-        }
-        
-        Console.WriteLine($"Done with {filePairs.Count} pairs.");
-    }
-
-    private void ThreadTest(object assignedThreads)
-    {
-        var assigned = (int)assignedThreads;
-        
-        try
-        {
-            Console.WriteLine($"Thread #{CurrentThreads} started");
-            var random = new Random();
-            var randomInterval = random.Next(500, 1750);
-            Thread.Sleep(randomInterval);
-            Console.WriteLine(
-                $"Thread #{CurrentThreads} finished after {randomInterval} ms, returning {assigned} threads");
-        }
-        finally
-        {
-            lock (_lock)
-            {
-                CurrentThreads -= (assigned + 1);
-                filesDone++;
-            }
+            CurrentThreads += change;
         }
     }
     
