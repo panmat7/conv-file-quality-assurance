@@ -53,4 +53,39 @@ public class MetadataStandardizerTest
         
         Assert.Pass();
     }
+
+    [Test]
+    public void StandardizedImageMetadataObjTest()
+    {
+        var obj1 = new StandardizedImageMetadata();
+        var obj2 = new StandardizedImageMetadata();
+
+        obj2.Path = "/test/path";
+        obj2.Name = "test name";
+        obj2.ImgHeight = 225;
+        obj2.ImgWidth = 600;
+        obj2.ColorType = ColorType.Index;
+        obj2.BitDepth = 8;
+        obj2.PPUnitX = 25;
+        obj2.PPUnitY = 25;
+        obj2.PUnit = "inches";
+        obj2.AdditionalValues.Add("TEST1", new object());
+        
+        obj1.AdditionalValues.Add("TEST2", new object());
+        
+        if(obj1.VerifyResolution() || !obj2.VerifyResolution()) Assert.Fail();
+        if(obj1.VerifyBitDepth() || !obj2.VerifyBitDepth()) Assert.Fail();
+        if(obj1.VerifyColorType() || !obj2.VerifyColorType()) Assert.Fail();
+        if(obj1.VerifyPhysicalUnits() || !obj2.VerifyPhysicalUnits()) Assert.Fail();
+        
+        if(obj2.CompareResolution(obj1)) Assert.Fail();
+        if(obj2.CompareBitDepth(obj1)) Assert.Fail();
+        if(obj2.CompareColorType(obj1)) Assert.Fail();
+        if(obj2.ComparePhysicalUnits(obj1)) Assert.Fail();
+        if(obj2.ComparePhysicalUnitsFlexible(obj1)) Assert.Fail();
+
+        if(obj1.GetMissingAdditionalValues(obj2).Count != 2) Assert.Fail();
+        
+        Assert.Pass();
+    }
 }
