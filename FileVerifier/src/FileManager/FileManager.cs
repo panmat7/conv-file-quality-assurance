@@ -97,10 +97,10 @@ public class FileManager
         
         //If any file name appears more than once - inform
         if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != originalFiles.Count)
-            throw new Exception("FILENAME DUPLICATES IN ORIGINAL DIRECTORY");
+            throw new InvalidOperationException("FILENAME DUPLICATES IN ORIGINAL DIRECTORY");
         
         if (newFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != newFiles.Count)
-            throw new Exception("FILENAME DUPLICATES IN NEW DIRECTORY");
+            throw new InvalidOperationException("FILENAME DUPLICATES IN NEW DIRECTORY");
         
         foreach (var iFile in originalFiles)
         {
@@ -233,7 +233,7 @@ public class FileManager
     /// Safely updates current threads and signals file as done
     /// </summary>
     /// <param name="change">The change in thread count</param>
-    public void ReturnUsedThreadsAndFinishFile(int change)
+    private void ReturnUsedThreadsAndFinishFile(int change)
     {
         lock (_lock)
         {

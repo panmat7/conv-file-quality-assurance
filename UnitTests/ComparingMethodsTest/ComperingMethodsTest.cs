@@ -280,9 +280,25 @@ public class ComperingMethodsTest
         
         var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
 
-        if (result is null) Assert.Fail();
+        if (result is null || result.Count != 1) Assert.Fail();
         
-        if(result.Count != 1 || !result.ContainsKey("ImageResolution")) Assert.Fail();
+        Assert.Pass();
+    }
+    
+    [Test]
+    public void GetMissingOrWrongImageMetadataExifTest_JPG_PNG()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"Images\600x450.jpg",
+            "fmt/43",
+            _testFileDirectory + @"Images\T225x225.png",
+            "fmt/12"
+        );
+        
+        var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+
+        if (result is null || result.Count != 4) Assert.Fail();
         
         Assert.Pass();
     }

@@ -210,7 +210,7 @@ public static class ComperingMethods
     /// </summary>
     /// <param name="files">Files to be checked</param>
     /// <returns>Dictionary of error-type to error-description. Null meaning error while getting data. Empty list meaning no errors.</returns>
-    public static Dictionary<string, string>? GetMissingOrWrongImageMetadataExif(FilePair files)
+    public static List<Error>? GetMissingOrWrongImageMetadataExif(FilePair files)
     {
         //Get metadata
         var metaOriginal = ExifToolStatic.GetExifDataImageMetadata([files.OriginalFilePath], GlobalVariables.ExifPath)?[0];
@@ -222,62 +222,119 @@ public static class ComperingMethods
         var originalStandardized = MetadataStandardizer.StandardizeImageMetadata(metaOriginal, files.OriginalFileFormat);
         var newStandardized = MetadataStandardizer.StandardizeImageMetadata(metaNew, files.NewFileFormat);
         
-        var errors = new System.Collections.Generic.Dictionary<string, string>();
+        var errors = new List<Error>();
         
         //Check properties, note errors and mismatches
         if (!originalStandardized.VerifyResolution())
         {
-            errors["ImageResolutionOriginal"] = "Error trying to get original image resolution";
+            errors.Add(new Error(
+                "ImageResolutionOriginal",
+                "Error trying to get original image resolution",
+                ErrorSeverity.High,
+                ErrorType.Metadata
+            ));
         }
         
         if(!newStandardized.VerifyResolution())
         {
-            errors["ImageResolutionNew"] = "Error trying to get new image resolution";
+            errors.Add(new Error(
+                "ImageResolutionNew",
+                "Error trying to get new image resolution",
+                ErrorSeverity.High,
+                ErrorType.Metadata
+            ));
         }
         
         if (!originalStandardized.CompareResolution(newStandardized))
         {
-            errors["ImageResolution"] = "Mismatched resolution between images";
+            errors.Add(new Error(
+                "ImageResolution",
+                "Mismatched resolution between images",
+                ErrorSeverity.High,
+                ErrorType.Metadata
+            ));
         }
 
         if (!originalStandardized.VerifyBitDepth())
         {
-            errors["BitDepthOriginal"] = "Error trying to get original image bit-depth";
+            errors.Add(new Error(
+                "BitDepthOriginal",
+                "Error trying to get original image bit-depth",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            ));
         }
 
         if (!newStandardized.VerifyBitDepth())
         {
-            errors["BitDepthNew"] = "Error trying to get new image bit-depth";
+            errors.Add(new Error(
+                "BitDepthNew",
+                "Error trying to get new image bit-depth",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            ));
         }
 
         if (!originalStandardized.CompareBitDepth(newStandardized))
         {
-            errors["BitDepth"] = "Mismatched resolution between images";
+            errors.Add(new Error(
+                "BitDepth",
+                "Mismatched resolution between images",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            ));
         }
         
         if (!originalStandardized.VerifyColorType())
         {
-            errors["ColorTypeOriginal"] = "Error trying to get original image color type";
+            errors.Add(new Error(
+                "ColorTypeOriginal",
+                "Error trying to get original image color type",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            ));
         }
 
         if (!newStandardized.VerifyColorType())
         {
-            errors["ColorTypeNew"] = "Error trying to get new image color type";
+            errors.Add(new Error(
+                "ColorTypeNew",
+                "Error trying to get new image color type",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            ));
         }
 
         if (!originalStandardized.CompareColorType(newStandardized))
         {
-            errors["ColorType"] = "Mismatched color type between images";
+            errors.Add(new Error(
+                "ColorType",
+                "Mismatched color type between images",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            ));
         }
 
         if(!originalStandardized.VerifyPhysicalUnits() || !newStandardized.VerifyPhysicalUnits())
         {
-            errors["PhysicalUnitsMissing"] = "Error trying to get original physical units";
+            errors.Add(new Error(
+                "PhysicalUnitsMissing",
+                "Error trying to get original physical units",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            ));
         }
         else if(!originalStandardized.ComparePhysicalUnits(newStandardized))
         {
-            errors["PhysicalUnits"] = "Mismatched physical units between images";
+            errors.Add(new Error(
+                "PhysicalUnits",
+                "Mismatched physical units between images",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            ));
         }
+        
+        errors.AddRange(originalStandardized.GetMissingAdditionalValues(newStandardized));
         
         return errors;
     }

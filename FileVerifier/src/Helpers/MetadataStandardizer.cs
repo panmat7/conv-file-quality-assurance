@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Aspose.Slides.LowCode;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using Newtonsoft.Json.Linq;
@@ -123,14 +124,106 @@ public class StandardizedImageMetadata
     /// <returns>True or false</returns>
     public bool ComparePhysicalUnitsFlexible(StandardizedImageMetadata img2)
     {
-        var oXcm = ConvertToCm(PUnit, PPUnitX);
-        var oYcm = ConvertToCm(PUnit, PPUnitY);
-        var nXcm = ConvertToCm(img2.PUnit, img2.PPUnitX);
-        var nYcm = ConvertToCm(img2.PUnit, img2.PPUnitY);
-        
-        return oXcm == nXcm && oYcm == nYcm;
+        try
+        {
+            var oXcm = ConvertToCm(PUnit, PPUnitX);
+            var oYcm = ConvertToCm(PUnit, PPUnitY);
+            var nXcm = ConvertToCm(img2.PUnit, img2.PPUnitX);
+            var nYcm = ConvertToCm(img2.PUnit, img2.PPUnitY);
+            
+            return oXcm == nXcm && oYcm == nYcm;
+        }
+        catch
+        {
+            return false;
+        }
     }
     
+    /// <summary>
+    /// Returns a list of errors regarding additional values
+    /// </summary>
+    /// <param name="img2">Image to compare with</param>
+    /// <returns>List of errors</returns>
+    public List<Error> GetMissingAdditionalValues(StandardizedImageMetadata img2)
+    {
+        List<Error> addVErrors = new();
+        
+        foreach(var (key, value) in AdditionalValues)
+        {
+            if (img2.AdditionalValues.TryGetValue(key, out var value2))
+            {
+                if (value is JObject g1 && value2 is JObject g2)
+                {
+                    var properties1 = g1.Properties().Select(p => p.Name).ToList();
+                    var properties2 = g2.Properties().Select(p => p.Name).ToList();
+                    
+                    var missing = properties1.Except(properties2).ToList();
+                    var added = properties2.Except(properties1).ToList();
+
+                    if (missing.Count > 0)
+                    {
+                        addVErrors.Add(new Error(
+                            "MissingMetadataGroupMembers",
+                            $"Missing following members in metadata group {key}: {string.Join(", ", missing)}",
+                            ErrorSeverity.Medium,
+                            ErrorType.Metadata
+                        ));
+                    }
+
+                    if (added.Count > 0)
+                    {
+                        addVErrors.Add(new Error(
+                            "AdditionalMetadataGroupMembers",
+                            $"New members in metadata group {key}: {string.Join(", ", added)}",
+                            ErrorSeverity.Low,
+                            ErrorType.Metadata
+                        ));
+                    }
+                }
+                else
+                {
+                    addVErrors.Add(new Error(
+                        "MetadataGroupError",
+                        $"Could not extract metadata in following group: {key}",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+            }
+            else
+            {
+                addVErrors.Add(new Error(
+                    "MissingMetadataGroup",
+                    $"The following metadata group is missing in new: {key}",
+                    ErrorSeverity.Medium,
+                    ErrorType.Metadata
+                ));
+            }
+        }
+        
+        //Also need to check the ones present 
+        var newGroups = img2.AdditionalValues.Keys.Except(AdditionalValues.Keys).ToList();
+
+        foreach (var group in newGroups)
+        {
+            addVErrors.Add(new Error(
+                "NewMetadataGroup",
+                $"The following metadata group is present only in new: {group}",
+                ErrorSeverity.Low,
+                ErrorType.Metadata
+            ));
+        }
+        
+        return addVErrors;
+    }
+    
+    /// <summary>
+    /// Helper function that standardizes and converts unit measurments to cm
+    /// </summary>
+    /// <param name="unit"></param>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     private static int ConvertToCm(string unit, int value)
     {
         return unit.ToLower() switch
