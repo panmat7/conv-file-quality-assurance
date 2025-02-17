@@ -8,6 +8,10 @@ using UglyToad.PdfPig;
 using System.IO;
 using System.IO.Compression;
 using System.Xml.Linq;
+using MimeKit;
+
+// NOTE: COLOR PROFILE COMPARISON WILL NOT WORK CORRECTLY WHEN IMAGES ARE IN DIFFERENT ORDER BETWEEN ORIGINAL AND NEW
+// THERE IS STILL A CHANCE IT ENDS UP GIVING THE CORRECT RESULT IF PROFILES HAPPEN TO MATCH, BUT THERE IS NO GUARANTEE
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -39,6 +43,8 @@ public static class ColorProfileComparison
                     => DocxToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesXLSX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => XlsxToPdfColorProfileComparison(files),
+                _ when FormatCodes.PronomCodesEML.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
+                    => EmlToPdfColorProfileComparison(files),
                 _ => throw new NotSupportedException("Unsupported comparison format.")
             };
         }
@@ -154,6 +160,17 @@ public static class ColorProfileComparison
                                         !CompareColorProfiles(t, nImages[i])).Any();
     }
 
+    public static bool EmlToPdfColorProfileComparison(FilePair files)
+    {
+        var oImages = ExtractImagesFromEml(files.OriginalFilePath);
+        var nImages = ExtractImagesFromPdf(files.NewFilePath);
+        
+        // If there are no images no test is done and we return true
+        if (oImages.Count < 1) return true;
+        
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
+    }
+
     /// <summary>
     /// Extracts images from a PDF file
     /// </summary>
@@ -185,7 +202,60 @@ public static class ColorProfileComparison
         return extractedImages;
     }
 
+    /// <summary>
+    /// Extracts images from .eml files
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    private static List<MagickImage> ExtractImagesFromEml(string filePath)
+    {
+        var images = new List<MagickImage>();
 
+        var message = MimeMessage.Load(filePath);
+
+        if (message.Body is not Multipart multipart) return images;
+        // Check if the email is multipart/related (for inline images)
+        foreach (var part in multipart)
+        {
+            switch (part)
+            {
+                case MultipartRelated related:
+                {
+                    // Loop through inline images
+                    foreach (var resource in related)
+                    {
+                        if (resource is not MimePart mimePart || !mimePart.ContentType.MimeType.StartsWith("image/"))
+                            continue;
+                        // Decode the image content to a byte array
+                        using var memoryStream = new MemoryStream();
+                        mimePart.Content.DecodeTo(memoryStream);
+                        memoryStream.Position = 0;
+
+                        // Create a MagickImage from the byte array
+                        var magickImage = new MagickImage(memoryStream.ToArray());
+                        images.Add(magickImage);
+                    }
+
+                    break;
+                }
+                case MimePart mimeAttachment when mimeAttachment.ContentType.MimeType.StartsWith("image/"):
+                {
+                    // Handle image attachments (same as inline image)
+                    using var memoryStream = new MemoryStream();
+                    mimeAttachment.Content.DecodeTo(memoryStream);
+                    memoryStream.Position = 0;
+
+                    var magickImage = new MagickImage(memoryStream.ToArray());
+                    images.Add(magickImage);
+
+                    break;
+                }
+            }
+        }
+
+        return images;
+    }
+    
 
     /// <summary>
     /// Extracts all images from a xml based PowerPoint format

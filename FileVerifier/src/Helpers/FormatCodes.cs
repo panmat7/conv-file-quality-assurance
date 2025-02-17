@@ -87,6 +87,11 @@ public static class FormatCodes
         "fmt/95", //PDF/A 1a
         "fmt/354", //PDF/A 1b
     ];
+
+    public static readonly ImmutableList<string> PronomCodesEML =
+    [
+        "fmt/950"
+    ];
     
     public static readonly ImmutableList<string> PronomCodesPDF2A =
     [
