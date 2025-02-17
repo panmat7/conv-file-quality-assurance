@@ -3,6 +3,17 @@ using System.Linq;
 
 namespace AvaloniaDraft.Helpers;
 
+/**********************
+ * !!!README!!!
+ * 
+ * Det her er vanskelig å sikre at disse er korrekte uten å legge de til manuelt.
+ * Stol kun på koder med komentar på siden, andre er ikke dobbeltsjekket
+ * Hvis du skal legge til flere pls legg til en kommentar med faktiske format navn, som man kan finne her
+ * https://www.nationalarchives.gov.uk/PRONOM/PUID/proPUIDSearch.aspx?status=new
+ *
+ * !!!README!!!
+ **********************/
+
 /// <summary>
 /// Stores file format codes and pronom codes
 /// </summary>
@@ -33,18 +44,6 @@ public class FileFormat
         return PronomCodes.Contains(code);
     }
 }
-
-/**********************
- * !!!README!!!
- * 
- * Det her er vanskelig å sikre at disse er korrekte uten å legge de til manuelt.
- * Stol kun på koder med komentar på siden, andre er ikke dobbeltsjekket
- * Hvis du skal legge til flere pls legg til en kommentar med faktiske format navn, som man kan finne her
- * https://www.nationalarchives.gov.uk/PRONOM/PUID/proPUIDSearch.aspx?status=new
- *
- * !!!README!!!
- **********************/
-
 
 public static class FileExtensions
 {
