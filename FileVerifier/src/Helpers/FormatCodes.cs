@@ -22,13 +22,16 @@ public class FileFormat
         FormatCodes = fileFormats.SelectMany(f => f.FormatCodes).Distinct().ToImmutableList();
         PronomCodes = fileFormats.SelectMany(f => f.PronomCodes).Distinct().ToImmutableList();
     }
-    
+
     /// <summary>
     /// Checks if a pronom code is contained in PronomCodes
     /// </summary>
     /// <param name="code"></param>
     /// <returns></returns>
-    public bool Contains(string code) => FormatCodes.Contains(code);
+    public bool Contains(string code)
+    {
+        return PronomCodes.Contains(code);
+    }
 }
 
 /**********************
@@ -134,14 +137,15 @@ public static class FormatCodes
         PronomCodesPDF4A,
     ]);
 
-    //PRESENTATIONS
+//PRESENTATIONS
     public static readonly FileFormat PronomCodesPPT = new FileFormat(["ppt"], [
         "fmt/125", //PowerPoint Presentation 95
-        "fmt/126", //PowerPoint Presentation 97-2003
+        "fmt/126"  //PowerPoint Presentation 97-2003
     ]);
 
     public static readonly FileFormat PronomCodesPPTM = new FileFormat(["pptm"], [
-
+        "fmt/479",
+        "fmt/487"
     ]);
 
     public static readonly FileFormat PronomCodesPPTX = new FileFormat(["pptx"], [
@@ -155,11 +159,52 @@ public static class FormatCodes
         "fmt/1754" //OpenDocument Presentation 1.3
     ]);
 
+    public static readonly FileFormat PronomCodesPOT = new FileFormat(["pot"], [
+        "fmt/126"
+    ]);
+
+    public static readonly FileFormat PronomCodesPPS = new FileFormat(["pps"], [
+        "fmt/126"
+    ]);
+
+    public static readonly FileFormat PronomCodesPPSX = new FileFormat(["ppsx"], [
+        "fmt/629"
+    ]);
+
+    public static readonly FileFormat PronomCodesPPSM = new FileFormat(["ppsm"], [
+        "fmt/630"
+    ]);
+
+    public static readonly FileFormat PronomCodesPOTX = new FileFormat(["potx"], [
+        "fmt/631"
+    ]);
+
+    public static readonly FileFormat PronomCodesPOTM = new FileFormat(["potm"], [
+        "fmt/633"
+    ]);
+
+    public static readonly FileFormat PronomCodesXML = new FileFormat(["xml"], [
+        "fmt/101"
+    ]);
+
+    public static readonly FileFormat PronomCodesXMLBasedPowerPoint = new FileFormat([
+        PronomCodesPPTX,
+        PronomCodesPPSX,
+        PronomCodesPOTX
+    ]);
+
     public static readonly FileFormat PronomCodesPresentationDocuments = new FileFormat([
         PronomCodesPPT,
         PronomCodesPPTM,
         PronomCodesPPTX,
         PronomCodesODP,
+        PronomCodesPOT,
+        PronomCodesPPS,
+        PronomCodesPOTM,
+        PronomCodesPOTX,
+        PronomCodesPPSX,
+        PronomCodesPPSM,
+        PronomCodesXML
     ]);
 
     //SPREADSHEETS

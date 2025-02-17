@@ -182,7 +182,7 @@ public class ComperingMethodsTest
         (
             _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
             "fmt/126",
-            _testFileDirectory + @"PowerPoint\presentation_without_animations.pdf",
+            _testFileDirectory + @"PDF\presentation_without_animations.pdf",
             "fmt/19"
         );
         
@@ -242,7 +242,7 @@ public class ComperingMethodsTest
         (
             _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
             "fmt/126",
-            _testFileDirectory + @"PowerPoint\presentation_without_animations.pdf",
+            _testFileDirectory + @"PDF\presentation_without_animations.pdf",
             "fmt/19"
         );
         
