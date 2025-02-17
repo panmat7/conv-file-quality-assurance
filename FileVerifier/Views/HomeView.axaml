@@ -66,6 +66,12 @@
                  FontFamily="Consolas" Name="Console"
                  Background="Black" BorderBrush="White" Foreground="White">
         </TextBox>
+        
+        <!-- Progress Bar -->
+        <ProgressBar Grid.Column="3" Grid.Row="5" Margin="0 10" Height="20" 
+                     Minimum="0" Maximum="100" Value="14"
+                     ShowProgressText="True"
+                     Background="#1E3A5F"/>
 
         <!-- Start Button -->
         <Button Grid.Column="3" Grid.Row="8" HorizontalAlignment="Right" 
