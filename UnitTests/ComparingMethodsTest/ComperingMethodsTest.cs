@@ -142,7 +142,7 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.AreEqual(0, diff);
+        Assert.That(diff, Is.EqualTo(0));
     }
     
     [Test]
@@ -188,5 +188,158 @@ public class ComperingMethodsTest
         
         var diff = ComperingMethods.GetPageCountDifference(files);
         Assert.That(diff, Is.EqualTo(0));
+    }
+    
+    [Test]
+    public void GetPageCountDifferenceExifTest_3DOCX_3ODT()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.docx",
+            "fmt/412",
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
+            "fmt/1756"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.EqualTo(0));
+    }
+    
+    [Test]
+    public void GetPageCountDifferenceExifTest_8DOCX_3ODT()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"TestDocuments\Image8Pages.docx",
+            "fmt/412",
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
+            "fmt/1756"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.EqualTo(5));
+    }
+    
+    [Test]
+    public void GetPageCountDifferenceExifTest_8PDF_3DOCX()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/276",
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
+            "fmt/1756"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.EqualTo(5));
+    }
+
+    [Test]
+    public void GetPageCountDifferenceExifTest_2PPT_2PDF()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
+            "fmt/126",
+            _testFileDirectory + @"PowerPoint\presentation_without_animations.pdf",
+            "fmt/19"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void GetPageCountTest_8PDF_3ODT()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/276",
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
+            "fmt/1756"
+        );
+
+        var count1 = ComperingMethods.GetPageCount(files.OriginalFilePath, files.OriginalFileFormat);
+        var count2 = ComperingMethods.GetPageCount(files.NewFilePath, files.NewFileFormat);
+        
+        Assert.That(count1 is 8 && count2 is 3);
+    }
+
+    [Test]
+    public void GetMissingOrWrongImageMetadataExifTest_JPG_TIFF()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"Images\600x450.jpg",
+            "fmt/43",
+            _testFileDirectory + @"Images\450x600.tiff",
+            "fmt/353"
+        );
+        
+        var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+
+        if (result is null || result.Count != 1) Assert.Fail();
+        
+        Assert.Pass();
+    }
+    
+    [Test]
+    public void GetMissingOrWrongImageMetadataExifTest_JPG_PNG()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"Images\600x450.jpg",
+            "fmt/43",
+            _testFileDirectory + @"Images\T225x225.png",
+            "fmt/12"
+        );
+        
+        var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+
+        if (result is null || result.Count != 4) Assert.Fail();
+        
+        Assert.Pass();
+    }
+
+    [Test]
+    public void ContainsTransparencyTest_PNG_NoTransparency()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\225x225.png", "fmt/11");
+        
+        Assert.That(res, Is.False);
+    }
+    
+    [Test]
+    public void ContainsTransparencyTest_TIFF_NoTransparency()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\450x600.tiff", "fmt/353");
+        
+        Assert.That(res, Is.False);
+    }
+    
+    [Test]
+    public void ContainsTransparencyTest_JPG()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\600x450.jpg", "fmt/43");
+        
+        Assert.That(res, Is.False);
+    }
+    
+    [Test]
+    public void ContainsTransparencyTest_PNG_Transparency()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T225x225.png", "fmt/11");
+        
+        Assert.That(res, Is.True);
+    }
+    
+    [Test]
+    public void ContainsTransparencyTest_TIFF_Transparency()
+    {
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T450x600.tiff", "fmt/353");
+        
+        Assert.That(res, Is.True);
     }
 }
