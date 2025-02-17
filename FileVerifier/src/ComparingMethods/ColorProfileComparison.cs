@@ -210,9 +210,10 @@ public static class ColorProfileComparison
     private static List<MagickImage> ExtractImagesFromEml(string filePath)
     {
         var images = new List<MagickImage>();
-
+        var imageHashes = new HashSet<string>();
+    
         var message = MimeMessage.Load(filePath);
-
+    
         if (message.Body is not Multipart multipart) return images;
         // Check if the email is multipart/related (for inline images)
         foreach (var part in multipart)
@@ -230,12 +231,16 @@ public static class ColorProfileComparison
                         using var memoryStream = new MemoryStream();
                         mimePart.Content.DecodeTo(memoryStream);
                         memoryStream.Position = 0;
+    
+                        // Compute hash of the image content
+                        var hash = Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(memoryStream.ToArray()));
+                        if (!imageHashes.Add(hash)) continue;
 
                         // Create a MagickImage from the byte array
                         var magickImage = new MagickImage(memoryStream.ToArray());
                         images.Add(magickImage);
                     }
-
+    
                     break;
                 }
                 case MimePart mimeAttachment when mimeAttachment.ContentType.MimeType.StartsWith("image/"):
@@ -244,15 +249,19 @@ public static class ColorProfileComparison
                     using var memoryStream = new MemoryStream();
                     mimeAttachment.Content.DecodeTo(memoryStream);
                     memoryStream.Position = 0;
+    
+                    // Compute hash of the image content
+                    var hash = Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(memoryStream.ToArray()));
+                    if (!imageHashes.Add(hash)) continue;
 
                     var magickImage = new MagickImage(memoryStream.ToArray());
                     images.Add(magickImage);
-
+    
                     break;
                 }
             }
         }
-
+    
         return images;
     }
     

@@ -359,6 +359,43 @@ public class PowerPointToPdfColorProfileComparisonTest : TestBase
 }
 
 [TestFixture]
+public class EmlToPdfColorProfileComparison : TestBase
+{
+    [Test]
+    public void TestEmailWithNoImages()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-no-images.eml");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-no-images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/950", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.EmlToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestEmailWithOneMissingProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-one-missing-profile.eml");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-one-missing-profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/950", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.EmlToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestEmailWithTwoSameImages()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-two-same-images.eml");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-two-same-images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/950", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.EmlToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+}
+
+[TestFixture]
 public class XlsxToPdfColorProfileComparison : TestBase
 {
     [Test]
@@ -522,5 +559,16 @@ public class FileColorProfileComparisonTest : TestBase
         var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
         var result = ColorProfileComparison.FileColorProfileComparison(files);
         Assert.That(result, Is.True); // Two files where color profiles match should pass
+    }
+    
+    [Test]
+    public void TestEmlToPdf()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-two-same-images.eml");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-two-same-images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/950", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.That(result, Is.True);
     }
 }
