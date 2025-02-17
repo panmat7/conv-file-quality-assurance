@@ -65,11 +65,6 @@ public static class VerificationPipelines
         }
         finally
         {
-            var random = new Random();
-            var num = random.Next(200, 2000);
-            
-            Thread.Sleep(num);
-            
             updateThreadCount(-(1 + additionalThreads)); //Ensuring that this happens even if something fails
             markDone();
         }

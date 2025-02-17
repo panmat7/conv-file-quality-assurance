@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Aspose.Slides.LowCode;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using Newtonsoft.Json.Linq;
 using Convert = System.Convert;
