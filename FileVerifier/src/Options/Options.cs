@@ -7,6 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Text.Json;
+using System.IO;
+using System.Text.Json.Serialization;
 
 namespace AvaloniaDraft.Options;
 
@@ -15,14 +18,18 @@ namespace AvaloniaDraft.Options;
 /// </summary>
 class Options
 {
-    private Dictionary<string, Dictionary<string, bool>> fileFormatsEnabled;
-    private Dictionary<string, bool> methodsEnabled;
+    public Dictionary<string, Dictionary<string, bool>> fileFormatsEnabled { get; set; }
+    public Dictionary<string, bool> methodsEnabled { get; set; }
 
     public int? specifiedThreadCount { get; set; }
     public bool errorOnUnsupportedFileType { get; set; }
 
 
-    public Options(string? optionsJSONSrc = null)
+    /// <summary>
+    /// Initialize the object.
+    /// </summary>
+    /// <param name="optionsJSONSrc">Json file to intialize from. Leave out to set default settings</param>
+    public void Initialize(string? optionsJSONSrc = null)
     {
         fileFormatsEnabled = new Dictionary<string, Dictionary<string, bool>>();
 
@@ -45,7 +52,7 @@ class Options
     {
         var extensions = FileExtensions.list;
 
-        // Get every field of FormatCodes, which are lists of pronom uids for every file type
+        // Get every field of FormatCodes, which are lists of pronom ids for every file type
         var fcFields = typeof(FormatCodes).GetFields();
         foreach (var f in fcFields)
         {
@@ -60,6 +67,7 @@ class Options
                     var ext = name.Substring(prefix.Length).ToLower();
                     if (extensions.Contains(ext))
                     {
+                        fileFormatsEnabled.Add(ext, new Dictionary<string, bool>());
                         foreach (var fmt in list)
                         {
                             fileFormatsEnabled[ext][fmt] = true;
@@ -77,7 +85,6 @@ class Options
     public bool? GetMethod(string method)
     {
         if (!methodsEnabled.ContainsKey(method)) return null;
-
         return methodsEnabled[method];
     }
 
@@ -85,7 +92,7 @@ class Options
     /// Set a method to be enabled or not
     /// </summary>
     /// /// <param name="method">The name of the method</param>
-    /// /// <param name="setTo">Enabled or not. Leave out to toggle to its opposite value</param> 
+    /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
     public void SetMethod(string method, bool? setTo = null)
     {
         if (!methodsEnabled.ContainsKey(method)) return;
@@ -190,9 +197,17 @@ class Options
     /// Export the current options to a JSON file
     /// </summary>
     /// <param name="dir">The directory where the JSON file is to be exported</param>
-    public void ExportJSON(string dir)
+    public void ExportJSON(string path)
     {
-        // TODO
+        try
+        {
+            string jsonString = JsonSerializer.Serialize(this);
+            File.WriteAllText(path, jsonString);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Failed to save settings", ex);
+        }
     }
 
 
@@ -202,6 +217,27 @@ class Options
     /// <param name="src">The JSON file to import</param>
     public void ImportJSON(string src)
     {
-        // TODO
+        try
+        {
+            var seralizerOptions = new JsonSerializerOptions { 
+                PropertyNameCaseInsensitive = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+
+            var jsonString = File.ReadAllText(src);
+
+            var o = JsonSerializer.Deserialize<Options>(jsonString, seralizerOptions);
+            if (o is Options opt)
+            {
+                this.fileFormatsEnabled = opt.fileFormatsEnabled;
+                this.methodsEnabled = opt.methodsEnabled;
+                this.specifiedThreadCount = opt.specifiedThreadCount;
+                this.errorOnUnsupportedFileType = opt.errorOnUnsupportedFileType;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Failed to load settings", ex);
+        }
     }
 }

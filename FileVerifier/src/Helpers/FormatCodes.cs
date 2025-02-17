@@ -52,7 +52,6 @@ public static class FileExtensions
         "jpeg",
         "gif"
     ];
-
 }
 
 /// <summary>
