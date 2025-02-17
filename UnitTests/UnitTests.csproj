@@ -15,8 +15,10 @@
         <PackageReference Include="NUnit" Version="3.14.0"/>
         <PackageReference Include="NUnit.Analyzers" Version="3.9.0"/>
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0"/>
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
         <PackageReference Include="System.IO.Abstractions" Version="21.3.1" />
         <PackageReference Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="21.3.1" />
+        <PackageReference Include="xunit" Version="2.9.3" />
     </ItemGroup>
 
     <ItemGroup>
@@ -25,10 +27,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\FileVerifier\FileVerifier.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="ComparingMethods\TestFiles\Images\" />
     </ItemGroup>
 
 </Project>

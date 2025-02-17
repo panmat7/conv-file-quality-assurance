@@ -1,112 +1,36 @@
-using System;
-using System.IO;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Platform.Storage;
-using AvaloniaDraft.FileManager;
-using AvaloniaDraft.ViewModels;
+using Avalonia.Media;
 
 namespace AvaloniaDraft.Views;
 
 public partial class MainWindow : Window
 {
-    private string InputPath { get; set; }
-    private string OutputPath { get; set; }
-    
     public MainWindow()
     {
         InitializeComponent();
-        InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
-        OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
-    }
-    
-    private async void InputButton_OnClick(object? sender, RoutedEventArgs e)
-    {
-        var result = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
-        {
-            Title = "Select Folder",
-            AllowMultiple = false
-        });
-
-        if (result.Count > 0)
-        {
-            var folder = result[0];
-
-            if (sender is not Button button) return;
-            switch (button.Name)
-            {
-                case "InputButton":
-                    InputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
-                    InputButton.Content = "Selected";
-                    break;
-                case "OutputButton":
-                    OutputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
-                    OutputButton.Content = "Selected";
-                    break;
-            }
-        }
-        else
-        {
-            //TODO: Please select folder message
-        }
+        SetActiveButton(HomeButton);
     }
 
-    private void InputButton_OnPointerEntered(object? sender, PointerEventArgs e)
+    private void SetActiveButton(Button button)
     {
-        if(sender is not Button button) return;
-        switch (button.Name)
-        {
-            case "InputButton":
-                if (string.IsNullOrEmpty(InputPath)) return;
-                InputButton.Content = InputPath;
-                break;
-            case "OutputButton":
-                if (string.IsNullOrEmpty(OutputPath)) return;
-                OutputButton.Content = OutputPath;
-                break;
-        }
+        // Reset all buttons
+        HomeButton.Background = new SolidColorBrush(Colors.Transparent);
+        SettingsButton.Background = new SolidColorBrush(Colors.Transparent);
+
+        // Set active button style
+        button.Background = new SolidColorBrush(Color.Parse("#107F37"));
     }
 
-    private void InputButton_OnPointerExited(object? sender, PointerEventArgs e)
+    private void HomeButton_Click(object sender, RoutedEventArgs e)
     {
-        if(sender is not Button button) return;
-        switch (button.Name)
-        {
-            case "InputButton":
-                InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
-                break;
-            case "OutputButton":
-                OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
-                break;
-        }
+        MainContent.Content = new HomeView();
+        SetActiveButton((Button)sender);
     }
 
-    private void Start_OnClick(object? sender, RoutedEventArgs e)
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
-        
-        AppendMessageToConsole("INPUT:");
-        var files = Directory.GetFiles(InputPath);
-        foreach (var file in files) { AppendMessageToConsole(file); }
-        
-        AppendMessageToConsole("OUTPUT:");
-        files = Directory.GetFiles(OutputPath);
-        foreach (var file in files) { AppendMessageToConsole(file); }
-        
-        var f = new FileManager.FileManager(InputPath, OutputPath);
-        f.GetSiegfriedFormats();
-        f.StartVerification();
-    }
-
-    private void AppendMessageToConsole(string text)
-    {
-        if (!string.IsNullOrEmpty(Console.Text))
-        {
-            Console.Text += "\n";
-        }
-        
-        Console.Text += text;
-        Console.CaretIndex = Console.Text.Length;
+        MainContent.Content = new SettingsView();
+        SetActiveButton((Button)sender);
     }
 }

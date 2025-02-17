@@ -122,7 +122,8 @@ public static class FormatCodes
     
     public static readonly ImmutableList<string> PronomCodesPPTM = 
     [
-        
+        "fmt/479",
+        "fmt/487"
     ];
     
     public static readonly ImmutableList<string> PronomCodesPPTX = 
@@ -138,10 +139,57 @@ public static class FormatCodes
         "fmt/1754" //OpenDocument Presentation 1.3
     ];
     
+    public static readonly ImmutableList<string> PronomCodesPOT =
+    [
+        "fmt/126"
+    ];
+    
+    public static readonly ImmutableList<string> PronomCodesPPS =
+    [
+        "fmt/126"
+    ];
+    
+    public static readonly ImmutableList<string> PronomCodesPPSX =
+    [
+        "fmt/629"
+    ];
+    
+    public static readonly ImmutableList<string> PronomCodesPPSM =
+    [
+        "fmt/630"
+    ];
+    
+    public static readonly ImmutableList<string> PronomCodesPOTX =
+    [
+        "fmt/631"
+    ];
+    
+    public static readonly ImmutableList<string> PronomCodesPOTM =
+    [
+        "fmt/633"
+    ];
+    
+    public static readonly ImmutableList<string> PronomCodesXML =
+    [
+        "fmt/101"
+    ];
+
+    public static readonly ImmutableList<string> PronomCodesXMLBasedPowerPoint = PronomCodesPPTX
+        .Concat(PronomCodesPPSX)
+        .Concat(PronomCodesPOTX)
+        .ToImmutableList();
+    
     public static readonly ImmutableList<string> PronomCodesPresentationDocuments = PronomCodesPPT
         .Concat(PronomCodesPPTM)
         .Concat(PronomCodesPPTX)
         .Concat(PronomCodesODP)
+        .Concat(PronomCodesPOT)
+        .Concat(PronomCodesPPS)
+        .Concat(PronomCodesPOTM)
+        .Concat(PronomCodesPOTX)
+        .Concat(PronomCodesPPSX)
+        .Concat(PronomCodesPPSM)
+        .Concat(PronomCodesXML)
         .ToImmutableList();
     
     //SPREADSHEETS
@@ -158,7 +206,7 @@ public static class FormatCodes
     
     public static readonly ImmutableList<string> PronomCodesXLSX = 
     [
-        
+        "fmt/214"
     ];
     
     public static readonly ImmutableList<string> PronomCodesODS = 
