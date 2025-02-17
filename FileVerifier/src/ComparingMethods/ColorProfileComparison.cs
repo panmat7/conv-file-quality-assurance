@@ -211,58 +211,61 @@ public static class ColorProfileComparison
     {
         var images = new List<MagickImage>();
         var imageHashes = new HashSet<string>();
-    
+
         var message = MimeMessage.Load(filePath);
-    
+
         if (message.Body is not Multipart multipart) return images;
-        // Check if the email is multipart/related (for inline images)
+
         foreach (var part in multipart)
         {
             switch (part)
             {
                 case MultipartRelated related:
-                {
-                    // Loop through inline images
-                    foreach (var resource in related)
-                    {
-                        if (resource is not MimePart mimePart || !mimePart.ContentType.MimeType.StartsWith("image/"))
-                            continue;
-                        // Decode the image content to a byte array
-                        using var memoryStream = new MemoryStream();
-                        mimePart.Content.DecodeTo(memoryStream);
-                        memoryStream.Position = 0;
-    
-                        // Compute hash of the image content
-                        var hash = Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(memoryStream.ToArray()));
-                        if (!imageHashes.Add(hash)) continue;
-
-                        // Create a MagickImage from the byte array
-                        var magickImage = new MagickImage(memoryStream.ToArray());
-                        images.Add(magickImage);
-                    }
-    
+                    ExtractImagesFromMultipartRelated(related, images, imageHashes);
                     break;
-                }
                 case MimePart mimeAttachment when mimeAttachment.ContentType.MimeType.StartsWith("image/"):
-                {
-                    // Handle image attachments (same as inline image)
-                    using var memoryStream = new MemoryStream();
-                    mimeAttachment.Content.DecodeTo(memoryStream);
-                    memoryStream.Position = 0;
-    
-                    // Compute hash of the image content
-                    var hash = Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(memoryStream.ToArray()));
-                    if (!imageHashes.Add(hash)) continue;
-
-                    var magickImage = new MagickImage(memoryStream.ToArray());
-                    images.Add(magickImage);
-    
+                    ExtractImageFromMimePart(mimeAttachment, images, imageHashes);
                     break;
-                }
             }
         }
-    
+
         return images;
+    }
+
+    /// <summary>
+    /// Extracts images from a MultipartRelated
+    /// </summary>
+    /// <param name="related"></param>
+    /// <param name="images"></param>
+    /// <param name="imageHashes"></param>
+    private static void ExtractImagesFromMultipartRelated(MultipartRelated related, List<MagickImage> images, HashSet<string> imageHashes)
+    {
+        foreach (var resource in related)
+        {
+            if (resource is MimePart mimePart && mimePart.ContentType.MimeType.StartsWith("image/"))
+            {
+                ExtractImageFromMimePart(mimePart, images, imageHashes);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extracts an image from a MimePart
+    /// </summary>
+    /// <param name="mimePart"></param>
+    /// <param name="images"></param>
+    /// <param name="imageHashes"></param>
+    private static void ExtractImageFromMimePart(MimePart mimePart, List<MagickImage> images, HashSet<string> imageHashes)
+    {
+        using var memoryStream = new MemoryStream();
+        mimePart.Content.DecodeTo(memoryStream);
+        memoryStream.Position = 0;
+
+        var hash = Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(memoryStream.ToArray()));
+        if (!imageHashes.Add(hash)) return;
+
+        var magickImage = new MagickImage(memoryStream.ToArray());
+        images.Add(magickImage);
     }
     
 
