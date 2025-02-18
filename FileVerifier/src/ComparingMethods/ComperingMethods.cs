@@ -19,6 +19,7 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Metadata;
 using SixLabors.ImageSharp.PixelFormats;
 using UglyToad.PdfPig;
+using ColorType = AvaloniaDraft.Helpers.ColorType;
 using Document = Aspose.Words.Document;
 using ImageMetadata = AvaloniaDraft.ComparingMethods.ExifTool.ImageMetadata;
 
@@ -325,7 +326,7 @@ public static class ComperingMethods
         if (!originalStandardized.VerifyResolution())
         {
             errors.Add(new Error(
-                "ImageResolutionOriginal",
+                "ImageResolutionOriginalMissing",
                 "Error trying to get original image resolution",
                 ErrorSeverity.High,
                 ErrorType.Metadata
@@ -335,7 +336,7 @@ public static class ComperingMethods
         if(!newStandardized.VerifyResolution())
         {
             errors.Add(new Error(
-                "ImageResolutionNew",
+                "ImageResolutionNewMissing",
                 "Error trying to get new image resolution",
                 ErrorSeverity.High,
                 ErrorType.Metadata
@@ -355,7 +356,7 @@ public static class ComperingMethods
         if (!originalStandardized.VerifyBitDepth())
         {
             errors.Add(new Error(
-                "BitDepthOriginal",
+                "BitDepthOriginalMissing",
                 "Error trying to get original image bit-depth",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -365,7 +366,7 @@ public static class ComperingMethods
         if (!newStandardized.VerifyBitDepth())
         {
             errors.Add(new Error(
-                "BitDepthNew",
+                "BitDepthNewMissing",
                 "Error trying to get new image bit-depth",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -385,7 +386,7 @@ public static class ComperingMethods
         if (!originalStandardized.VerifyColorType())
         {
             errors.Add(new Error(
-                "ColorTypeOriginal",
+                "ColorTypeOriginalMissing",
                 "Error trying to get original image color type",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -395,22 +396,15 @@ public static class ComperingMethods
         if (!newStandardized.VerifyColorType())
         {
             errors.Add(new Error(
-                "ColorTypeNew",
+                "ColorTypeNewMissing",
                 "Error trying to get new image color type",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
             ));
         }
 
-        if (!originalStandardized.CompareColorType(newStandardized))
-        {
-            errors.Add(new Error(
-                "ColorType",
-                "Mismatched color type between images",
-                ErrorSeverity.Medium,
-                ErrorType.Metadata
-            ));
-        }
+        if(VerifyColorType(originalStandardized, newStandardized) is { } error)
+            errors.Add(error);
 
         if(!originalStandardized.VerifyPhysicalUnits() || !newStandardized.VerifyPhysicalUnits())
         {
@@ -437,16 +431,44 @@ public static class ComperingMethods
     }
     
     /// <summary>
+    /// Verifies color type of two image metadata, providing additional warning in case of transparency loss
+    /// </summary>
+    /// <param name="orgMeta"></param>
+    /// <param name="newMeta"></param>
+    /// <returns></returns>
+    private static Error? VerifyColorType(StandardizedImageMetadata orgMeta, StandardizedImageMetadata newMeta)
+    {
+        if (orgMeta.ColorType == newMeta.ColorType) return null;
+        
+        if ((orgMeta.Format == "png" || orgMeta.Format == "tiff") && (orgMeta.ColorType == ColorType.RGBA))
+        {
+            if(ContainsTransparency(orgMeta.Path) && newMeta.ColorType != ColorType.RGBA)
+            {
+                return new Error(
+                    "ColorType",
+                    "Mismatched color type between images. Transparency loss",
+                    ErrorSeverity.High,
+                    ErrorType.Metadata
+                );
+            }
+        }
+        
+        
+        return new Error(
+            "ColorType",
+            "Mismatched color type between images",
+            ErrorSeverity.Medium,
+            ErrorType.Metadata
+        );
+    }
+    
+    /// <summary>
     /// Checks if an image contains transparency by checking if any of the pixels has an A value bellow 255
     /// </summary>
     /// <param name="filePath">Absolute path to the image</param>
-    /// <param name="format">PRONOM code of the file type</param>
     /// <returns>True or false</returns>
-    public static bool ContainsTransparency(string filePath, string format)
+    public static bool ContainsTransparency(string filePath)
     {
-        //Only PNG and TIFF support transparency
-        if (!FormatCodes.PronomCodesPNG.Contains(format) && !FormatCodes.PronomCodesTIFF.Contains(format)) return false;
-
         using var image = Image.Load(filePath);
         
         //Trying to ensure rgba32 format

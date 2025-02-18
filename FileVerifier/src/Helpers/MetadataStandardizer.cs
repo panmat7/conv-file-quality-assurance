@@ -24,6 +24,8 @@ public class StandardizedImageMetadata
 {
     public string Path { get; set; } = "";
     public string Name { get; set; } = "";
+    
+    public string Format { get; set; } = "";
 
     public int ImgWidth { get; set; } = 0;
     public int ImgHeight { get; set; } = 0;
@@ -324,19 +326,23 @@ public static class MetadataStandardizer
         if (FormatCodes.PronomCodesPNG.Contains(format))
         {
             ProcessPNG(metadata, ref standardized);
+            standardized.Format = "png";
         } 
         else if (FormatCodes.PronomCodesJPEG.Contains(format))
         {
             ProcessJPEG(metadata, ref standardized);
+            standardized.Format = "jpeg";
         }
 
         else if (FormatCodes.PronomCodesBMP.Contains(format))
         {
             ProcessBMP(metadata, ref standardized);
+            standardized.Format = "bmp";
         }
         else if (FormatCodes.PronomCodesTIFF.Contains(format))
         {
             ProcessTIFF(metadata, ref standardized);
+            standardized.Format = "tiff";
         }
         
         return standardized;
