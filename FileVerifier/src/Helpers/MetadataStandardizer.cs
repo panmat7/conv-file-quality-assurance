@@ -32,9 +32,13 @@ public class StandardizedImageMetadata
 
     public int BitDepth { get; set; } = 0;
     public ColorType ColorType { get; set; } = ColorType.Unknown;
-
+    
+    //PNG specific
     public double Gamma { get; set; } = 0.0;
     public string Rendering {get; set;} = "";
+    
+    //GIF specific
+    public int FrameCount { get; set; } = 0;
 
     public int PPUnitX { get; set; } = 0;
     public int PPUnitY { get; set; } = 0;
@@ -315,6 +319,12 @@ public static class DictionaryExtensions
 public static class MetadataStandardizer
 {
     
+    /// <summary>
+    /// Based on a format extracts, standardizes and returns metadata for a file. 
+    /// </summary>
+    /// <param name="metadata">Metadata object to be standardized.</param>
+    /// <param name="format">Pronom code of the image file.</param>
+    /// <returns>Object containing all metadata in a standardized fashion.</returns>
     public static StandardizedImageMetadata StandardizeImageMetadata(ImageMetadata metadata, string format)
     {
         var standardized = new StandardizedImageMetadata
@@ -333,7 +343,6 @@ public static class MetadataStandardizer
             ProcessJPEG(metadata, ref standardized);
             standardized.Format = "jpeg";
         }
-
         else if (FormatCodes.PronomCodesBMP.Contains(format))
         {
             ProcessBMP(metadata, ref standardized);
@@ -344,20 +353,30 @@ public static class MetadataStandardizer
             ProcessTIFF(metadata, ref standardized);
             standardized.Format = "tiff";
         }
+        else if (FormatCodes.PronomCodesGIF.Contains(format))
+        {
+            ProcessGIF(metadata, ref standardized);
+            standardized.Format = "gif";
+        }
         
         return standardized;
     }
-
+    
+    /// <summary>
+    /// Function used to process and extract data from a PNG file metadata.
+    /// </summary>
+    /// <param name="metadata">Metadata to be standardized.</param>
+    /// <param name="standardized">Object to be filled.</param>
     private static void ProcessPNG(ImageMetadata metadata, ref StandardizedImageMetadata standardized)
     {
         if (!metadata.AdditionalProperties.TryGetValue("PNG", out var pngData)) return;
-        if (pngData is not JObject pngDictionary) return;
+        if (pngData is not JObject pngObject) return;
 
-        standardized.ImgWidth = pngDictionary.GetIntValue("ImageWidth");
-        standardized.ImgHeight = pngDictionary.GetIntValue("ImageHeight");
-        standardized.BitDepth = pngDictionary.GetIntValue("BitDepth");
+        standardized.ImgWidth = pngObject.GetIntValue("ImageWidth");
+        standardized.ImgHeight = pngObject.GetIntValue("ImageHeight");
+        standardized.BitDepth = pngObject.GetIntValue("BitDepth");
 
-        var ct = pngDictionary.GetStringValue("ColorType");
+        var ct = pngObject.GetStringValue("ColorType");
         
         if (ct != "")
         {
@@ -374,11 +393,11 @@ public static class MetadataStandardizer
         else
             standardized.ColorType = ColorType.Unknown;
 
-        standardized.Rendering = pngDictionary.GetStringValue("SRGBRendering");
-        standardized.Gamma = pngDictionary.TryGetValue("Gamma", out var g) ? g.Value<double?>() ?? 0.0 : 0.0;
-        standardized.PPUnitX = pngDictionary.GetIntValue("PixelsPerUnitX");
-        standardized.PPUnitY = pngDictionary.GetIntValue("PixelsPerUnitY");
-        standardized.PUnit = pngDictionary.GetStringValue("PixelUnits");
+        standardized.Rendering = pngObject.GetStringValue("SRGBRendering");
+        standardized.Gamma = pngObject.TryGetValue("Gamma", out var g) ? g.Value<double?>() ?? 0.0 : 0.0;
+        standardized.PPUnitX = pngObject.GetIntValue("PixelsPerUnitX");
+        standardized.PPUnitY = pngObject.GetIntValue("PixelsPerUnitY");
+        standardized.PUnit = pngObject.GetStringValue("PixelUnits");
         
         //Getting rest
         foreach (var additional in metadata.AdditionalProperties)
@@ -390,6 +409,11 @@ public static class MetadataStandardizer
         }
     }
 
+    /// <summary>
+    /// Function used to process and extract data from a JPEG file metadata.
+    /// </summary>
+    /// <param name="metadata">Metadata to be standardized.</param>
+    /// <param name="standardized">Object to be filled.</param>
     private static void ProcessJPEG(ImageMetadata metadata, ref StandardizedImageMetadata standardized)
     {
         //Height and width
@@ -416,29 +440,21 @@ public static class MetadataStandardizer
 
         // JFIF metadata extraction
         if (metadata.AdditionalProperties.TryGetValue("JFIF", out var jfifData) &&
-            jfifData is JObject jfifDictionary)
+            jfifData is JObject jfifObject)
         {
-            standardized.PUnit = jfifDictionary.GetStringValue("ResolutionUnit");
-            standardized.PPUnitX = jfifDictionary.GetIntValue("XResolution");
-            standardized.PPUnitY = jfifDictionary.GetIntValue("YResolution");
+            standardized.PUnit = jfifObject.GetStringValue("ResolutionUnit");
+            standardized.PPUnitX = jfifObject.GetIntValue("XResolution");
+            standardized.PPUnitY = jfifObject.GetIntValue("YResolution");
         }
 
-        // EXIF metadata extraction (if JFIF is missing)
+        // EXIF metadata extraction (if physical values missing after JFIF)
         if (standardized.PUnit == "" &&
             metadata.AdditionalProperties.TryGetValue("EXIF", out var exifData) &&
-            exifData is JObject exifDictionary)
+            exifData is JObject exifObject)
         {
-            standardized.PUnit = exifDictionary.GetStringValue("ResolutionUnit");
-            standardized.PPUnitX = exifDictionary.GetIntValue("XResolution");
-            standardized.PPUnitY = exifDictionary.GetIntValue("YResolution");
-        }
-
-        // If PixelUnit is still missing, assume defaults
-        if (standardized.PUnit == "")
-        {
-            standardized.PUnit = "inches";
-            standardized.PPUnitX = 72;
-            standardized.PPUnitY = 72;
+            standardized.PUnit = exifObject.GetStringValue("ResolutionUnit");
+            standardized.PPUnitX = exifObject.GetIntValue("XResolution");
+            standardized.PPUnitY = exifObject.GetIntValue("YResolution");
         }
 
         foreach (var additional in metadata.AdditionalProperties)
@@ -451,6 +467,11 @@ public static class MetadataStandardizer
         }
     }
 
+    /// <summary>
+    /// Function used to process and extract data from a BMP file metadata.
+    /// </summary>
+    /// <param name="metadata">Metadata to be standardized.</param>
+    /// <param name="standardized">Object to be filled.</param>
     private static void ProcessBMP(ImageMetadata metadata, ref StandardizedImageMetadata standardized)
     {
         //Height and width
@@ -516,20 +537,25 @@ public static class MetadataStandardizer
         }
     }
 
+    /// <summary>
+    /// Function used to process and extract data from a TIFF file metadata.
+    /// </summary>
+    /// <param name="metadata">Metadata to be standardized.</param>
+    /// <param name="standardized">Object to be filled.</param>
     private static void ProcessTIFF(ImageMetadata metadata, ref StandardizedImageMetadata standardized)
     {
         if (!metadata.AdditionalProperties.TryGetValue("EXIF", out var exifData) ||
-            exifData is not JObject exifDictionary)
+            exifData is not JObject exifObject)
             return;
 
         //Height and width
-        standardized.ImgWidth = exifDictionary.GetIntValue("ImageWidth");
-        standardized.ImgHeight = exifDictionary.GetIntValue("ImageHeight");
+        standardized.ImgWidth = exifObject.GetIntValue("ImageWidth");
+        standardized.ImgHeight = exifObject.GetIntValue("ImageHeight");
 
         //Color data
         try
         {
-            var bitdepth = (exifDictionary["BitsPerSample"] ?? 0).Value<int>();
+            var bitdepth = (exifObject["BitsPerSample"] ?? 0).Value<int>();
             switch (bitdepth)
             {
                 case 1:
@@ -548,7 +574,7 @@ public static class MetadataStandardizer
         }
         catch (FormatException)
         {
-            var bitdepth = (exifDictionary["BitsPerSample"] ?? "").Value<string>();
+            var bitdepth = (exifObject["BitsPerSample"] ?? "").Value<string>();
             switch (bitdepth)
             {
                 case "8 8 8":
@@ -566,9 +592,9 @@ public static class MetadataStandardizer
             // ignored as failure values are set in constructor 
         }
 
-        standardized.PUnit = exifDictionary.GetStringValue("ResolutionUnit");
-        standardized.PPUnitX = exifDictionary.GetIntValue("XResolution");
-        standardized.PPUnitY = exifDictionary.GetIntValue("YResolution");
+        standardized.PUnit = exifObject.GetStringValue("ResolutionUnit");
+        standardized.PPUnitX = exifObject.GetIntValue("XResolution");
+        standardized.PPUnitY = exifObject.GetIntValue("YResolution");
 
         foreach (var additional in metadata.AdditionalProperties)
         {
@@ -577,5 +603,26 @@ public static class MetadataStandardizer
                 standardized.AdditionalValues.Add(additional.Key, additional.Value);
             }
         }
+    }
+
+    /// <summary>
+    /// Function used to process and extract data from a GIF file metadata.
+    /// </summary>
+    /// <param name="metadata">Metadata to be standardized.</param>
+    /// <param name="standardized">Object to be filled.</param>
+    private static void ProcessGIF(ImageMetadata metadata, ref StandardizedImageMetadata standardized)
+    {
+        if (!metadata.AdditionalProperties.TryGetValue("GIF", out var gifData) ||
+            gifData is not JObject gifObject)
+            return;
+
+        standardized.ImgWidth = gifObject.GetIntValue("ImageWidth");
+        standardized.ImgHeight = gifObject.GetIntValue("ImageHeight");
+        standardized.BitDepth = gifObject.GetIntValue("BitsPerPixel");
+        standardized.FrameCount = gifObject.GetIntValue("FrameCount");
+
+        standardized.ColorType = ColorType.Index; //Gifs use only indexed colors
+        
+        //Gifs do not store measurements used for physical printing. Handle this accordingly in pipelines.
     }
 }
