@@ -45,8 +45,9 @@ public static class ColorProfileComparison
                     => XlsxToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesEML.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => EmlToPdfColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesODT.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
-                    => OdtToPdfColorProfileComparison(files),
+                _ when FormatCodes.PronomCodesODT.Contains(oFormat) || FormatCodes.PronomCodesODP.Contains(oFormat) && 
+                    FormatCodes.PronomCodesPDFA.Contains(nFormat)
+                    => OdtAndOdpToPdfColorProfileComparison(files),
                 _ => throw new NotSupportedException("Unsupported comparison format.")
             };
         }
@@ -173,9 +174,9 @@ public static class ColorProfileComparison
         return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
     }
 
-    public static bool OdtToPdfColorProfileComparison(FilePair files)
+    public static bool OdtAndOdpToPdfColorProfileComparison(FilePair files)
     {
-        var oImages = ExtractImagesFromOdt(files.OriginalFilePath);
+        var oImages = ExtractImagesFromOdtAndOdp(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
         
         // If there are no images no test is done and we return true
@@ -220,7 +221,7 @@ public static class ColorProfileComparison
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    private static List<MagickImage> ExtractImagesFromOdt(string filePath)
+    private static List<MagickImage> ExtractImagesFromOdtAndOdp(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
 
