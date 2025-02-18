@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="AvaloniaDraft.Views.HomeView">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="4*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Input -->
+        <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5" Foreground="White">Input Folder</TextBlock>
+        <Button Grid.Column="1" Grid.Row="0" Margin="5"
+                Name="InputButton" Click="InputButton_OnClick"
+                PointerEntered="InputButton_OnPointerEntered"
+                PointerExited="InputButton_OnPointerExited"
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="1" 
+                Padding="10,5">
+            Select
+        </Button>
+
+        <!-- Output -->
+        <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="5" Foreground="White">Output Folder</TextBlock>
+        <Button Grid.Column="1" Grid.Row="1" Margin="5"
+                Name="OutputButton" Click="InputButton_OnClick"
+                PointerEntered="InputButton_OnPointerEntered"
+                PointerExited="InputButton_OnPointerExited"
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="1" 
+                Padding="10,5">
+            Select
+        </Button>
+
+        <!-- Quick Settings -->
+        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 1</TextBlock>
+        <CheckBox Grid.Column="1" Grid.Row="3" Margin="5"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 2</TextBlock>
+        <CheckBox Grid.Column="1" Grid.Row="4" Margin="5"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="5" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 3</TextBlock>
+        <CheckBox Grid.Column="1" Grid.Row="5" Margin="5"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 4</TextBlock>
+        <CheckBox Grid.Column="1" Grid.Row="6" Margin="5"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="7" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 5</TextBlock>
+        <CheckBox Grid.Column="1" Grid.Row="7" Margin="5"/>
+
+        <!-- Console -->
+        <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="5" Margin="7" 
+                 IsReadOnly="True" VerticalContentAlignment="Bottom"
+                 FontFamily="Consolas" Name="Console"
+                 Background="Black" BorderBrush="White" Foreground="White">
+        </TextBox>
+        
+        <!-- Progress Bar -->
+        <ProgressBar Grid.Column="3" Grid.Row="5" Margin="0 10" Height="20" 
+                     Minimum="0" Maximum="100" Value="14"
+                     ShowProgressText="True"
+                     Background="#1E3A5F"/>
+
+        <!-- Start Button -->
+        <Button Grid.Column="3" Grid.Row="8" HorizontalAlignment="Right" 
+                VerticalAlignment="Center"
+                FontSize="18"
+                Margin="5"
+                Click="Start_OnClick"
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="2">
+            Start
+        </Button>
+    </Grid>
+</UserControl>

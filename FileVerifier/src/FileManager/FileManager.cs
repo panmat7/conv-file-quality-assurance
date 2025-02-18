@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Threading;
+using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.FileManager;
 
@@ -15,6 +17,8 @@ public class FilePair
     public string OriginalFileFormat { get; set; }
     public string NewFilePath { get; set; }
     public string NewFileFormat { get; set; }
+    public bool Done { get; set; }
+    public bool InProcess { get; set; }
 
     public FilePair(string oFilePath, string nFilePath)
     {
@@ -22,7 +26,8 @@ public class FilePair
         OriginalFileFormat = "";
         NewFilePath = nFilePath;
         NewFileFormat = "";
-        
+        Done = false;
+        InProcess = false;
     }
 
     public FilePair(string oFilePath, string oFileFormat, string nFilePath, string newFileFormat)
@@ -31,8 +36,14 @@ public class FilePair
         OriginalFileFormat = oFileFormat;
         NewFilePath = nFilePath;
         NewFileFormat = newFileFormat;
+        Done = false;
+        InProcess = false;
     }
-
+    
+    public void UpdateDone() => Done = true;
+    
+    public void StartProcess() => InProcess = true;
+    
     public override bool Equals(object? obj)
     {
         if (obj is FilePair fp)
@@ -60,6 +71,12 @@ public class FileManager
     private List<FilePair> filePairs;
     private readonly List<string> pairlessFiles;
     private readonly IFileSystem _fileSystem;
+    
+    //Theading
+    private int CurrentThreads = 0;
+    private static readonly object _lock = new object();
+    private static readonly object _listLock = new object();
+    private readonly List<Thread> _threads = new();
 
     public List<FilePair> GetFilePairs() => filePairs;
     public List<string> GetPairlessFiles() => pairlessFiles;
@@ -80,10 +97,10 @@ public class FileManager
         
         //If any file name appears more than once - inform
         if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != originalFiles.Count)
-            throw new Exception("FILENAME DUPLICATES IN ORIGINAL DIRECTORY");
+            throw new InvalidOperationException("FILENAME DUPLICATES IN ORIGINAL DIRECTORY");
         
         if (newFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != newFiles.Count)
-            throw new Exception("FILENAME DUPLICATES IN NEW DIRECTORY");
+            throw new InvalidOperationException("FILENAME DUPLICATES IN NEW DIRECTORY");
         
         foreach (var iFile in originalFiles)
         {
@@ -109,6 +126,136 @@ public class FileManager
     public void GetSiegfriedFormats()
     {
         Siegfried.GetFileFormats(oDirectory, nDirectory, ref filePairs);
+    }
+    
+    /// <summary>
+    /// Starts the verification process. Continues until all files are checked.
+    /// </summary>
+    public void StartVerification()
+    {
+        var maxThreads = 8; //Read from options
+        
+        //Continuing until done with all files
+        while (true)
+        {
+            lock (_lock)
+            {
+                Console.WriteLine($"Using {CurrentThreads} threads of {maxThreads} threads.");
+                
+                if (CurrentThreads < maxThreads)
+                {
+                    var pair = filePairs.FirstOrDefault((p) => !p.InProcess && !p.Done);
+                    if (pair == null) break; //We are done, everything either in progress or done
+                    
+                    pair.StartProcess();
+                    Console.WriteLine($"Done with {filePairs.IndexOf(pair)} files out of {filePairs.Count} files.");
+                    
+                    var assigned = GetAdditionalThreadCount(pair);
+                    if (maxThreads < CurrentThreads + (1 + assigned))
+                        assigned = maxThreads - CurrentThreads - 1; //Making sure we don't create too many threads
+
+                    if (SelectAndStartPipeline(pair, assigned))
+                    {
+                        Console.WriteLine($"THREAD STARTED");
+                        CurrentThreads += (1 + assigned); //Main thread + additional assigned
+                    }
+                    else
+                    {
+                        //TODO: Log error, not supported conversion
+                    }
+                    
+                }
+            }
+            
+            Thread.Sleep(150);
+        }
+
+        AwaitThreads(); //Awaiting all remaining threads
+        
+        foreach (var file in filePairs)
+        {
+            Console.WriteLine($"This file is verified: {file.Done}");
+        }
+    }
+    
+    /// <summary>
+    /// Selects and starts a verification pipeline based on 
+    /// </summary>
+    /// <param name="pair">Files to be compared</param>
+    /// <param name="assigned">Additional thread budget assigned to the pipeline</param>
+    /// <returns>False if no pipeline was found (meaning unsupported verification)</returns>
+    private bool SelectAndStartPipeline(FilePair pair, int assigned)
+    {
+        Action<FilePair, int, Action<int>, Action>? pipeline = null;
+        
+        //Get the correct pipeline
+        if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
+        {
+            pipeline = VerificationPipelines.GetPNGPipelines(pair.NewFileFormat);
+        }
+        
+        if (pipeline == null) return false; //None found
+        
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                pipeline(pair, assigned, ReturnUsedThreadsAndFinishFile, () => pair.UpdateDone());
+            }
+            finally
+            {
+                lock (_listLock)
+                {
+                    _threads.Remove(Thread.CurrentThread); //When finished, remove from list
+                }
+            }
+        });
+        
+        lock (_listLock) _threads.Add(thread); //Add the thread to list of currently active
+        
+        thread.Start();
+        
+        return true;
+    }
+
+    /// <summary>
+    /// Calculates the number of threads that should be assigned to a file verification process. 
+    /// </summary>
+    /// <param name="filePair">The pair of files</param>
+    /// <returns>The recommended number of additional threads</returns>
+    private int GetAdditionalThreadCount(FilePair filePair)
+    {
+        //TODO: The actual calculation
+        return 0;
+    }
+
+    /// <summary>
+    /// Safely updates current threads and signals file as done
+    /// </summary>
+    /// <param name="change">The change in thread count</param>
+    private void ReturnUsedThreadsAndFinishFile(int change)
+    {
+        lock (_lock)
+        {
+            CurrentThreads += change;
+        }
+    }
+    
+    /// <summary>
+    /// Waits till all threads inside _threads finish
+    /// </summary>
+    private void AwaitThreads()
+    {
+        List<Thread> toAwait;
+        
+        lock (_listLock) toAwait = new List<Thread>(_threads);
+        
+        foreach (var t in toAwait)
+        {
+            t.Join();
+        }
+        
+        lock (_listLock) _threads.Clear();
     }
     
     /// <summary>

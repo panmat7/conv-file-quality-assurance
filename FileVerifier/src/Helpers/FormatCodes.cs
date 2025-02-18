@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -14,6 +13,45 @@ namespace AvaloniaDraft.Helpers;
  *
  * !!!README!!!
  **********************/
+
+
+public static class FileExtensions
+{
+    public static readonly ImmutableList<string> list =
+    [
+        "doc",
+        "docm",
+        "docx",
+        "dot",
+        "dotm",
+        "dotx",
+        "odt",
+        "pdf",
+        "pdf1a",
+        "pdf2a",
+        "pdf3a",
+        "pdf4a",
+        "ppt",
+        "pptm",
+        "pptx",
+        "odp",
+        "pot",
+        "pps",
+        "ppsx",
+        "ppsm",
+        "potx",
+        "potm",
+        "xml",
+        "xls",
+        "xlsm",
+        "xlsx",
+        "ods",
+        "csv",
+        "png",
+        "jpeg",
+        "gif"
+    ];
+}
 
 /// <summary>
 /// A helper class containing lists of PRONOM codes for file formats and groups
@@ -252,6 +290,26 @@ public static class FormatCodes
         "fmt/43", //JPEG 1.01
         "fmt/44", //JPEG 1.02
     ];
+
+    public static readonly ImmutableList<string> PronomCodesTIFF = 
+    [
+        "fmt/7", //Tagged Image File Format 3
+        "fmt/8", //Tagged Image File Format 4
+        "fmt/9", //Tagged Image File Format 5
+        "fmt/10", //Tagged Image File Format 6
+        
+        "fmt/353" //Tagged Image File Format
+    ];
+
+    public static readonly ImmutableList<string> PronomCodesBMP =
+    [
+        "fmt/114", //Windows Bitmap 1.0
+        "fmt/115", //Windows Bitmap 2.0
+        "fmt/116", //Windows Bitmap 3.0
+        "fmt/117", //Windows Bitmap 3.0 NT
+        "fmt/118", //Windows Bitmap 4.0
+        "fmt/119"  //Windows Bitmap 5.0
+    ];
     
     public static readonly ImmutableList<string> PronomCodesGIF = 
     [
@@ -261,6 +319,8 @@ public static class FormatCodes
     
     public static readonly ImmutableList<string> PronomCodesImages = PronomCodesPNG
         .Concat(PronomCodesJPEG)
+        .Concat(PronomCodesTIFF)
+        .Concat(PronomCodesBMP)
         .Concat(PronomCodesGIF)
         .ToImmutableList();
 }

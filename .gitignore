@@ -263,3 +263,6 @@ FakesAssemblies/
 *.opt
 
 .idea/
+
+#Ignoring to include exiftool
+!FileVerifier/src/ComparingMethods/ExifTool/**/*
