@@ -176,7 +176,7 @@ public static class ColorProfileComparison
 
     public static bool OdtAndOdpToPdfColorProfileComparison(FilePair files)
     {
-        var oImages = ExtractImagesFromOdtAndOdp(files.OriginalFilePath);
+        var oImages = ExtractImagesFromOpenDocuments(files.OriginalFilePath);
         var nImages = ExtractImagesFromPdf(files.NewFilePath);
         
         // If there are no images no test is done and we return true
@@ -217,11 +217,11 @@ public static class ColorProfileComparison
     }
     
     /// <summary>
-    /// Extracts images frm odt files (LibreOffice text file)
+    /// Extracts images frm OpenDocument files
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    private static List<MagickImage> ExtractImagesFromOdtAndOdp(string filePath)
+    private static List<MagickImage> ExtractImagesFromOpenDocuments(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
 
