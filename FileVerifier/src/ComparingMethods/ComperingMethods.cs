@@ -141,8 +141,6 @@ public static class ComperingMethods
     }
     
     
-
-    
     /// <summary>
     /// Returns the page count using ExifTool to extract it from metadata
     /// </summary>
