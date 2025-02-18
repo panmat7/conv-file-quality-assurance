@@ -396,6 +396,43 @@ public class EmlToPdfColorProfileComparison : TestBase
 }
 
 [TestFixture]
+public class OdtToPdfColorProfileComparison : TestBase
+{
+    [Test]
+    public void TestOdtWithNoImages()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODT", "odt-with-no-images.odt");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "odt-with-no-images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/1756", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.OdtToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestOdtWithOneMissingProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODT", "odt-with-one-missing-color-profiles.odt");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "odt-with-one-missing-color-profiles.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/1756", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.OdtToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestOdtWithTwoDifferentProfiles()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODT", "odt-with-two-color-profiles.odt");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "odt-with-two-color-profiles.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/1756", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.OdtToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+}
+
+[TestFixture]
 public class XlsxToPdfColorProfileComparison : TestBase
 {
     [Test]
