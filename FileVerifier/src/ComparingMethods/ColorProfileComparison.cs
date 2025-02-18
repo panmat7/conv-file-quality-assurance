@@ -45,6 +45,8 @@ public static class ColorProfileComparison
                     => XlsxToPdfColorProfileComparison(files),
                 _ when FormatCodes.PronomCodesEML.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
                     => EmlToPdfColorProfileComparison(files),
+                _ when FormatCodes.PronomCodesODT.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
+                    => OdtToPdfColorProfileComparison(files),
                 _ => throw new NotSupportedException("Unsupported comparison format.")
             };
         }
@@ -171,6 +173,17 @@ public static class ColorProfileComparison
         return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
     }
 
+    public static bool OdtToPdfColorProfileComparison(FilePair files)
+    {
+        var oImages = ExtractImagesFromOdt(files.OriginalFilePath);
+        var nImages = ExtractImagesFromPdf(files.NewFilePath);
+        
+        // If there are no images no test is done and we return true
+        if (oImages.Count < 1) return true;
+        
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, nImages[i])).Any();
+    }
+
     /// <summary>
     /// Extracts images from a PDF file
     /// </summary>
@@ -200,6 +213,29 @@ public static class ColorProfileComparison
         }
 
         return extractedImages;
+    }
+    
+    /// <summary>
+    /// Extracts images frm odt files (LibreOffice text file)
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    private static List<MagickImage> ExtractImagesFromOdt(string filePath)
+    {
+        using var zip = ZipFile.OpenRead(filePath);
+
+        var images = zip.Entries
+            .Where(e => e.FullName.StartsWith("Pictures/", StringComparison.OrdinalIgnoreCase))
+            .Select(e =>
+            {
+                using var stream = e.Open();
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return new MagickImage(memoryStream.ToArray());
+            })
+            .ToList();
+
+        return images;
     }
 
     /// <summary>
