@@ -1,5 +1,5 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
+using AvaloniaDraft.ViewModels;
 
 namespace AvaloniaDraft.Views;
 
@@ -8,5 +8,6 @@ public partial class SettingsView : UserControl
     public SettingsView()
     {
         InitializeComponent();
+        DataContext = new SettingsViewModel();
     }
 }
