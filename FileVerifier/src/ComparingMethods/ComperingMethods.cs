@@ -1,13 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection.Metadata;
 using System.Text.Json;
 using Aspose.Slides;
 using AvaloniaDraft.ComparingMethods.ExifTool;
@@ -16,12 +11,9 @@ using AvaloniaDraft.Helpers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Metadata;
-using SixLabors.ImageSharp.PixelFormats;
 using UglyToad.PdfPig;
 using ColorType = AvaloniaDraft.Helpers.ColorType;
 using Document = Aspose.Words.Document;
-using ImageMetadata = AvaloniaDraft.ComparingMethods.ExifTool.ImageMetadata;
 
 
 namespace AvaloniaDraft.ComparingMethods;
