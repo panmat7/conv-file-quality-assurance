@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -488,34 +489,5 @@ public static class ComperingMethods
         );
             
         return harTransparency;
-    }
-    
-    /// <summary>
-    /// Checks if an excel document is wide enough to cause a page break.
-    /// </summary>
-    /// <param name="path"></param>
-    /// <returns></returns>
-    public static bool PossibleBreakExcelCell(string path)
-    {
-        const double breakLength = 84.5; //From my tests this seems the be width value where to column breaks
-        var widthSum = 0.0;
-
-        using var wb = new XLWorkbook(path);
-        foreach (var worksheet in wb.Worksheets)
-        {
-            var lastColumn = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;
-            var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 0;
-
-            if (lastColumn == 0 || lastRow == 0) break;
-            
-            for (var i = 1; i <= lastColumn; i++)
-            {
-                widthSum += worksheet.Column(i).Width;
-
-                if (breakLength < widthSum) return true;
-            }
-        }
-
-        return false;
     }
 }

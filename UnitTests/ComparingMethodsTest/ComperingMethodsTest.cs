@@ -342,20 +342,4 @@ public class ComperingMethodsTest
         
         Assert.That(res, Is.True);
     }
-
-    [Test]
-    public void PossibleBreakExcelCellTest_False()
-    {
-        var res = ComperingMethods.PossibleBreakExcelCell(_testFileDirectory + @"Spreadsheet\excel_bellow_break.xlsx");
-        
-        Assert.That(res, Is.False);
-    }
-
-    [Test]
-    public void PossibleBreakExcelCellTest_True()
-    {
-        var res = ComperingMethods.PossibleBreakExcelCell(_testFileDirectory + @"Spreadsheet\excel_above_break.xlsx");
-        
-        Assert.That(res, Is.True);
-    }
 }
