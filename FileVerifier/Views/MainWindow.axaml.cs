@@ -42,7 +42,6 @@ public partial class MainWindow : Window
         if (option == null) return;
         Width = option.Width;
         Height = option.Height;
-        this.Center(); // Center the window
     }
 
     private void SetActiveButton(Button button)

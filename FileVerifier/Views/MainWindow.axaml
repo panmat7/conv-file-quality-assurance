@@ -10,8 +10,11 @@
         Icon="/Assets/avalonia-logo.ico"
         Title="FileVerifier"
         Width="1080" Height="680" Foreground="#333333"
-        WindowStartupLocation="CenterScreen"
-        CanResize="True">
+        CanResize="True"
+        MinWidth="800" 
+        MinHeight="600"
+        SizeToContent="Manual"
+        WindowStartupLocation="CenterScreen">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
