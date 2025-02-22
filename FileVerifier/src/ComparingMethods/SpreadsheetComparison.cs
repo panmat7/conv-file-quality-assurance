@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using SkiaSharp;
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -92,7 +94,7 @@ public static class SpreadsheetComparison
     }
     
     /// <summary>
-    /// Returns the number of images embedded in a ods document
+    /// Returns the number of images embedded in an ods document
     /// </summary>
     /// <param name="doc">Document to be analyzed</param>
     /// <returns>Number of images</returns>
@@ -113,15 +115,38 @@ public static class SpreadsheetComparison
     }
 
     /// <summary>
-    /// 
+    /// Returns a list containing widths of all tables inside a ods document in cm
     /// </summary>
-    /// <param name="doc"></param>
-    /// <returns></returns>
+    /// <param name="doc">Document to be analyzed</param>
+    /// <returns>List containing width of all tables in cm</returns>
     private static double[] GetOdsTableWidths(XDocument doc)
     {
+        var styleNs = XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:style:1.0"); //Style namespace
+        var tableNs = XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:table:1.0"); //Table namespace
         
+        //Extract column width for each column style
+        var colStyles = doc.Descendants(styleNs + "style")
+            .Where(s => s.Attribute("family")?.Value == "table-column" && s.Attribute("name") != null)
+            .ToDictionary(
+                s => s.Attribute("name")!.Value,
+                s => double.TryParse(
+                    s.Element(styleNs + "table-column-properties")?.Attribute("column-width")?.Value.Replace("cm", ""),  
+                    out var width) ? width : 0
+            );
         
+        //Checking each column and getting its width
+        var tableWidth = new Dictionary<string, double>();
+
+        foreach (var table in doc.Descendants(tableNs + "table"))
+        {
+            var tableName = table.Attribute("name")?.Value ?? "Unnamed Table";
+            var colWidths = table.Descendants(tableNs + "table-column")
+                .Select(col => colStyles!.GetValueOrDefault(col.Attribute("style-name")?.Value, 0))
+                .ToList();
+            
+            tableWidth.Add(tableName, colWidths.Sum());
+        }
         
-        return [];
+        return tableWidth.Select(pair => pair.Value).ToArray();
     }
 }
