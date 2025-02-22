@@ -21,6 +21,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Input -->
@@ -58,26 +59,29 @@
 
 
         <!-- Quick Settings -->
-        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Size Comparison</TextBlock>
-        <CheckBox IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="3" Margin="5"/>
-
-        <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Resolution Comparison</TextBlock>
-        <CheckBox IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="4" Margin="5"/>
-
-        <TextBlock Grid.Column="0" Grid.Row="5" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Color Profile Comparison</TextBlock>
-        <CheckBox IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="5" Margin="5"/>
-
-        <TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Font Comparison</TextBlock>
-        <CheckBox IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="6" Margin="5"/>
-
-        <TextBlock Grid.Column="0" Grid.Row="7" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Point by Point Comparison</TextBlock>
-        <CheckBox IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="7" Margin="5"/>
+        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Settings</TextBlock>
+        <Border Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" BorderBrush="White" BorderThickness="0,0,0,1" Margin="5,0"/>
         
-        <TextBlock Grid.Column="0" Grid.Row="8" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Page Count Comparison</TextBlock>
-        <CheckBox IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="8" Margin="5"/>
+        <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Size Comparison</TextBlock>
+        <CheckBox IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="4" Margin="5"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="5" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Resolution Comparison</TextBlock>
+        <CheckBox IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="5" Margin="5"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Color Profile Comparison</TextBlock>
+        <CheckBox IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="6" Margin="5"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="7" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Font Comparison</TextBlock>
+        <CheckBox IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="7" Margin="5"/>
+
+        <TextBlock Grid.Column="0" Grid.Row="8" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Point by Point Comparison</TextBlock>
+        <CheckBox IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="8" Margin="5"/>
         
-        <TextBlock Grid.Column="0" Grid.Row="9" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Animation Comparison</TextBlock>
-        <CheckBox IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="9" Margin="5"/>
+        <TextBlock Grid.Column="0" Grid.Row="9" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Page Count Comparison</TextBlock>
+        <CheckBox IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="9" Margin="5"/>
+        
+        <TextBlock Grid.Column="0" Grid.Row="10" VerticalAlignment="Center" Margin="5" Foreground="White">Enable Animation Comparison</TextBlock>
+        <CheckBox IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Grid.Column="1" Grid.Row="10" Margin="5"/>
 
         <!-- Console -->
         <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="5" Margin="7" 
