@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -12,13 +13,36 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        CanResize = true;
         SetActiveButton(HomeButton);
 
+        // Listen for changes in SelectedWindowSize
+        _settingsViewModel.PropertyChanged += SettingsViewModel_PropertyChanged;
+            
+        // Set initial window size based on the current selection
+        UpdateWindowSize(_settingsViewModel.SelectedWindowSize);
+        
         var homeView = new HomeView
         {
             DataContext = _settingsViewModel
         };
         MainContent.Content = homeView;
+    }
+    
+    private void SettingsViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SettingsViewModel.SelectedWindowSize))
+        {
+            UpdateWindowSize(_settingsViewModel.SelectedWindowSize);
+        }
+    }
+        
+    private void UpdateWindowSize(WindowSizeOption? option)
+    {
+        if (option == null) return;
+        Width = option.Width;
+        Height = option.Height;
+        this.Center(); // Center the window
     }
 
     private void SetActiveButton(Button button)
