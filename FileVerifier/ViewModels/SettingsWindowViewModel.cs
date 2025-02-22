@@ -23,10 +23,11 @@
 
         public List<WindowSizeOption?> AvailableWindowSizes { get; } =
         [
-            new WindowSizeOption { Name = "Default (1080×680)", Width = 1080, Height = 680 },
-            new WindowSizeOption { Name = "Small (960×540)", Width = 960, Height = 540 },
-            new WindowSizeOption { Name = "Medium (1280×720)", Width = 1280, Height = 720 },
-            new WindowSizeOption { Name = "Large (1366×768)", Width = 1366, Height = 768 }
+            new WindowSizeOption { Name = "Small (800x600)",    Width = 800,  Height = 600 },
+            new WindowSizeOption { Name = "Medium (1024x768)",  Width = 1024, Height = 768 },
+            new WindowSizeOption { Name = "Large (1366x768)",   Width = 1366, Height = 768 },
+            new WindowSizeOption { Name = "X-Large (1440x900)",  Width = 1440, Height = 900 },
+            new WindowSizeOption { Name = "Full HD (1920x1080)", Width = 1920, Height = 1080 }
         ];
         
         private WindowSizeOption? _selectedWindowSize;
@@ -44,7 +45,7 @@
         public SettingsViewModel()
         {
             // Set default to the first option:
-            _selectedWindowSize = AvailableWindowSizes.FirstOrDefault();
+            _selectedWindowSize = AvailableWindowSizes.Skip(1).FirstOrDefault();
         }
 
 

@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -13,21 +14,30 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        CanResize = true;
         SetActiveButton(HomeButton);
 
         // Listen for changes in SelectedWindowSize
         _settingsViewModel.PropertyChanged += SettingsViewModel_PropertyChanged;
-            
+        
         // Set initial window size based on the current selection
         UpdateWindowSize(_settingsViewModel.SelectedWindowSize);
-        
+    
         var homeView = new HomeView
         {
             DataContext = _settingsViewModel
         };
         MainContent.Content = homeView;
+
+        // Add event handler for window resizing
+        LayoutUpdated += MainWindow_LayoutUpdated;
     }
+
+    private void MainWindow_LayoutUpdated(object? sender, EventArgs e)
+    {
+        // Center the window after resizing
+        WindowStartupLocation = WindowStartupLocation.CenterScreen;
+    }
+
     
     private void SettingsViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
