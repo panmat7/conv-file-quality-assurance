@@ -1,15 +1,24 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using AvaloniaDraft.ViewModels;
 
 namespace AvaloniaDraft.Views;
 
 public partial class MainWindow : Window
 {
+    private readonly SettingsViewModel _settingsViewModel = new SettingsViewModel();
+    
     public MainWindow()
     {
         InitializeComponent();
         SetActiveButton(HomeButton);
+
+        var homeView = new HomeView
+        {
+            DataContext = _settingsViewModel
+        };
+        MainContent.Content = homeView;
     }
 
     private void SetActiveButton(Button button)
@@ -24,13 +33,21 @@ public partial class MainWindow : Window
 
     private void HomeButton_Click(object sender, RoutedEventArgs e)
     {
-        MainContent.Content = new HomeView();
+        var homeView = new HomeView
+        {
+            DataContext = _settingsViewModel
+        };
+        MainContent.Content = homeView;
         SetActiveButton((Button)sender);
     }
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        MainContent.Content = new SettingsView();
+        var settingsView = new SettingsView
+        {
+            DataContext = _settingsViewModel
+        };
+        MainContent.Content = settingsView;
         SetActiveButton((Button)sender);
     }
 }
