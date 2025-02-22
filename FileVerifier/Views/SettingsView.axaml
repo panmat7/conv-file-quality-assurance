@@ -1,169 +1,151 @@
-    <UserControl xmlns="https://github.com/avaloniaui"
-                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                 xmlns:convertors="clr-namespace:AvaloniaDraft.Convertors"
-                 x:Class="AvaloniaDraft.Views.SettingsView"
-                 x:DataType="viewModels:SettingsViewModel"
-                 xmlns:viewModels="clr-namespace:AvaloniaDraft.ViewModels">
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:convertors="clr-namespace:AvaloniaDraft.Convertors"
+             x:Class="AvaloniaDraft.Views.SettingsView"
+             x:DataType="viewModels:SettingsViewModel"
+             xmlns:viewModels="clr-namespace:AvaloniaDraft.ViewModels">
+    
+    <UserControl.Resources>
+        <convertors:SliderValueConverter x:Key="SliderValueConverter"/>
+    </UserControl.Resources>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         
-        <!-- Declare the converter as a resource -->
-        <UserControl.Resources>
-            <convertors:SliderValueConverter x:Key="SliderValueConverter"/>
-        </UserControl.Resources>
-        
-        <Grid Margin="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="2*"/>
-            </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
-                <Button
-                        VerticalAlignment="Center"
-                        FontSize="18"
-                        Margin="5"
-                        Background="#139A43" Foreground="White"
-                        BorderBrush="#0DAB76" BorderThickness="2">
-                    Reset Settings
-                </Button>
-                <Button
-                        VerticalAlignment="Center"
-                        FontSize="18"
-                        Margin="5"
-                        Background="#139A43" Foreground="White"
-                        BorderBrush="#0DAB76" BorderThickness="2">
-                    Save Settings
-                </Button>
-                <ComboBox SelectedIndex="0" VerticalAlignment="Center" FontSize="18">
-                    <ComboBoxItem>Default</ComboBoxItem>
-                    <ComboBoxItem>Custom Settings 1</ComboBoxItem>
-                    <ComboBoxItem>Custom Settings 2</ComboBoxItem>
-                    <ComboBoxItem>Custom Settings 3</ComboBoxItem>
-                </ComboBox>
-            </StackPanel>
-            <ScrollViewer Grid.Row="1" HorizontalAlignment="Stretch">
-                <StackPanel HorizontalAlignment="Center">
-                    
-                    <!-- General Settings -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Width="40"/> <!-- Spacer -->
-                        <Expander VerticalAlignment="Top" HorizontalAlignment="Center" Width="900">
-                            <Expander.Header>General</Expander.Header>
-                            <StackPanel>
-                                <CheckBox>Ignore Unsupported File Formats</CheckBox>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
-                                    
-                                    <TextBox 
-                                        Text="{Binding Value, ElementName=Slider, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
-                                        Width="50"
-                                        Margin="5,0,5,0"
-                                        VerticalAlignment="Center"/>
-                                
-                                    <TextBlock Text="%" VerticalAlignment="Center" Foreground="White" Width="50"></TextBlock>
-                                
-                                    <Slider x:Name="Slider" Width="500" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                                
-                                <!-- Window Size ComboBox -->
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,10,0,0">
-                                    <TextBlock Text="Window Size:" VerticalAlignment="Center" Foreground="White" Margin="0,0,10,0"/>
-                                    <ComboBox ItemsSource="{Binding AvailableWindowSizes}"
-                                              SelectedItem="{Binding SelectedWindowSize, Mode=TwoWay}"
-                                              VerticalAlignment="Center" FontSize="18" Width="200">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="viewModels:WindowSizeOption">
-                                                <TextBlock Text="{Binding Name}" />
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </StackPanel>
-                            </StackPanel>
-                        </Expander>
+        <!-- Top Button Row -->
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+            <Button VerticalAlignment="Center" FontSize="18" Margin="5"
+                    Background="#139A43" Foreground="White"
+                    BorderBrush="#0DAB76" BorderThickness="2">
+                Reset Settings
+            </Button>
+            <Button VerticalAlignment="Center" FontSize="18" Margin="5"
+                    Background="#139A43" Foreground="White"
+                    BorderBrush="#0DAB76" BorderThickness="2">
+                Save Settings
+            </Button>
+            <ComboBox SelectedIndex="0" VerticalAlignment="Center" FontSize="18">
+                <ComboBoxItem>Default</ComboBoxItem>
+                <ComboBoxItem>Custom Settings 1</ComboBoxItem>
+                <ComboBoxItem>Custom Settings 2</ComboBoxItem>
+                <ComboBoxItem>Custom Settings 3</ComboBoxItem>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Settings Content -->
+        <ScrollViewer Grid.Row="1" HorizontalAlignment="Stretch">
+            <Grid ColumnDefinitions="5*,5*,80*,10*" Margin="0,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- General Settings -->
+                <Expander Grid.Column="2" Grid.Row="0" HorizontalAlignment="Stretch">
+                    <Expander.Header>General</Expander.Header>
+                    <StackPanel>
+                        <CheckBox>Ignore Unsupported File Formats</CheckBox>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
+                            <TextBox Text="{Binding Value, ElementName=Slider, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
+                                     Width="50" Margin="5,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="%" VerticalAlignment="Center" Foreground="White" Width="50"/>
+                            <Slider x:Name="Slider" Width="200" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,10,0,0">
+                            <TextBlock Text="Window Size:" VerticalAlignment="Center" Foreground="White" Margin="0,0,10,0"/>
+                            <ComboBox ItemsSource="{Binding AvailableWindowSizes}"
+                                      SelectedItem="{Binding SelectedWindowSize, Mode=TwoWay}"
+                                      VerticalAlignment="Center" FontSize="16" Width="200">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="viewModels:WindowSizeOption">
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
                     </StackPanel>
-                    
-                    <!-- Size Comparison Settings -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <CheckBox IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" 
-                                  VerticalAlignment="Top" Margin="5" Width="30"/>
-                        <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="900">
-                            <Expander.Header>Size Comparison</Expander.Header>
-                            <StackPanel>
-                                <CheckBox IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}">Enable Size Comparison</CheckBox>
-                            </StackPanel>
-                        </Expander>
+                </Expander>
+
+                <!-- Size Comparison -->
+                <CheckBox Grid.Column="1" Grid.Row="1" VerticalAlignment="Top"
+                          IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" Margin="5"/>
+                <Expander Grid.Column="2" Grid.Row="1" HorizontalAlignment="Stretch">
+                    <Expander.Header>Size Comparison</Expander.Header>
+                    <StackPanel>
+                        <CheckBox IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}">Enable Size Comparison</CheckBox>
                     </StackPanel>
-                    
-                    <!-- Resolution Comparison Settings -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <CheckBox IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" 
-                                  VerticalAlignment="Top" Margin="5" Width="30"/>
-                        <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="900">
-                            <Expander.Header>Image Resolution Comparison</Expander.Header>
-                            <StackPanel>
-                                <CheckBox IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}">Enable Image Resolution Comparison</CheckBox>
-                            </StackPanel>
-                        </Expander>
+                </Expander>
+
+                <!-- Resolution Comparison -->
+                <CheckBox Grid.Column="1" Grid.Row="2" VerticalAlignment="Top"
+                          IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" Margin="5"/>
+                <Expander Grid.Column="2" Grid.Row="2" HorizontalAlignment="Stretch">
+                    <Expander.Header>Image Resolution Comparison</Expander.Header>
+                    <StackPanel>
+                        <CheckBox IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}">Enable Image Resolution Comparison</CheckBox>
                     </StackPanel>
-                    
-                    <!-- Color Profile Comparison Settings -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <CheckBox IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" 
-                                  VerticalAlignment="Top" Margin="5" Width="30"/>
-                        <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="900">
-                            <Expander.Header>Color Profile Comparison</Expander.Header>
-                            <StackPanel>
-                                <CheckBox IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}">Enable Color Profile Comparison</CheckBox>
-                            </StackPanel>
-                        </Expander>
+                </Expander>
+
+                <!-- Color Profile Comparison -->
+                <CheckBox Grid.Column="1" Grid.Row="3" VerticalAlignment="Top"
+                          IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" Margin="5"/>
+                <Expander Grid.Column="2" Grid.Row="3" HorizontalAlignment="Stretch">
+                    <Expander.Header>Color Profile Comparison</Expander.Header>
+                    <StackPanel>
+                        <CheckBox IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}">Enable Color Profile Comparison</CheckBox>
                     </StackPanel>
-                    
-                    <!-- Font Comparison Settings -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <CheckBox IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" 
-                                  VerticalAlignment="Top" Margin="5" Width="30"/>
-                        <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="900">
-                            <Expander.Header>Font Comparison</Expander.Header>
-                            <StackPanel>
-                                <CheckBox IsChecked="{Binding IsFontEnabled, Mode=TwoWay}">Enable Font Comparison</CheckBox>
-                            </StackPanel>
-                        </Expander>
+                </Expander>
+
+                <!-- Font Comparison -->
+                <CheckBox Grid.Column="1" Grid.Row="4" VerticalAlignment="Top"
+                          IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" Margin="5"/>
+                <Expander Grid.Column="2" Grid.Row="4" HorizontalAlignment="Stretch">
+                    <Expander.Header>Font Comparison</Expander.Header>
+                    <StackPanel>
+                        <CheckBox IsChecked="{Binding IsFontEnabled, Mode=TwoWay}">Enable Font Comparison</CheckBox>
                     </StackPanel>
-                    
-                    <!-- Point By Point Comparison Settings -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <CheckBox IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" 
-                                  VerticalAlignment="Top" Margin="5" Width="30"/>
-                        <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="900">
-                            <Expander.Header>Point By Point Comparison</Expander.Header>
-                            <StackPanel>
-                                <CheckBox IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}">Enable Point By Point Comparison</CheckBox>
-                            </StackPanel>
-                        </Expander>
+                </Expander>
+
+                <!-- Point By Point Comparison -->
+                <CheckBox Grid.Column="1" Grid.Row="5" VerticalAlignment="Top"
+                          IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Margin="5"/>
+                <Expander Grid.Column="2" Grid.Row="5" HorizontalAlignment="Stretch">
+                    <Expander.Header>Point By Point Comparison</Expander.Header>
+                    <StackPanel>
+                        <CheckBox IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}">Enable Point By Point Comparison</CheckBox>
                     </StackPanel>
-                    
-                    <!-- Page Count Comparison Settings -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <CheckBox IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" 
-                                  VerticalAlignment="Top" Margin="5" Width="30"/>
-                        <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="900">
-                            <Expander.Header>Page Count Comparison</Expander.Header>
-                            <StackPanel>
-                                <CheckBox IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}">Enable Page Count Comparison</CheckBox>
-                            </StackPanel>
-                        </Expander>
+                </Expander>
+
+                <!-- Page Count Comparison -->
+                <CheckBox Grid.Column="1" Grid.Row="6" VerticalAlignment="Top"
+                          IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Margin="5"/>
+                <Expander Grid.Column="2" Grid.Row="6" HorizontalAlignment="Stretch">
+                    <Expander.Header>Page Count Comparison</Expander.Header>
+                    <StackPanel>
+                        <CheckBox IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}">Enable Page Count Comparison</CheckBox>
                     </StackPanel>
-                    
-                    <!-- Animation Comparison Settings -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <CheckBox IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" 
-                                  VerticalAlignment="Top" Margin="5" Width="30"/>
-                        <Expander VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="900">
-                            <Expander.Header>Animation Comparison</Expander.Header>
-                            <StackPanel>
-                                <CheckBox IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}">Enable Animation Comparison</CheckBox>
-                            </StackPanel>
-                        </Expander>
+                </Expander>
+
+                <!-- Animation Comparison -->
+                <CheckBox Grid.Column="1" Grid.Row="7" VerticalAlignment="Top"
+                          IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Margin="5"/>
+                <Expander Grid.Column="2" Grid.Row="7" HorizontalAlignment="Stretch">
+                    <Expander.Header>Animation Comparison</Expander.Header>
+                    <StackPanel>
+                        <CheckBox IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}">Enable Animation Comparison</CheckBox>
                     </StackPanel>
-                </StackPanel>
-            </ScrollViewer>
-        </Grid>
-    </UserControl>
+                </Expander>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
