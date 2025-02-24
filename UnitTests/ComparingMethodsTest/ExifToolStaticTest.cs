@@ -35,7 +35,10 @@ public class ExifToolStaticTest
         var result1 = ExifToolStatic.GetExifDataDictionary([filePath1, filePath2], path);
         var result2 = ExifToolStatic.GetExifDataDictionary([filePath1, filePath2], path);
 
-        Assert.That(result1 != null && result1.Count > 0, Is.True);
-        Assert.That(result2 != null && result2.Count > 0, Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(result1 is { Count: > 0 }, Is.True);
+            Assert.That(result2 is { Count: > 0 }, Is.True);
+        });
     }
 }

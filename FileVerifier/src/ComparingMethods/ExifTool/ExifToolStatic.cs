@@ -9,12 +9,13 @@ namespace AvaloniaDraft.ComparingMethods.ExifTool;
 
 public class ImageMetadata
 {
-    public string SourceFile { get; set; }
-    public Dictionary<string, object> ExifTool { get; set; }
-    public Dictionary<string, object> File { get; set; }
+
+    public string SourceFile { get; set; } = "";
+    public Dictionary<string, object> ExifTool { get; set; } = new();
+    public Dictionary<string, object> File { get; set; } = new();
     
     [JsonExtensionData]
-    public IDictionary<string, object> AdditionalProperties { get; set; }
+    public IDictionary<string, object> AdditionalProperties { get; set; } = new Dictionary<string, object>();
 }
 
 /// <summary>

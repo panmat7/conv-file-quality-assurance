@@ -44,7 +44,7 @@ public class StandardizedImageMetadata
     public int PPUnitY { get; set; } = 0;
     public string PUnit { get; set; } = "";
 
-    public Dictionary<string, object> AdditionalValues = new();
+    public Dictionary<string, object> AdditionalValues { get; set; } = new();
 
     /// <summary>
     /// Verifies if image resolution has been set

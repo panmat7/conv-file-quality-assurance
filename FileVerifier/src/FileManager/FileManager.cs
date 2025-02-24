@@ -223,7 +223,7 @@ public class FileManager
     /// </summary>
     /// <param name="filePair">The pair of files</param>
     /// <returns>The recommended number of additional threads</returns>
-    private int GetAdditionalThreadCount(FilePair filePair)
+    private static int GetAdditionalThreadCount(FilePair filePair)
     {
         //TODO: The actual calculation
         return 0;

@@ -51,7 +51,7 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetFileSizeDifference(files);
-        Assert.AreEqual(33292, diff);
+        Assert.That(diff, Is.EqualTo(33292));
     }
     
     [Test]

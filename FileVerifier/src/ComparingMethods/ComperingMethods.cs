@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -9,7 +8,6 @@ using Aspose.Slides;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
-using ClosedXML.Excel;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;

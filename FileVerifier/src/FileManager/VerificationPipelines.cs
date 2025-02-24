@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.Helpers;
 
@@ -20,13 +21,14 @@ public static class VerificationPipelines
 
         return null;
     }
-    
+
     /// <summary>
     /// Pipeline responsible for compering PNG to JPEG conversions
     /// </summary>
     /// <param name="pair">The pair os files to compare</param>
     /// <param name="additionalThreads">Number of threads available for usage</param>
     /// <param name="updateThreadCount">Callback function used to update current thread count</param>
+    /// <param name="markDone">Function marking the FilePair as done</param>
     private static void PNGToJPEGPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount, Action markDone)
     {
         try
@@ -34,7 +36,10 @@ public static class VerificationPipelines
             if (true) //Check options for file size check later
             {
                 var res = ComperingMethods.GetFileSizeDifference(pair);
-                if (res > 10000) //Adjust later
+                
+                var f = new FileInfo(pair.OriginalFileFormat);
+                
+                if (res > f.Length * 1.5 || res < f.Length * 0.5) //Adjust for accuracy later
                 {
                     //Log failed
                 }
@@ -43,10 +48,12 @@ public static class VerificationPipelines
             if (true) //Check options for metadata check later
             {
                 var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
-                if (res.Count > 0)
+
+                if (res is null)
                 {
-                    //Check what is important in this case
-                    
+                    //Log error while getting data
+                } else if (res.Count > 0)
+                {
                     //Log difference
                 }
             }
