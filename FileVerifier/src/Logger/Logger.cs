@@ -104,7 +104,7 @@ class Logger
 
 
     /// <summary>
-    /// Finish logging
+    /// Finish logging. Must be called before ExportJSON can be called
     /// </summary>
     public void Finish()
     {
@@ -121,7 +121,7 @@ class Logger
     /// <param name="dir">The directory where the JSON file is to be exported</param>
     public void ExportJSON(string path)
     {
-        if (!active) return;
+        if (active) return;
 
         try
         {
