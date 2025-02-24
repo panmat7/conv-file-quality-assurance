@@ -50,4 +50,35 @@ public class SpreadsheetComparisonTest
         
         Assert.That(res, Is.True);
     }
+
+    [Test]
+    public void PossibleSpreadsheetBreakOpenDocTest_False()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(_testFileDirectory + @"Spreadsheet\opendoc_bellow_break.ods");
+        
+        if(res is null) Assert.Fail();
+        
+        Assert.That(res, Is.False);
+    }
+
+    [Test]
+    public void PossibleSpreadsheetBreakOpenDocTest_True()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(_testFileDirectory + @"Spreadsheet\opendoc_above_break.ods");
+        
+        if(res is null) Assert.Fail();
+        
+        Assert.That(res, Is.True);
+    }
+
+    [Test]
+    public void PossibleSpreadsheetBreakOpenDocTest_Image()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(_testFileDirectory +
+                                                                        @"Spreadsheet\opendoc_with_image.ods");
+        
+        if(res is null) Assert.Fail();
+        
+        Assert.That(res, Is.True);
+    }
 }
