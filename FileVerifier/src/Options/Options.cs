@@ -26,7 +26,7 @@ class Options
 
 
     /// <summary>
-    /// Initialize the object.
+    /// Initialize the options. This must be called before any other function
     /// </summary>
     /// <param name="optionsJSONSrc">Json file to intialize from. Leave out to set default settings</param>
     public void Initialize(string? optionsJSONSrc = null)
