@@ -182,7 +182,7 @@ public class ComperingMethodsTest
         (
             _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
             "fmt/126",
-            _testFileDirectory + @"PowerPoint\presentation_without_animations.pdf",
+            _testFileDirectory + @"PDF\presentation_without_animations.pdf",
             "fmt/19"
         );
         
@@ -242,7 +242,7 @@ public class ComperingMethodsTest
         (
             _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
             "fmt/126",
-            _testFileDirectory + @"PowerPoint\presentation_without_animations.pdf",
+            _testFileDirectory + @"PDF\presentation_without_animations.pdf",
             "fmt/19"
         );
         
@@ -306,7 +306,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_PNG_NoTransparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\225x225.png", "fmt/11");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\225x225.png");
         
         Assert.That(res, Is.False);
     }
@@ -314,7 +314,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_TIFF_NoTransparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\450x600.tiff", "fmt/353");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\450x600.tiff");
         
         Assert.That(res, Is.False);
     }
@@ -322,7 +322,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_JPG()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\600x450.jpg", "fmt/43");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\600x450.jpg");
         
         Assert.That(res, Is.False);
     }
@@ -330,7 +330,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_PNG_Transparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T225x225.png", "fmt/11");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T225x225.png");
         
         Assert.That(res, Is.True);
     }
@@ -338,7 +338,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_TIFF_Transparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T450x600.tiff", "fmt/353");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T450x600.tiff");
         
         Assert.That(res, Is.True);
     }

@@ -28,6 +28,7 @@ public class Error
     public string Description { get; }
     public ErrorSeverity Severity { get; }
     public ErrorType ErrorType { get; }
+    public object? ErrorValue { get; }
 
     public Error()
     {
@@ -35,13 +36,16 @@ public class Error
         Description = string.Empty;
         Severity = ErrorSeverity.Unset;
         ErrorType = ErrorType.Unset;
+        ErrorValue = null;
     }
     
-    public Error(string name, string description, ErrorSeverity severity = ErrorSeverity.Unset, ErrorType errorType = ErrorType.Unset)
+    public Error(string name, string description, ErrorSeverity severity = ErrorSeverity.Unset, 
+        ErrorType errorType = ErrorType.Unset, object? errorValue = null)
     {
         Name = name;
         Description = description;
         Severity = severity;
         ErrorType = errorType;
+        ErrorValue = errorValue;
     }
 }

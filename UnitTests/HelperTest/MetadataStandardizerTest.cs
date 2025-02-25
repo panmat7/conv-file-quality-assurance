@@ -33,14 +33,17 @@ public class MetadataStandardizerTest
         var pngPath = _testFileDirectory + @"Images\225x225.png";
         var jpgPath = _testFileDirectory + @"Images\600x450.jpg";
         var tifPath = _testFileDirectory + @"Images\450x600.tiff";
+        var gifPath = _testFileDirectory + @"Images\gif-animated.gif";
         
         var pngData = ExifToolStatic.GetExifDataImageMetadata([pngPath], GlobalVariables.ExifPath);
         var jpgData = ExifToolStatic.GetExifDataImageMetadata([jpgPath], GlobalVariables.ExifPath);
         var tifData = ExifToolStatic.GetExifDataImageMetadata([tifPath], GlobalVariables.ExifPath);
+        var gifData = ExifToolStatic.GetExifDataImageMetadata([gifPath], GlobalVariables.ExifPath);
         
         var pngStan = MetadataStandardizer.StandardizeImageMetadata(pngData![0], "fmt/13");
         var jpgStan = MetadataStandardizer.StandardizeImageMetadata(jpgData![0], "fmt/44");
         var tifStan = MetadataStandardizer.StandardizeImageMetadata(tifData![0], "fmt/353");
+        var gifStan = MetadataStandardizer.StandardizeImageMetadata(gifData![0], "fmt/4");
 
         if (pngStan.ImgWidth != 225 || pngStan.ImgHeight != 225 || pngStan.ColorType != ColorType.Index || pngStan.BitDepth != 8)
             Assert.Fail();
@@ -49,6 +52,9 @@ public class MetadataStandardizerTest
             Assert.Fail();
         
         if(tifStan.ImgWidth != 450 || tifStan.ImgHeight != 600 || tifStan.ColorType != ColorType.RGB || tifStan.BitDepth != 8)
+            Assert.Fail();
+        
+        if(gifStan.ImgWidth != 225 || gifStan.ImgHeight != 225 || gifStan.FrameCount != 4 || gifStan.BitDepth != 7)
             Assert.Fail();
         
         Assert.Pass();
