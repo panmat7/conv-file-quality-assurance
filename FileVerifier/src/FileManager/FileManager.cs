@@ -264,14 +264,39 @@ public class FileManager
     public void WritePairs()
     {
         Console.WriteLine("PAIRS:");
+
+        var pronomFormat = new Dictionary<string, Tuple<string, int>>();
+
         foreach (var pair in filePairs)
         {
             Console.WriteLine($"{pair.OriginalFilePath} ({pair.OriginalFileFormat}) - {pair.NewFilePath} ({pair.NewFileFormat})");
+
+            var extension = pair.OriginalFileFormat;
+            var fileExtension = Path.GetExtension(pair.OriginalFilePath);
+
+            if (pronomFormat.ContainsKey(extension))
+            {
+                var existingTuple = pronomFormat[extension];
+                
+                pronomFormat[extension] = new Tuple<string, int>(existingTuple.Item1, existingTuple.Item2 + 1);
+            }
+            else
+            {
+                pronomFormat.Add(extension, new Tuple<string, int>(fileExtension, 1));
+            }
         }
-        Console.WriteLine("PAIRLESS");
+
+        Console.WriteLine("PAIRLESS:");
         foreach (var file in pairlessFiles)
         {
             Console.WriteLine($"{file}");
         }
+        
+        
+        foreach (KeyValuePair<string, Tuple<string, int>> kvp in pronomFormat)
+        {
+            ConsoleService.Instance.WriteToConsole($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
+        }
     }
+
 }
