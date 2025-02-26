@@ -81,4 +81,34 @@ public class SpreadsheetComparisonTest
         
         Assert.That(res, Is.True);
     }
+
+    [Test]
+    public void PossibleSpreadsheetBreakCSV_False()
+    {
+        var res = SpreadsheetComparison.PossibleLineBreakCsv(_testFileDirectory + @"Spreadsheet\csv_bellow_break.csv");
+        
+        if(res is null) Assert.Fail();
+        
+        Assert.That(res, Is.False);
+    }
+    
+    [Test]
+    public void PossibleSpreadsheetBreakCSV_True()
+    {
+        var res = SpreadsheetComparison.PossibleLineBreakCsv(_testFileDirectory + @"Spreadsheet\csv_above_break.csv");
+        
+        if(res is null) Assert.Fail();
+        
+        Assert.That(res, Is.True);
+    }
+    
+    [Test]
+    public void PossibleSpreadsheetBreakCSV_False_DifferentDelimiter()
+    {
+        var res = SpreadsheetComparison.PossibleLineBreakCsv(_testFileDirectory + @"Spreadsheet\csv_bellow_break_different_delimiter.csv");
+        
+        if(res is null) Assert.Fail();
+        
+        Assert.That(res, Is.False);
+    }
 }

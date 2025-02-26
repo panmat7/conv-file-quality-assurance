@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -8,6 +9,8 @@ using System.Xml.Linq;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using SkiaSharp;
+using UglyToad.PdfPig.Fonts.Encodings;
+using Encoding = System.Text.Encoding;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -50,29 +53,9 @@ public static class SpreadsheetComparison
 
         return false;
     }
-    
-    /// <summary>
-    /// Approximates character size for a font in pixels.
-    /// </summary>
-    /// <param name="name"></param>
-    /// <param name="size"></param>
-    /// <returns></returns>
-    static double GetFontWidth(string name, float size)
-    {
-        using var paint = new SKPaint();
-        
-        paint.Typeface = SKTypeface.FromFamilyName(name); //Warning - if a not installed font is used will default to another
-        paint.TextSize = size;
-        return paint.MeasureText("0123456789") / 10;
-    }
-
-    static double PixelToCm(double pixels, double ppi)
-    {
-        return pixels * (2.54 / ppi);
-    }
 
     /// <summary>
-    /// Checks if a ODS document is wide enough to cause a page break or contains an image.
+    /// Checks if an ODS document is wide enough to cause a page break or contains an image.
     /// </summary>
     /// <param name="path">Absolute path to the file</param>
     /// <returns>True/False is a break is probable. Null if an error occurred reading the file.</returns>
@@ -180,5 +163,86 @@ public static class SpreadsheetComparison
         }
         
         return tableWidth.Select(pair => pair.Value).ToArray();
+    }
+    
+    /// <summary>
+    /// Checks if a CSV file is wide enough to cause a table break.
+    /// </summary>
+    /// <param name="path">Path to the file</param>
+    /// <returns>True/False is a break is probable. Null if an error occurred reading the file.</returns>
+    public static bool? PossibleLineBreakCsv(string path)
+    {
+        const double breakLength = 15.5; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
+        
+        var content = File.ReadAllText(path, Encoding.UTF8);
+
+        var delimiter = FindDelimiter(content); //CSV are not standardized and could vary
+        if (delimiter == '\0') return null;
+        
+        var rows = content.Split('\n').ToList();
+        var fontSize = GetFontWidth("LiberationSans", 10); //Libre office default
+        
+        var lengths = new Dictionary<int, double>();
+        
+        foreach(var row in rows) 
+        {
+            var column = row.Split(delimiter);
+            for (var i = 0; i < column.Length; i++)
+            {
+                //Number of characters + two whitespaces added during conversion to pdf * character font size
+                var length = PixelToCm((column[i].Length + 2) * fontSize, 96); 
+
+                if (lengths.TryAdd(i, length)) continue;
+                
+                if(lengths[i] < length) lengths[i] = length;
+            }
+        }
+
+        return lengths.Sum(n => n.Value) > breakLength;
+    }
+    
+    /// <summary>
+    /// Returns the most probable csv delimiter, assumed based on the number of its appearance.
+    /// </summary>
+    /// <param name="content">Content of the CSV file</param>
+    /// <returns>The assumed delimiter</returns>
+    private static char FindDelimiter(string content)
+    {
+        var delimiters = new Dictionary<char, int>
+        {
+            { ',', content.Count(c => c == ',') },
+            { '\t', content.Count(c => c == '\t') },
+            { ';', content.Count(c => c == ';') },
+            { ':', content.Count(c => c == ':') },
+            { '|', content.Count(c => c == '|') },
+        };
+
+        return delimiters.OrderByDescending(p => p.Value).FirstOrDefault().Key;
+    }
+    
+    /// <summary>
+    /// Approximates character size for a font in pixels.
+    /// </summary>
+    /// <param name="name">Name of the font</param>
+    /// <param name="size">Font size</param>
+    /// <returns>Approximate pixel size for the font</returns>
+    static double GetFontWidth(string name, float size)
+    {
+        using var paint = new SKPaint();
+        
+        paint.Typeface = SKTypeface.FromFamilyName(name) ?? SKTypeface.Default; //Warning - if a not installed font is used will default to another
+        paint.TextSize = size;
+        return paint.MeasureText("0123456789") / 10;
+    }
+    
+    /// <summary>
+    /// Converts pixels to cm
+    /// </summary>
+    /// <param name="pixels">Pixel value</param>
+    /// <param name="ppi">Pixels per inch</param>
+    /// <returns>Value in cm</returns>
+    static double PixelToCm(double pixels, double ppi)
+    {
+        return pixels * (2.54 / ppi);
     }
 }
