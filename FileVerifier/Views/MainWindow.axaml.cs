@@ -1,15 +1,57 @@
+using System;
+using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using AvaloniaDraft.ViewModels;
 
 namespace AvaloniaDraft.Views;
 
 public partial class MainWindow : Window
 {
+    private readonly SettingsViewModel _settingsViewModel = new SettingsViewModel();
+    
     public MainWindow()
     {
         InitializeComponent();
         SetActiveButton(HomeButton);
+
+        // Listen for changes in SelectedWindowSize
+        _settingsViewModel.PropertyChanged += SettingsViewModel_PropertyChanged;
+        
+        // Set initial window size based on the current selection
+        UpdateWindowSize(_settingsViewModel.SelectedWindowSize);
+    
+        var homeView = new HomeView
+        {
+            DataContext = _settingsViewModel
+        };
+        MainContent.Content = homeView;
+
+        // Add event handler for window resizing
+        LayoutUpdated += MainWindow_LayoutUpdated;
+    }
+
+    private void MainWindow_LayoutUpdated(object? sender, EventArgs e)
+    {
+        // Center the window after resizing
+        WindowStartupLocation = WindowStartupLocation.CenterScreen;
+    }
+
+    
+    private void SettingsViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SettingsViewModel.SelectedWindowSize))
+        {
+            UpdateWindowSize(_settingsViewModel.SelectedWindowSize);
+        }
+    }
+        
+    private void UpdateWindowSize(WindowSizeOption? option)
+    {
+        if (option == null) return;
+        Width = option.Width;
+        Height = option.Height;
     }
 
     private void SetActiveButton(Button button)
@@ -24,13 +66,21 @@ public partial class MainWindow : Window
 
     private void HomeButton_Click(object sender, RoutedEventArgs e)
     {
-        MainContent.Content = new HomeView();
+        var homeView = new HomeView
+        {
+            DataContext = _settingsViewModel
+        };
+        MainContent.Content = homeView;
         SetActiveButton((Button)sender);
     }
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        MainContent.Content = new SettingsView();
+        var settingsView = new SettingsView
+        {
+            DataContext = _settingsViewModel
+        };
+        MainContent.Content = settingsView;
         SetActiveButton((Button)sender);
     }
 }
