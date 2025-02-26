@@ -5,6 +5,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.Views;
 
@@ -16,6 +18,7 @@ public partial class HomeView : UserControl
     public HomeView()
     {
         InitializeComponent();
+        ConsoleService.Instance.OnMessageLogged += UpdateConsole;
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
     }
@@ -86,29 +89,29 @@ public partial class HomeView : UserControl
 
     private void Start_OnClick(object? sender, RoutedEventArgs e)
     {
+        ConsoleService.Instance.WriteToConsole("Testing start button");
+    }
+
+    
+
+    private void LoadButton_OnClick(object? sender, RoutedEventArgs e)
+    {
         if (string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
-
-        AppendMessageToConsole("INPUT:");
-        var files = Directory.GetFiles(InputPath);
-        foreach (var file in files) { AppendMessageToConsole(file); }
-
-        AppendMessageToConsole("OUTPUT:");
-        files = Directory.GetFiles(OutputPath);
-        foreach (var file in files) { AppendMessageToConsole(file); }
-
         var f = new FileManager.FileManager(InputPath, OutputPath);
         f.GetSiegfriedFormats();
         f.WritePairs();
     }
+    
 
-    private void AppendMessageToConsole(string text)
+    private void UpdateConsole(string message)
     {
-        if (!string.IsNullOrEmpty(Console.Text))
+        Console.Text = null; // This should probably be some switch statement resetting only when something something
+        Dispatcher.UIThread.Post(() =>
         {
-            Console.Text += "\n";
-        }
-
-        Console.Text += text;
-        Console.CaretIndex = Console.Text.Length;
+            Console.Text += message + Environment.NewLine;
+        });
     }
 }
+
+
+    
