@@ -272,7 +272,7 @@ public static class ColorProfileComparison
             ,
             null => false // If only one image has a color profile it means loss of data
             ,
-            _ => nProfile != null && // If only one image has a color profile it means loss of data
+            _ => nProfile != null && // Else we compare the profiles
                  oProfile.Equals(nProfile)
         };
     }
