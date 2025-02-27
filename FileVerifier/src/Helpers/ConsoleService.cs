@@ -1,4 +1,5 @@
 using System;
+using Avalonia.Threading;
 
 namespace AvaloniaDraft.Helpers;
 
@@ -13,6 +14,6 @@ public class ConsoleService
 
     public void WriteToConsole(string message)
     {
-        OnMessageLogged?.Invoke(message);
+        Dispatcher.UIThread.InvokeAsync(() => OnMessageLogged?.Invoke(message));
     }
 }

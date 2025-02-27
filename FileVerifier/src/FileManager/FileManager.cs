@@ -64,7 +64,7 @@ public class FilePair
 /// <summary>
 /// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process
 /// </summary>
-public class FileManager
+public sealed class FileManager
 {
     private readonly string oDirectory;
     private readonly string nDirectory;
@@ -77,9 +77,6 @@ public class FileManager
     private static readonly object _lock = new object();
     private static readonly object _listLock = new object();
     private readonly List<Thread> _threads = new();
-
-    public List<FilePair> GetFilePairs() => filePairs;
-    public List<string> GetPairlessFiles() => pairlessFiles;
     
     public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
     {
@@ -191,7 +188,7 @@ public class FileManager
         //Get the correct pipeline
         if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
         {
-            pipeline = VerificationPipelines.GetPNGPipelines(pair.NewFileFormat);
+            pipeline = PngPipelines.GetPNGPipelines(pair.NewFileFormat);
         }
         
         if (pipeline == null) return false; //None found

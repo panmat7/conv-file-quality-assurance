@@ -1,15 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Xml;
 using System.Xml.Linq;
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
 using SkiaSharp;
-using UglyToad.PdfPig.Fonts.Encodings;
 using Encoding = System.Text.Encoding;
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -226,7 +222,7 @@ public static class SpreadsheetComparison
     /// <param name="name">Name of the font</param>
     /// <param name="size">Font size</param>
     /// <returns>Approximate pixel size for the font</returns>
-    static double GetFontWidth(string name, float size)
+    private static double GetFontWidth(string name, float size)
     {
         using var paint = new SKPaint();
         
@@ -241,7 +237,7 @@ public static class SpreadsheetComparison
     /// <param name="pixels">Pixel value</param>
     /// <param name="ppi">Pixels per inch</param>
     /// <returns>Value in cm</returns>
-    static double PixelToCm(double pixels, double ppi)
+    private static double PixelToCm(double pixels, double ppi)
     {
         return pixels * (2.54 / ppi);
     }

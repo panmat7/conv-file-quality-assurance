@@ -229,8 +229,8 @@ public static class ComperingMethods
         if (!originalStandardized.VerifyResolution())
         {
             errors.Add(new Error(
-                "ImageResolutionOriginalMissing",
-                "Error trying to get original image resolution",
+                "Image resolution missing in original file",
+                "Error trying to get original image resolution.",
                 ErrorSeverity.High,
                 ErrorType.Metadata
             ));
@@ -239,8 +239,8 @@ public static class ComperingMethods
         if(!newStandardized.VerifyResolution())
         {
             errors.Add(new Error(
-                "ImageResolutionNewMissing",
-                "Error trying to get new image resolution",
+                "Image resolution missing in new file",
+                "Error trying to get new image resolution.",
                 ErrorSeverity.High,
                 ErrorType.Metadata
             ));
@@ -249,8 +249,8 @@ public static class ComperingMethods
         if (!originalStandardized.CompareResolution(newStandardized))
         {
             errors.Add(new Error(
-                "ImageResolution",
-                "Mismatched resolution between images",
+                "Image resolution difference (metadata)",
+                "Mismatched resolution between images in metadata.",
                 ErrorSeverity.High,
                 ErrorType.Metadata
             ));
@@ -259,8 +259,8 @@ public static class ComperingMethods
         if (!originalStandardized.VerifyBitDepth())
         {
             errors.Add(new Error(
-                "BitDepthOriginalMissing",
-                "Error trying to get original image bit-depth",
+                "Bit-depth missing in original file",
+                "Error trying to get original image bit-depth.",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
             ));
@@ -269,7 +269,7 @@ public static class ComperingMethods
         if (!newStandardized.VerifyBitDepth())
         {
             errors.Add(new Error(
-                "BitDepthNewMissing",
+                "Bit-depth missing in new file",
                 "Error trying to get new image bit-depth",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -279,8 +279,8 @@ public static class ComperingMethods
         if (!originalStandardized.CompareBitDepth(newStandardized))
         {
             errors.Add(new Error(
-                "BitDepth",
-                "Mismatched resolution between images",
+                "Bit-depth mismatch",
+                "Mismatched bit-depth between images.",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
             ));
@@ -289,8 +289,8 @@ public static class ComperingMethods
         if (!originalStandardized.VerifyColorType())
         {
             errors.Add(new Error(
-                "ColorTypeOriginalMissing",
-                "Error trying to get original image color type",
+                "Color type missing in original file",
+                "Error trying to get original image color type.",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
             ));
@@ -299,7 +299,7 @@ public static class ComperingMethods
         if (!newStandardized.VerifyColorType())
         {
             errors.Add(new Error(
-                "ColorTypeNewMissing",
+                "Color type missing in new file",
                 "Error trying to get new image color type",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -312,7 +312,7 @@ public static class ComperingMethods
         if(!originalStandardized.VerifyPhysicalUnits() || !newStandardized.VerifyPhysicalUnits())
         {
             errors.Add(new Error(
-                "PhysicalUnitsMissing",
+                "Physical units missing",
                 "Error trying to get original physical units",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -321,7 +321,7 @@ public static class ComperingMethods
         else if(!originalStandardized.ComparePhysicalUnits(newStandardized))
         {
             errors.Add(new Error(
-                "PhysicalUnits",
+                "Physical units mismatch",
                 "Mismatched physical units between images",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -348,7 +348,7 @@ public static class ComperingMethods
             if(ContainsTransparency(orgMeta.Path) && newMeta.ColorType != ColorType.RGBA)
             {
                 return new Error(
-                    "ColorType",
+                    "Color type mismatch",
                     "Mismatched color type between images. Transparency loss",
                     ErrorSeverity.High,
                     ErrorType.Metadata
@@ -358,7 +358,7 @@ public static class ComperingMethods
         
         
         return new Error(
-            "ColorType",
+            "Color type mismatch",
             "Mismatched color type between images",
             ErrorSeverity.Medium,
             ErrorType.Metadata

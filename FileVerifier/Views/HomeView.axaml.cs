@@ -14,6 +14,7 @@ public partial class HomeView : UserControl
 {
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
+    private bool Working { get; set; } = false;
 
     public HomeView()
     {
@@ -89,6 +90,20 @@ public partial class HomeView : UserControl
 
     private void Start_OnClick(object? sender, RoutedEventArgs e)
     {
+        if (Working || GlobalVariables.FileManager == null) return;
+        
+        Working = true;
+        
+        StartButton.IsEnabled = false;
+        LoadButton.IsEnabled = false;
+        
+        GlobalVariables.FileManager.StartVerification();
+        
+        StartButton.IsEnabled = true;
+        LoadButton.IsEnabled = true;
+        
+        Working = false;
+        
         ConsoleService.Instance.WriteToConsole("Testing start button");
     }
 
@@ -96,10 +111,11 @@ public partial class HomeView : UserControl
 
     private void LoadButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
-        var f = new FileManager.FileManager(InputPath, OutputPath);
-        f.GetSiegfriedFormats();
-        f.WritePairs();
+        if (Working || string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
+        GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+        GlobalVariables.FileManager.GetSiegfriedFormats();
+        GlobalVariables.FileManager.WritePairs();
+        StartButton.IsEnabled = true;
     }
     
 
