@@ -54,12 +54,20 @@ public class Error
         ErrorValue = errorValue;
     }
 
+    /// <summary>
+    /// Formats the error into a message.
+    /// </summary>
+    /// <returns>The formatted message</returns>
     public string FormatErrorMessage()
     {
         return $"{Name}: {Description} \n\tError severity: {GetSeverityString()} \n\tError type: {GetErrorTypeString()}"
                + (ErrorValue == null ? "" : "\n\t" + ErrorValue.ToString());
     }
-
+    
+    /// <summary>
+    /// Returns a string representation of the severity.
+    /// </summary>
+    /// <returns>The string representation</returns>
     private string GetSeverityString()
     {
         switch (Severity)
@@ -74,6 +82,10 @@ public class Error
         return string.Empty;
     }
 
+    /// <summary>
+    /// Returns a string representation of the error type.
+    /// </summary>
+    /// <returns>The string representation</returns>
     private string GetErrorTypeString()
     {
         switch (ErrorType)
@@ -89,8 +101,12 @@ public class Error
     }
 }
 
-public static class ListExtencions
+public static class ListExtensions
 {
+    /// <summary>
+    /// Creates a single from error messages of every list member, seperated by new lines.
+    /// </summary>
+    /// <returns>The single formatted string</returns>
     public static string GenerateErrorString(this List<Error> errors)
     {
         if(errors == null || errors.Count == 0) return "No Errors Found";

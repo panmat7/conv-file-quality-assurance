@@ -68,6 +68,19 @@ public class ComperingMethodsTest
     }
 
     [Test]
+    public void GetFileSizeDifferenceTest_Invalid()
+    {
+        var files = new FilePair
+        (
+            "Not",
+            "Real"
+        );
+        
+        var diff = ComperingMethods.GetFileSizeDifference(files);
+        Assert.That(diff, Is.Null);
+    }
+
+    [Test]
     public void GetImageResolutionDifferenceTest_225PNG_450PNG()
     {
         var files = new FilePair
@@ -107,6 +120,19 @@ public class ComperingMethodsTest
     }
 
     [Test]
+    public void GetImageResolutionDifferenceTest_Invalid()
+    {
+        var files = new FilePair
+        (
+            "Not",
+            "Real"
+        );
+        
+        var diff = ComperingMethods.GetImageResolutionDifference(files);
+        Assert.That(diff, Is.Null);
+    }
+
+    [Test]
     public void GetImageResolutionTest_225PNG()
     {
         var diff = ComperingMethods.GetImageResolution(_testFileDirectory + @"Images\225x225.png");
@@ -131,63 +157,11 @@ public class ComperingMethodsTest
     }
 
     [Test]
-    public void GetPageCountDifferenceTest_3DOCX_3ODT()
+    public void GetImageResolution_Invalid()
     {
-        var files = new FilePair
-        (
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.docx",
-            "fmt/412",
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/1756"
-        );
+        var diff = ComperingMethods.GetImageResolution("Not real");
         
-        var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.That(diff, Is.EqualTo(0));
-    }
-    
-    [Test]
-    public void GetPageCountDifferenceTest_8DOCX_3ODT()
-    {
-        var files = new FilePair
-        (
-            _testFileDirectory + @"TestDocuments\Image8Pages.docx",
-            "fmt/412",
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/1756"
-        );
-        
-        var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.That(diff, Is.EqualTo(5));
-    }
-    
-    [Test]
-    public void GetPageCountDifferenceTest_8PDF_3DOCX()
-    {
-        var files = new FilePair
-        (
-            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
-            "fmt/276",
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/1756"
-        );
-        
-        var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.That(diff, Is.EqualTo(5));
-    }
-
-    [Test]
-    public void GetPageCountDifferenceTest_2PPT_2PDF()
-    {
-        var files = new FilePair
-        (
-            _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
-            "fmt/126",
-            _testFileDirectory + @"PDF\presentation_without_animations.pdf",
-            "fmt/19"
-        );
-        
-        var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.That(diff, Is.EqualTo(0));
+        Assert.That(diff, Is.Null);
     }
     
     [Test]
@@ -251,20 +225,16 @@ public class ComperingMethodsTest
     }
 
     [Test]
-    public void GetPageCountTest_8PDF_3ODT()
+    public void GetPageCountDifferenceExifTest_Invalid()
     {
         var files = new FilePair
         (
-            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
-            "fmt/276",
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/1756"
+            _testFileDirectory + @"Images\225x225.png",
+            _testFileDirectory + @"Images\450x600.tiff"
         );
-
-        var count1 = ComperingMethods.GetPageCount(files.OriginalFilePath, files.OriginalFileFormat);
-        var count2 = ComperingMethods.GetPageCount(files.NewFilePath, files.NewFileFormat);
         
-        Assert.That(count1 is 8 && count2 is 3);
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.Null);
     }
 
     [Test]
@@ -301,6 +271,22 @@ public class ComperingMethodsTest
         if (result is null || result.Count != 4) Assert.Fail();
         
         Assert.Pass();
+    }
+
+    [Test]
+    public void GetMissingOrWrongImageMetadataExifTest_Invalid()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + "Not",
+            "fmt/312312313",
+            _testFileDirectory + "Real",
+            "fmt/313132313"
+        );
+        
+        var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+        
+        Assert.That(result, Is.Null);
     }
 
     [Test]

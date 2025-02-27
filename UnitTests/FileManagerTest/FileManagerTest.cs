@@ -22,6 +22,9 @@ public class FileManagerTest
         );
 
         var f = new FileManager(@"C:\testOriginal\", @"C:\testNew\", fileSystem);
+        
+        if(f == null) Assert.Fail();
+        
         var pairs = f.GetFilePairs();
         var pairless = f.GetPairlessFiles();
 

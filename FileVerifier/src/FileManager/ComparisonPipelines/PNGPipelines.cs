@@ -122,7 +122,9 @@ public static class PngPipelines
                 }
             }
             
-            ConsoleService.Instance.WriteToConsole(e.GenerateErrorString());
+            ConsoleService.Instance.WriteToConsole(
+                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
+                e.GenerateErrorString());
         }
         catch
         {
