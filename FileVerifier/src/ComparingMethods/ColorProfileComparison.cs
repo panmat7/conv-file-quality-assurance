@@ -257,9 +257,11 @@ public static class ColorProfileComparison
         {
             switch (part)
             {
+                // If the part is a multipart/related, we extract images from it
                 case MultipartRelated related:
                     ExtractImagesFromMultipartRelated(related, images, imageHashes);
                     break;
+                // If the part is an image, we extract it
                 case MimePart mimeAttachment when mimeAttachment.ContentType.MimeType.StartsWith("image/"):
                     ExtractImageFromMimePart(mimeAttachment, images, imageHashes);
                     break;

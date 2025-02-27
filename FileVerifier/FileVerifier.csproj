@@ -12,7 +12,6 @@
     <ItemGroup>
         <Folder Include="Models\" />
         <AvaloniaResource Include="Assets\**" />
-        <Folder Include="src\ComparingMethods\TempFiles\" />
         <Folder Include="src\FileManager\Siegfried\" />
     </ItemGroup>
 
