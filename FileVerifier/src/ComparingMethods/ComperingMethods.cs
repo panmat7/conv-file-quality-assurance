@@ -100,7 +100,7 @@ public static class ComperingMethods
     /// <returns>Either a positive integer with page count, -1 meaning error while getting pages or null meaning not supported file type</returns>
     public static int? GetPageCountExif(string path, string format)
     {
-        var result = ExifToolStatic.GetExifDataDictionary([path], GlobalVariables.ExifPath, false);
+        var result = GlobalVariables.ExifTool.GetExifDataDictionary([path], false);
         
         if(result == null || result.Count == 0) return null;
 
@@ -149,8 +149,8 @@ public static class ComperingMethods
     public static List<Error>? GetMissingOrWrongImageMetadataExif(FilePair files)
     {
         //Get metadata
-        var metaOriginal = ExifToolStatic.GetExifDataImageMetadata([files.OriginalFilePath], GlobalVariables.ExifPath)?[0];
-        var metaNew = ExifToolStatic.GetExifDataImageMetadata([files.NewFilePath], GlobalVariables.ExifPath)?[0];
+        var metaOriginal = GlobalVariables.ExifTool.GetExifDataImageMetadata([files.OriginalFilePath])?[0];
+        var metaNew = GlobalVariables.ExifTool.GetExifDataImageMetadata([files.NewFilePath])?[0];
 
         if (metaOriginal == null || metaNew == null) return null;
         

@@ -16,9 +16,16 @@ public static class PngPipelines
     public static Action<FilePair, int, Action<int>, Action>? GetPNGPipelines(string outputFormat)
     {
         if (FormatCodes.PronomCodesJPEG.Contains(outputFormat))
-        {
             return PNGToJPEGPipeline;
-        }
+
+        if (FormatCodes.PronomCodesTIFF.Contains(outputFormat))
+            return PNGToTIFFPipeline;
+        
+        if(FormatCodes.PronomCodesBMP.Contains(outputFormat))
+            return PNGToBMPPipeline;
+        
+        if(FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
+            return PNGToPDFPipeline;
 
         return null;
     }
@@ -141,5 +148,23 @@ public static class PngPipelines
             updateThreadCount(-(1 + additionalThreads)); //Ensuring that this happens even if something fails
             markDone();
         }
+    }
+
+    private static void PNGToTIFFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+        Action markDone)
+    {
+        
+    }
+
+    private static void PNGToBMPPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+        Action markDone)
+    {
+        
+    }
+
+    private static void PNGToPDFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+        Action markDone)
+    {
+        
     }
 }

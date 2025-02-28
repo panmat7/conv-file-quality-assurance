@@ -1,4 +1,5 @@
 using AvaloniaDraft.ComparingMethods.ExifTool;
+using AvaloniaDraft.Helpers;
 
 namespace UnitTests.ComparingMethodsTest;
 
@@ -30,10 +31,9 @@ public class ExifToolStaticTest
     {
         var filePath1 = _testFileDirectory + @"Images\225x225.png";
         var filePath2 = _testFileDirectory + @"Images\450x450.png";
-
-        var path = ExifToolStatic.GetExifPath();
-        var result1 = ExifToolStatic.GetExifDataDictionary([filePath1, filePath2], path);
-        var result2 = ExifToolStatic.GetExifDataDictionary([filePath1, filePath2], path);
+        
+        var result1 = GlobalVariables.ExifTool.GetExifDataDictionary([filePath1, filePath2]);
+        var result2 = GlobalVariables.ExifTool.GetExifDataDictionary([filePath1, filePath2]);
 
         Assert.Multiple(() =>
         {
@@ -47,9 +47,8 @@ public class ExifToolStaticTest
     {
         var filePath1 = "";
         var filePath2 = "";
-
-        var path = ExifToolStatic.GetExifPath();
-        var result = ExifToolStatic.GetExifDataDictionary([filePath1, filePath2], path);
+        
+        var result = GlobalVariables.ExifTool.GetExifDataDictionary([filePath1, filePath2]);
 
         Assert.That(result, Is.Null);
     }
@@ -59,10 +58,11 @@ public class ExifToolStaticTest
     {
         var filePath1 = "Not";
         var filePath2 = "Real";
-        
-        var path = ExifToolStatic.GetExifPath();
-        var result = ExifToolStatic.GetExifDataDictionary([filePath1, filePath2], path);
+
+        var result = GlobalVariables.ExifTool.GetExifDataDictionary([filePath1, filePath2]);
         
         Assert.That(result, Is.Null);
     }
+
+    
 }

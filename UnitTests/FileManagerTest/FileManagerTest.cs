@@ -1,10 +1,11 @@
 using System.IO.Abstractions.TestingHelpers;
 using AvaloniaDraft.FileManager;
+using UnitTests.ComparingMethodsTest;
 
 namespace UnitTests.FileManagerTest;
 
 [TestFixture]
-public class FileManagerTest
+public class FileManagerTest : TestBase
 {
     [Test]
     public void FileManagerCreationTest()

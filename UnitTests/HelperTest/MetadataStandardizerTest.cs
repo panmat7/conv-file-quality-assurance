@@ -1,10 +1,22 @@
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.Helpers;
+using UnitTests.ComparingMethodsTest;
 
 namespace UnitTests.HelperTest;
 
-public class MetadataStandardizerTest
+[SetUpFixture]
+public class ExifToolSetupTeardown
+{
+    [OneTimeTearDown]
+    public void AfterTests()
+    {
+        GlobalVariables.ExifTool.Dispose();
+    }
+}
+
+[TestFixture]
+public class MetadataStandardizerTest : TestBase
 {
     private string _testFileDirectory = "";
     
@@ -36,11 +48,11 @@ public class MetadataStandardizerTest
         var bmpPath = _testFileDirectory + @"Images\600x450.bmp";
         var gifPath = _testFileDirectory + @"Images\gif-animated.gif";
         
-        var pngData = ExifToolStatic.GetExifDataImageMetadata([pngPath], GlobalVariables.ExifPath);
-        var jpgData = ExifToolStatic.GetExifDataImageMetadata([jpgPath], GlobalVariables.ExifPath);
-        var tifData = ExifToolStatic.GetExifDataImageMetadata([tifPath], GlobalVariables.ExifPath);
-        var bmpData = ExifToolStatic.GetExifDataImageMetadata([bmpPath], GlobalVariables.ExifPath);
-        var gifData = ExifToolStatic.GetExifDataImageMetadata([gifPath], GlobalVariables.ExifPath);
+        var pngData = GlobalVariables.ExifTool.GetExifDataImageMetadata([pngPath]);
+        var jpgData = GlobalVariables.ExifTool.GetExifDataImageMetadata([jpgPath]);
+        var tifData = GlobalVariables.ExifTool.GetExifDataImageMetadata([tifPath]);
+        var bmpData = GlobalVariables.ExifTool.GetExifDataImageMetadata([bmpPath]);
+        var gifData = GlobalVariables.ExifTool.GetExifDataImageMetadata([gifPath]);
         
         var pngStan = MetadataStandardizer.StandardizeImageMetadata(pngData![0], "fmt/13");
         var jpgStan = MetadataStandardizer.StandardizeImageMetadata(jpgData![0], "fmt/44");

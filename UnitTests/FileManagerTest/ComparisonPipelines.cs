@@ -1,9 +1,10 @@
 using AvaloniaDraft.FileManager;
+using UnitTests.ComparingMethodsTest;
 
 namespace UnitTests.FileManagerTest;
 
 [TestFixture]
-public class ComparisonPipelines
+public class ComparisonPipelines : TestBase
 {
     [Test]
     public void PNGPipelinesTest()
