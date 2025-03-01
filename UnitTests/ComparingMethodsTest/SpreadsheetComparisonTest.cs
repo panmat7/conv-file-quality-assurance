@@ -52,6 +52,24 @@ public class SpreadsheetComparisonTest
     }
 
     [Test]
+    public void PossibleBreakExcelCellTest_Multi_True()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(_testFileDirectory +
+                                                                      @"Spreadsheet\excel_multi_break.xlsx");
+        
+        Assert.That(res, Is.True);
+    }
+
+    [Test]
+    public void PossibleBreakExcelCellTest_Multi_False()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(_testFileDirectory +
+                                                                      @"Spreadsheet\excel_multi_no_break.xlsx");
+        
+        Assert.That(res, Is.False);
+    }
+
+    [Test]
     public void PossibleSpreadsheetBreakOpenDocTest_False()
     {
         var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(_testFileDirectory + @"Spreadsheet\opendoc_bellow_break.ods");
@@ -80,6 +98,27 @@ public class SpreadsheetComparisonTest
         if(res is null) Assert.Fail();
         
         Assert.That(res, Is.True);
+    }
+
+    [Test]
+    public void PossibleSpreadsheetBreakOpenDocTest_Multi_True()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(_testFileDirectory +
+                                                                        @"Spreadsheet\opendoc_multi_break.ods");
+        
+        if(res is null) Assert.Fail();
+        
+        Assert.That(res, Is.True);
+    }
+
+    [Test]
+    public void PossibleSpreadsheetBreakOpenDocTest_Multi_False()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(_testFileDirectory + @"Spreadsheet\opendoc_multi_no_break.ods");
+        
+        if(res is null) Assert.Fail();
+        
+        Assert.That(res, Is.False);
     }
 
     [Test]

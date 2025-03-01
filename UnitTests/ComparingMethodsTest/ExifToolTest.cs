@@ -2,7 +2,7 @@ using AvaloniaDraft.Helpers;
 
 namespace UnitTests.ComparingMethodsTest;
 
-public class ExifToolStaticTest
+public class ExifToolTest
 {
     private string _testFileDirectory = "";
     

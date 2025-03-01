@@ -271,9 +271,9 @@ public static class ComperingMethods
     /// <summary>
     /// Verifies color type of two image metadata, providing additional warning in case of transparency loss
     /// </summary>
-    /// <param name="orgMeta"></param>
-    /// <param name="newMeta"></param>
-    /// <returns></returns>
+    /// <param name="orgMeta">Metadata of the original file</param>
+    /// <param name="newMeta">Metadata of the new file</param>
+    /// <returns>Null if no difference was found, otherwise an Error object.</returns>
     private static Error? VerifyColorType(StandardizedImageMetadata orgMeta, StandardizedImageMetadata newMeta)
     {
         if (orgMeta.ColorType == newMeta.ColorType) return null;

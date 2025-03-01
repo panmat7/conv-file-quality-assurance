@@ -19,6 +19,8 @@ public static class SpreadsheetComparison
     /// <returns>True/False is a break is probable</returns>
     public static bool PossibleSpreadsheetBreakExcel(string path)
     {
+        //NOTE: Considers columns width edited with even if they are empty
+        
         const double breakLength = 15.5; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
         const double ppi = 96.0; //Default for excel, documents do not store
         var widthSum = 0.0;
@@ -102,12 +104,14 @@ public static class SpreadsheetComparison
     }
 
     /// <summary>
-    /// Returns a list containing widths of all tables inside a ods document in cm
+    /// Returns a list containing widths of all tables inside an ods document in cm
     /// </summary>
     /// <param name="doc">Document to be analyzed</param>
     /// <returns>List containing width of all tables in cm</returns>
     private static double[] GetOdsTableWidths(XDocument doc)
     {
+        //NOTE: This functions considers columns with edited width as used, even if they are empty
+        
         var styleNs = XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:style:1.0"); //Style namespace
         var tableNs = XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:table:1.0"); //Table namespace
 

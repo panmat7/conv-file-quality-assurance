@@ -1,5 +1,3 @@
-using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.Helpers;
 using UnitTests.ComparingMethodsTest;
 

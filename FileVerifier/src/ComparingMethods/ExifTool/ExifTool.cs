@@ -12,7 +12,6 @@ namespace AvaloniaDraft.ComparingMethods.ExifTool;
 
 public class ImageMetadata
 {
-
     public string SourceFile { get; set; } = "";
     public Dictionary<string, object> ExifTool { get; set; } = new();
     public Dictionary<string, object> File { get; set; } = new();
@@ -65,7 +64,7 @@ public sealed class ExifTool : IDisposable
                 };
 
                 _exifProcess.StartInfo = psi;
-                _exifProcess.ErrorDataReceived += new DataReceivedEventHandler(ExifErrorHandler); //Error handler
+                _exifProcess.ErrorDataReceived += ExifErrorHandler; //Error handler
 
                 _exifProcess.Start();
                 _exifProcess.BeginErrorReadLine();
@@ -143,6 +142,8 @@ public sealed class ExifTool : IDisposable
     
     public List<Dictionary<string, object>>? GetExifDataDictionary(string[] filenames, bool group = true)
     {
+        if (_disposed == 1) return null;
+        
         var output = RunExiftoolStayingOpen(filenames, group);
 
         if (output == null) return null;
@@ -164,6 +165,8 @@ public sealed class ExifTool : IDisposable
     
     public List<ImageMetadata>? GetExifDataImageMetadata(string[] files)
     {
+        if(_disposed == 1) return null;
+        
         var output = RunExiftoolStayingOpen(files);
         
         if (output == null) return null;
