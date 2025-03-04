@@ -7,40 +7,64 @@ using System.IO;
 using System.IO.Compression;
 using System.Xml.Linq;
 using MimeKit;
+using UglyToad.PdfPig.Content;
 
 namespace AvaloniaDraft.ComparingMethods;
 
 public static class ImageExtraction
 {
+    internal static List<MagickImage> ExtractImagesFromPdf(string filePath)
+    {
+        var pdfImages = GetNonDuplicatePdfImages(filePath);
+        return ConvertPdfImagesToMagickImages(pdfImages);
+    }
+    
     /// <summary>
-    /// Extracts images from a PDF file
+    /// Gets all non duplicate Pdf images from a document
     /// </summary>
     /// <param name="filePath"></param>
     /// <exception cref="ArgumentNullException"></exception>
     /// <returns></returns>
-    internal static List<MagickImage> ExtractImagesFromPdf(string filePath)
+    internal static List<IPdfImage> GetNonDuplicatePdfImages(string filePath)
     {
-        var extractedImages = new List<MagickImage>();
+        var extractedImages = new List<IPdfImage>();
     
         // Hash set to store the hash of the image content to avoid duplicates where the same image is used multiple times
         var imageHashes = new HashSet<string>();
-
+    
         using var pdfDocument = PdfDocument.Open(filePath);
         foreach (var page in pdfDocument.GetPages())
         {
             var images = page.GetImages().ToList();
-
+    
             // Only extract images that are not already in the hash set
-            foreach (var rawBytes in from image in images select image.RawBytes.ToArray() into rawBytes 
-                     let hash = Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(rawBytes)) 
-                     where imageHashes.Add(hash) select rawBytes)
+            extractedImages.AddRange(from image in images let rawBytes = image.RawBytes.ToArray() 
+                let hash = Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(rawBytes)) 
+                where imageHashes.Add(hash) select image);
+        }
+        return extractedImages;
+    }
+    
+    internal static List<MagickImage> ConvertPdfImagesToMagickImages(List<IPdfImage> pdfImages)
+    {
+        var magickImages = new List<MagickImage>();
+        
+        // Only extract images that are not already in the hash set
+        foreach (var image in pdfImages)
+        {
+            if (image.TryGetPng(out var pngBytes))
             {
-                using var magickImage = new MagickImage(rawBytes);
-                extractedImages.Add((MagickImage)magickImage.Clone());
+                var magickImage = new MagickImage(pngBytes);
+                magickImages.Add(magickImage);
+            }
+            else
+            {
+                var magickImage = new MagickImage(image.RawBytes);
+                magickImages.Add(magickImage);
             }
         }
 
-        return extractedImages;
+        return magickImages;
     }
     
     /// <summary>
