@@ -523,7 +523,7 @@ public class GetNonAnchoredImagesFromXlsxTest : TestBase
             "excel_with_two_images_of_different_profile_over_cells.xlsx");
 
         var expected = new List<string> { "image2.jpg" };
-        var result = ColorProfileComparison.GetNonAnchoredImagesFromXlsx(filePath);
+        var result = ImageExtraction.GetNonAnchoredImagesFromXlsx(filePath);
         
         Assert.That(result, Is.EqualTo(expected));
     }
