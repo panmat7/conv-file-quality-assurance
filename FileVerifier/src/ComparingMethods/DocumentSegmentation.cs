@@ -127,6 +127,8 @@ public static class DocumentSegmentation
     {
         try
         {
+            if(filePath == "" || rects.Count == 0) return null;
+            
             var img = CvInvoke.Imread(filePath);
             if (img is null) return null;
 
