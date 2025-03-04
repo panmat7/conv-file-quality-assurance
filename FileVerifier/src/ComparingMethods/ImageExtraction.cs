@@ -10,7 +10,7 @@ using MimeKit;
 
 namespace AvaloniaDraft.ComparingMethods;
 
-public class ImageExtraction
+public static class ImageExtraction
 {
     /// <summary>
     /// Extracts images from a PDF file
