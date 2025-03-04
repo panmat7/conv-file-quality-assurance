@@ -30,6 +30,8 @@
         </PackageReference>
         <PackageReference Include="ClosedXML" Version="0.105.0-rc" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+        <PackageReference Include="Emgu.CV" Version="4.10.0.5680" />
+        <PackageReference Include="Emgu.CV.runtime.windows" Version="4.10.0.5680" />
         <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.4.0" />
         <PackageReference Include="PdfPig" Version="0.1.10-alpha-20250122-52098" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />

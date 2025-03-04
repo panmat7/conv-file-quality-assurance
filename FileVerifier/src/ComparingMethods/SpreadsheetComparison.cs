@@ -28,6 +28,8 @@ public static class SpreadsheetComparison
         using var wb = new XLWorkbook(path);
         foreach (var worksheet in wb.Worksheets)
         {
+            widthSum = 0.0;
+            
             if (worksheet.Pictures.Count > 0) return true; //For now automatically flag if contains image
             
             var lastColumn = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;

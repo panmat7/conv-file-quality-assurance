@@ -75,7 +75,7 @@ public sealed class FileManager
     public List<string> GetPairlessFiles() => pairlessFiles;
     public List<FilePair> GetFilePairs() => filePairs;
     
-    //Theading
+    //Threading
     private int CurrentThreads = 0;
     private static readonly object _lock = new object();
     private static readonly object _listLock = new object();
