@@ -18,11 +18,13 @@ class Logger
     {
         public bool pass { get; set; }
         public double? percentage { get; set; }
+        public List<string>? comments { get; set; }
 
-        public TestResult(bool pass, double? percentage)
+        public TestResult(bool pass, double? percentage, List<string>? comments)
         {
             this.pass = pass;
             this.percentage = percentage;
+            this.comments = comments;
         }
     }
 
@@ -86,9 +88,9 @@ class Logger
     /// <param name="testName">The name of the test</param>
     /// <param name="pass">If the test passed or not</param>
     /// <param name="percentage">The percentage of which the test was successful. Leave out if not relecant</param>
-    public void AddTestResult(FilePair filePair, string testName, bool pass, double? percentage = null)
+    public void AddTestResult(FilePair filePair, string testName, bool pass, List<string>? comments = null, double? percentage = null)
     {
-        var testResult = new TestResult(pass, percentage);
+        var testResult = new TestResult(pass, percentage, comments);
 
         var index = results.FindIndex(r => r.filePair == filePair);
         if (index == -1)
@@ -96,12 +98,25 @@ class Logger
             var cr = new ComparisonResult(filePair);
             cr.AddTestResult(testResult, testName);
             results.Add(cr);
-        } else
+        }
+        else
         {
             results[index].AddTestResult(testResult, testName);
         }
     }
 
+
+    /// <summary>
+    /// Add a result from a test
+    /// </summary>
+    /// <param name="filePair">The filepair</param>
+    /// <param name="testName">The name of the test</param>
+    /// <param name="pass">If the test passed or not</param>
+    /// <param name="percentage">The percentage of which the test was successful. Leave out if not relecant</param>
+    public void AddTestResult(FilePair filePair, string testName, bool pass, string comment, double? percentage = null)
+    {
+        AddTestResult(filePair, testName, pass, new List<string> { comment }, percentage);
+    }
 
     /// <summary>
     /// Finish logging. Must be called before ExportJSON can be called
