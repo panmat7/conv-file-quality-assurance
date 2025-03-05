@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.IO;
 using AvaloniaDraft.FileManager;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using AvaloniaDraft.Helpers;
 
 namespace Avalonia.Logger;
 
@@ -19,12 +21,14 @@ class Logger
         public bool pass { get; set; }
         public double? percentage { get; set; }
         public List<string>? comments { get; set; }
+        public Error error { get; set; }
 
-        public TestResult(bool pass, double? percentage, List<string>? comments)
+        public TestResult(bool pass, double? percentage, List<string>? comments, Error error)
         {
             this.pass = pass;
             this.percentage = percentage;
             this.comments = comments;
+            this.error = error;
         }
     }
 
@@ -89,9 +93,10 @@ class Logger
     /// <param name="pass">If the test passed or not</param>
     /// <param name="comments">A list of comments on the result</param>
     /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
-    public void AddTestResult(FilePair filePair, string testName, bool pass, List<string>? comments = null, double? percentage = null)
+    /// <param name="err">Error</param>
+    public void AddTestResult(FilePair filePair, string testName, bool pass, List<string>? comments = null, double? percentage = null, Error? err = null)
     {
-        var testResult = new TestResult(pass, percentage, comments);
+        var testResult = new TestResult(pass, percentage, comments, err);
 
         var index = results.FindIndex(r => r.filePair == filePair);
         if (index == -1)
@@ -115,7 +120,8 @@ class Logger
     /// <param name="pass">If the test passed or not</param>
     /// <param name="comment">A comment on the result</param>
     /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
-    public void AddTestResult(FilePair filePair, string testName, bool pass, string comment, double? percentage = null)
+    /// <param name="err">Error</param>
+    public void AddTestResult(FilePair filePair, string testName, bool pass, string comment, double? percentage = null, Error? err = null)
     {
         AddTestResult(filePair, testName, pass, new List<string> { comment }, percentage);
     }
