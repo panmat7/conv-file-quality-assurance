@@ -4,7 +4,7 @@ using System.IO;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.Helpers;
 
-namespace AvaloniaDraft.FileManager;
+namespace AvaloniaDraft.FileManager.ComparisonPipelines;
 
 public static class PngPipelines
 {

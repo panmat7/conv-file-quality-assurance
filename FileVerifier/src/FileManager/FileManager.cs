@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
+using AvaloniaDraft.FileManager.ComparisonPipelines;
 using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.FileManager;
@@ -107,7 +108,9 @@ public sealed class FileManager
             try
             {
                 //Creating the file-to-file dictionary, getting first result of outputfiles containing file name 
-                var oFile = newFiles.First(f => f.Contains(_fileSystem.Path.GetFileNameWithoutExtension(iFile)));
+                var oFile = newFiles.First(f =>
+                    _fileSystem.Path.GetFileNameWithoutExtension(f) ==
+                    _fileSystem.Path.GetFileNameWithoutExtension(iFile));
                 filePairs.Add(new FilePair(iFile, "", oFile, ""));
             }
             catch
