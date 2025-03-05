@@ -1,21 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Numerics;
-using System.Runtime.InteropServices;
 using System.Text.Json;
-using Aspose.Slides;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
-using ClosedXML.Excel;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using UglyToad.PdfPig;
 using ColorType = AvaloniaDraft.Helpers.ColorType;
-using Document = Aspose.Words.Document;
 
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -26,13 +18,17 @@ public static class ComperingMethods
     /// Returns the difference size between two files 
     /// </summary>
     /// <param name="files">The two files to be compared</param>
-    /// <returns>The size difference in bytes</returns>
-    public static long GetFileSizeDifference(FilePair files)
+    /// <returns>The size difference in bytes. Null means that the size could not have been gotten.</returns>
+    public static long? GetFileSizeDifference(FilePair files)
     {
-        var originalSize = new FileInfo(files.OriginalFilePath).Length;
-        var newSize = new FileInfo(files.NewFilePath).Length;
+        try
+        {
+            var originalSize = new FileInfo(files.OriginalFilePath).Length;
+            var newSize = new FileInfo(files.NewFilePath).Length;
         
-        return long.Abs(originalSize - newSize);
+            return long.Abs(originalSize - newSize);
+        }
+        catch { return null; }
     }
     
     /// <summary>
@@ -72,69 +68,6 @@ public static class ComperingMethods
             return null;
         }
     }
-
-    /// <summary>
-    /// Returns the difference in pages between two documents. 
-    /// </summary>
-    /// <param name="files">Files to be compared</param>
-    /// <returns>Either a positive integer with the page difference, -1 meaning error while getting pages or null meaning not supported file type</returns>
-    public static int? GetPageCountDifference(FilePair files)
-    {
-        try
-        {
-            var originalPages = GetPageCount(files.OriginalFilePath, files.OriginalFileFormat);
-            var newPages = GetPageCount(files.NewFilePath, files.NewFileFormat);
-            
-            if(originalPages == null || newPages == null) return null;
-            if(originalPages == -1 || newPages == -1) return -1;
-            
-            return int.Abs((int)(originalPages - newPages));
-        }
-        catch
-        {
-            return null;
-        }
-    }
-    
-    /// <summary>
-    /// Returns the number of pages in a document
-    /// </summary>
-    /// <param name="path">Absolute path to the document</param>
-    /// <param name="format">PRONOM code of the file type</param>
-    /// <returns>Either a positive integer with page count, -1 meaning error while getting pages or null meaning not supported file type</returns>
-    public static int? GetPageCount(string path, string format)
-    {
-        try
-        {
-            //Text documents
-            if (FormatCodes.PronomCodesTextDocuments.Contains(format))
-            {
-                var doc = new Document(path);
-                return doc.PageCount;
-            }
-
-            //For presentations - return number of slides
-            if (FormatCodes.PronomCodesPresentationDocuments.Contains(format))
-            {
-                var presentation = new Presentation(path);
-                return presentation.Slides.Count;
-            }
-            
-            //For PDFs
-            if (FormatCodes.PronomCodesPDF.Contains(format) || FormatCodes.PronomCodesPDFA.Contains(format))
-            {
-                using var doc = PdfDocument.Open(path);
-                return doc.NumberOfPages;
-            }
-        }
-        catch
-        {
-            return null;
-        }
-
-        return -1;
-    }
-    
     
     /// <summary>
     /// Returns the page count using ExifTool to extract it from metadata
@@ -167,7 +100,7 @@ public static class ComperingMethods
     /// <returns>Either a positive integer with page count, -1 meaning error while getting pages or null meaning not supported file type</returns>
     public static int? GetPageCountExif(string path, string format)
     {
-        var result = ExifToolStatic.GetExifDataDictionary([path], GlobalVariables.ExifPath, false);
+        var result = GlobalVariables.ExifTool.GetExifDataDictionary([path], false);
         
         if(result == null || result.Count == 0) return null;
 
@@ -216,8 +149,8 @@ public static class ComperingMethods
     public static List<Error>? GetMissingOrWrongImageMetadataExif(FilePair files)
     {
         //Get metadata
-        var metaOriginal = ExifToolStatic.GetExifDataImageMetadata([files.OriginalFilePath], GlobalVariables.ExifPath)?[0];
-        var metaNew = ExifToolStatic.GetExifDataImageMetadata([files.NewFilePath], GlobalVariables.ExifPath)?[0];
+        var metaOriginal = GlobalVariables.ExifTool.GetExifDataImageMetadata([files.OriginalFilePath])?[0];
+        var metaNew = GlobalVariables.ExifTool.GetExifDataImageMetadata([files.NewFilePath])?[0];
 
         if (metaOriginal == null || metaNew == null) return null;
         
@@ -231,8 +164,8 @@ public static class ComperingMethods
         if (!originalStandardized.VerifyResolution())
         {
             errors.Add(new Error(
-                "ImageResolutionOriginalMissing",
-                "Error trying to get original image resolution",
+                "Image resolution missing in original file",
+                "Error trying to get original image resolution.",
                 ErrorSeverity.High,
                 ErrorType.Metadata
             ));
@@ -241,8 +174,8 @@ public static class ComperingMethods
         if(!newStandardized.VerifyResolution())
         {
             errors.Add(new Error(
-                "ImageResolutionNewMissing",
-                "Error trying to get new image resolution",
+                "Image resolution missing in new file",
+                "Error trying to get new image resolution.",
                 ErrorSeverity.High,
                 ErrorType.Metadata
             ));
@@ -251,8 +184,8 @@ public static class ComperingMethods
         if (!originalStandardized.CompareResolution(newStandardized))
         {
             errors.Add(new Error(
-                "ImageResolution",
-                "Mismatched resolution between images",
+                "Image resolution difference (metadata)",
+                "Mismatched resolution between images in metadata.",
                 ErrorSeverity.High,
                 ErrorType.Metadata
             ));
@@ -261,8 +194,8 @@ public static class ComperingMethods
         if (!originalStandardized.VerifyBitDepth())
         {
             errors.Add(new Error(
-                "BitDepthOriginalMissing",
-                "Error trying to get original image bit-depth",
+                "Bit-depth missing in original file",
+                "Error trying to get original image bit-depth.",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
             ));
@@ -271,7 +204,7 @@ public static class ComperingMethods
         if (!newStandardized.VerifyBitDepth())
         {
             errors.Add(new Error(
-                "BitDepthNewMissing",
+                "Bit-depth missing in new file",
                 "Error trying to get new image bit-depth",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -281,8 +214,8 @@ public static class ComperingMethods
         if (!originalStandardized.CompareBitDepth(newStandardized))
         {
             errors.Add(new Error(
-                "BitDepth",
-                "Mismatched resolution between images",
+                "Bit-depth mismatch",
+                "Mismatched bit-depth between images.",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
             ));
@@ -291,8 +224,8 @@ public static class ComperingMethods
         if (!originalStandardized.VerifyColorType())
         {
             errors.Add(new Error(
-                "ColorTypeOriginalMissing",
-                "Error trying to get original image color type",
+                "Color type missing in original file",
+                "Error trying to get original image color type.",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
             ));
@@ -301,7 +234,7 @@ public static class ComperingMethods
         if (!newStandardized.VerifyColorType())
         {
             errors.Add(new Error(
-                "ColorTypeNewMissing",
+                "Color type missing in new file",
                 "Error trying to get new image color type",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -314,7 +247,7 @@ public static class ComperingMethods
         if(!originalStandardized.VerifyPhysicalUnits() || !newStandardized.VerifyPhysicalUnits())
         {
             errors.Add(new Error(
-                "PhysicalUnitsMissing",
+                "Physical units missing",
                 "Error trying to get original physical units",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -323,7 +256,7 @@ public static class ComperingMethods
         else if(!originalStandardized.ComparePhysicalUnits(newStandardized))
         {
             errors.Add(new Error(
-                "PhysicalUnits",
+                "Physical units mismatch",
                 "Mismatched physical units between images",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
@@ -338,9 +271,9 @@ public static class ComperingMethods
     /// <summary>
     /// Verifies color type of two image metadata, providing additional warning in case of transparency loss
     /// </summary>
-    /// <param name="orgMeta"></param>
-    /// <param name="newMeta"></param>
-    /// <returns></returns>
+    /// <param name="orgMeta">Metadata of the original file</param>
+    /// <param name="newMeta">Metadata of the new file</param>
+    /// <returns>Null if no difference was found, otherwise an Error object.</returns>
     private static Error? VerifyColorType(StandardizedImageMetadata orgMeta, StandardizedImageMetadata newMeta)
     {
         if (orgMeta.ColorType == newMeta.ColorType) return null;
@@ -350,7 +283,7 @@ public static class ComperingMethods
             if(ContainsTransparency(orgMeta.Path) && newMeta.ColorType != ColorType.RGBA)
             {
                 return new Error(
-                    "ColorType",
+                    "Color type mismatch",
                     "Mismatched color type between images. Transparency loss",
                     ErrorSeverity.High,
                     ErrorType.Metadata
@@ -360,7 +293,7 @@ public static class ComperingMethods
         
         
         return new Error(
-            "ColorType",
+            "Color type mismatch",
             "Mismatched color type between images",
             ErrorSeverity.Medium,
             ErrorType.Metadata

@@ -104,7 +104,6 @@ public static class Siegfried
         //Assign files their format
         foreach (var file in files)
         {
-            
             file.OriginalFileFormat = originalOutput.Files.First(
                     f => f.Name == file.OriginalFilePath)
                 .Matches[0].id;
@@ -115,6 +114,4 @@ public static class Siegfried
         }
         process.WaitForExit();
     }
-    
-    
 }

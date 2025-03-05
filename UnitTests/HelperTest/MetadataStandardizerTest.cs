@@ -1,10 +1,20 @@
-using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.Helpers;
+using UnitTests.ComparingMethodsTest;
 
 namespace UnitTests.HelperTest;
 
-public class MetadataStandardizerTest
+[SetUpFixture]
+public class ExifToolSetupTeardown
+{
+    [OneTimeTearDown]
+    public void AfterTests()
+    {
+        GlobalVariables.ExifTool.Dispose();
+    }
+}
+
+[TestFixture]
+public class MetadataStandardizerTest : TestBase
 {
     private string _testFileDirectory = "";
     
@@ -33,16 +43,19 @@ public class MetadataStandardizerTest
         var pngPath = _testFileDirectory + @"Images\225x225.png";
         var jpgPath = _testFileDirectory + @"Images\600x450.jpg";
         var tifPath = _testFileDirectory + @"Images\450x600.tiff";
+        var bmpPath = _testFileDirectory + @"Images\600x450.bmp";
         var gifPath = _testFileDirectory + @"Images\gif-animated.gif";
         
-        var pngData = ExifToolStatic.GetExifDataImageMetadata([pngPath], GlobalVariables.ExifPath);
-        var jpgData = ExifToolStatic.GetExifDataImageMetadata([jpgPath], GlobalVariables.ExifPath);
-        var tifData = ExifToolStatic.GetExifDataImageMetadata([tifPath], GlobalVariables.ExifPath);
-        var gifData = ExifToolStatic.GetExifDataImageMetadata([gifPath], GlobalVariables.ExifPath);
+        var pngData = GlobalVariables.ExifTool.GetExifDataImageMetadata([pngPath]);
+        var jpgData = GlobalVariables.ExifTool.GetExifDataImageMetadata([jpgPath]);
+        var tifData = GlobalVariables.ExifTool.GetExifDataImageMetadata([tifPath]);
+        var bmpData = GlobalVariables.ExifTool.GetExifDataImageMetadata([bmpPath]);
+        var gifData = GlobalVariables.ExifTool.GetExifDataImageMetadata([gifPath]);
         
         var pngStan = MetadataStandardizer.StandardizeImageMetadata(pngData![0], "fmt/13");
         var jpgStan = MetadataStandardizer.StandardizeImageMetadata(jpgData![0], "fmt/44");
         var tifStan = MetadataStandardizer.StandardizeImageMetadata(tifData![0], "fmt/353");
+        var bmpStan = MetadataStandardizer.StandardizeImageMetadata(bmpData![0], "fmt/116");
         var gifStan = MetadataStandardizer.StandardizeImageMetadata(gifData![0], "fmt/4");
 
         if (pngStan.ImgWidth != 225 || pngStan.ImgHeight != 225 || pngStan.ColorType != ColorType.Index || pngStan.BitDepth != 8)
@@ -52,6 +65,9 @@ public class MetadataStandardizerTest
             Assert.Fail();
         
         if(tifStan.ImgWidth != 450 || tifStan.ImgHeight != 600 || tifStan.ColorType != ColorType.RGB || tifStan.BitDepth != 8)
+            Assert.Fail();
+        
+        if(bmpStan.ImgWidth != 600 || bmpStan.ImgHeight != 450 || bmpStan.ColorType != ColorType.RGB || bmpStan.BitDepth != 8)
             Assert.Fail();
         
         if(gifStan.ImgWidth != 225 || gifStan.ImgHeight != 225 || gifStan.FrameCount != 4 || gifStan.BitDepth != 7)

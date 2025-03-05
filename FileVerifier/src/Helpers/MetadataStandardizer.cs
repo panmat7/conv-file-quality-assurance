@@ -44,7 +44,7 @@ public class StandardizedImageMetadata
     public int PPUnitY { get; set; } = 0;
     public string PUnit { get; set; } = "";
 
-    public Dictionary<string, object> AdditionalValues = new();
+    public Dictionary<string, object> AdditionalValues { get; set; } = new();
 
     /// <summary>
     /// Verifies if image resolution has been set
@@ -168,7 +168,7 @@ public class StandardizedImageMetadata
                     if (missing.Count > 0)
                     {
                         addVErrors.Add(new Error(
-                            "MissingMetadataGroupMembers",
+                            "Missing metadata group members",
                             $"Missing following members in metadata group {key}: {string.Join(", ", missing)}",
                             ErrorSeverity.Medium,
                             ErrorType.Metadata
@@ -178,7 +178,7 @@ public class StandardizedImageMetadata
                     if (added.Count > 0)
                     {
                         addVErrors.Add(new Error(
-                            "AdditionalMetadataGroupMembers",
+                            "Additional metadata group members",
                             $"New members in metadata group {key}: {string.Join(", ", added)}",
                             ErrorSeverity.Low,
                             ErrorType.Metadata
@@ -188,7 +188,7 @@ public class StandardizedImageMetadata
                 else
                 {
                     addVErrors.Add(new Error(
-                        "MetadataGroupError",
+                        "Metadata group error",
                         $"Could not extract metadata in following group: {key}",
                         ErrorSeverity.Medium,
                         ErrorType.Metadata
@@ -198,7 +198,7 @@ public class StandardizedImageMetadata
             else
             {
                 addVErrors.Add(new Error(
-                    "MissingMetadataGroup",
+                    "Missing metadata group",
                     $"The following metadata group is missing in new: {key}",
                     ErrorSeverity.Medium,
                     ErrorType.Metadata
@@ -212,7 +212,7 @@ public class StandardizedImageMetadata
         foreach (var group in newGroups)
         {
             addVErrors.Add(new Error(
-                "NewMetadataGroup",
+                "New metadata group",
                 $"The following metadata group is present only in new: {group}",
                 ErrorSeverity.Low,
                 ErrorType.Metadata
