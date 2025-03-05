@@ -21,9 +21,9 @@ class Logger
         public bool pass { get; set; }
         public double? percentage { get; set; }
         public List<string>? comments { get; set; }
-        public Error error { get; set; }
+        public Error? error { get; set; }
 
-        public TestResult(bool pass, double? percentage, List<string>? comments, Error error)
+        public TestResult(bool pass, double? percentage, List<string>? comments, Error? error)
         {
             this.pass = pass;
             this.percentage = percentage;
