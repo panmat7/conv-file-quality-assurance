@@ -87,7 +87,8 @@ class Logger
     /// <param name="filePair">The filepair</param>
     /// <param name="testName">The name of the test</param>
     /// <param name="pass">If the test passed or not</param>
-    /// <param name="percentage">The percentage of which the test was successful. Leave out if not relecant</param>
+    /// <param name="comments">A list of comments on the result</param>
+    /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
     public void AddTestResult(FilePair filePair, string testName, bool pass, List<string>? comments = null, double? percentage = null)
     {
         var testResult = new TestResult(pass, percentage, comments);
@@ -112,7 +113,8 @@ class Logger
     /// <param name="filePair">The filepair</param>
     /// <param name="testName">The name of the test</param>
     /// <param name="pass">If the test passed or not</param>
-    /// <param name="percentage">The percentage of which the test was successful. Leave out if not relecant</param>
+    /// <param name="comment">A comment on the result</param>
+    /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
     public void AddTestResult(FilePair filePair, string testName, bool pass, string comment, double? percentage = null)
     {
         AddTestResult(filePair, testName, pass, new List<string> { comment }, percentage);
