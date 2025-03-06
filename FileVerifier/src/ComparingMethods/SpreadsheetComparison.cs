@@ -219,7 +219,7 @@ public static class SpreadsheetComparison
             { '|', content.Count(c => c == '|') },
         };
 
-        return delimiters.OrderByDescending(p => p.Value).FirstOrDefault().Key;
+        return delimiters.OrderByDescending(p => p.Value).FirstOrDefault(p => p.Value > 0).Key;
     }
     
     /// <summary>
