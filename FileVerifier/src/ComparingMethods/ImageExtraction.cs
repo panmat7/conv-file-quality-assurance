@@ -44,8 +44,8 @@ public static class ImageExtraction
         }
         return extractedImages;
     }
-    
-    internal static List<MagickImage> ConvertPdfImagesToMagickImages(List<IPdfImage> pdfImages)
+
+    private static List<MagickImage> ConvertPdfImagesToMagickImages(List<IPdfImage> pdfImages)
     {
         var magickImages = new List<MagickImage>();
         

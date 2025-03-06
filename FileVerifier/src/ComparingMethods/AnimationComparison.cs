@@ -2,6 +2,7 @@
 using System;
 using System.IO.Compression;
 using System.Linq;
+using System.Xml.Linq;
 using Aspose.Slides;
 using AvaloniaDraft.Helpers;
 
@@ -73,6 +74,31 @@ public static class AnimationComparison
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Checks for animations OpenDocument presentation
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static bool CheckOdpForAnimation(string filePath)
+    {
+        using var zip = ZipFile.OpenRead(filePath);
+        // Gather all slides
+        var contentEntry = zip.Entries.FirstOrDefault(e => 
+            e.Name.Equals("content.xml", StringComparison.OrdinalIgnoreCase));
+            
+        if (contentEntry == null) return false;
+        
+        using var stream = contentEntry.Open();
+        var contentXml = XDocument.Load(stream);
+        
+        // Define the animation namespace URI
+        XNamespace animNs = "urn:oasis:names:tc:opendocument:xmlns:animation:1.0";
+    
+        // Check for ANY element in the animation namespace
+        return contentXml.Descendants()
+            .Any(e => e.Name.Namespace == animNs);
     }
     
     /// <summary>

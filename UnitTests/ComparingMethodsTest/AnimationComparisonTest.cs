@@ -20,6 +20,28 @@ public class IsPowerPointFileTests
 }
 
 [TestFixture]
+public class CheckOdpFormatForAnimationTests : TestBase
+{
+    [Test]
+    public void TestSuccess()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "ODP", "odp-with-animations.odp");
+        
+        var result = AnimationComparison.CheckOdpForAnimation(filePath);
+        Assert.That(result, Is.True); // Non-PowerPoint file should pass
+    }
+    
+    [Test]
+    public void TestFail()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "ODP", "odp-with-no-images.odp");
+        
+        var result = AnimationComparison.CheckOdpForAnimation(filePath);
+        Assert.That(result, Is.False); // Both PowerPoint files should pass
+    }
+}
+
+[TestFixture]
 public class FileAnimationComparisonTests : TestBase
 {
     [Test]
