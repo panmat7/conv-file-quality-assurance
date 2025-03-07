@@ -1,4 +1,5 @@
-﻿    using System.Collections.Generic;
+﻿using AvaloniaDraft.Helpers;
+using System.Collections.Generic;
     using System.ComponentModel;
     using System.Linq;
 
@@ -13,6 +14,8 @@
 
     public sealed class SettingsViewModel : INotifyPropertyChanged
     {
+        private bool _isIgnoreUnsupportedFormatsEnabled;
+
         private bool _isSizeEnabled;
         private bool _isResolutionEnabled;
         private bool _isFontEnabled;
@@ -46,8 +49,29 @@
         {
             // Set default to the first option:
             _selectedWindowSize = AvailableWindowSizes.Skip(1).FirstOrDefault();
+
+
+            _isSizeEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
+            _isResolutionEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Resolution.Name);
+            _isFontEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Fonts.Name);
+            _isPbPEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.PointByPoint.Name);
+            _isPageCountEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Pages.Name);
+            _isColorEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.ColorSpace.Name);
+            _isAnimationEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Animations.Name);
+            _isIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.ignoreUnsupportedFileType;
         }
 
+
+        public bool IsIgnoreUnsupportedFormatsEnabled
+        {
+            get => _isIgnoreUnsupportedFormatsEnabled;
+            set
+            {
+                if (_isIgnoreUnsupportedFormatsEnabled == value) return;
+                _isIgnoreUnsupportedFormatsEnabled = value;
+                OnPropertyChanged(nameof(IsIgnoreUnsupportedFormatsEnabled));
+            }
+        }
 
         public bool IsSizeEnabled
         {

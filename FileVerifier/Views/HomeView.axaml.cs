@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using Avalonia;
 using Avalonia.Controls;
@@ -7,6 +8,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.ViewModels;
 
 namespace AvaloniaDraft.Views;
 
@@ -22,6 +24,7 @@ public partial class HomeView : UserControl
         ConsoleService.Instance.OnMessageLogged += UpdateConsole;
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
+        DataContext = new SettingsViewModel();
     }
 
     private async void InputButton_OnClick(object? sender, RoutedEventArgs e)
@@ -126,6 +129,69 @@ public partial class HomeView : UserControl
         {
             Console.Text += message + Environment.NewLine;
         });
+    }
+
+
+
+
+
+    private void SynchronizeMethods()
+    {
+        var viewModel = DataContext as SettingsViewModel;
+        if (viewModel == null) return;
+
+        viewModel.IsPointByPointEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
+        viewModel.IsAnimationEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
+        viewModel.IsPageCountEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
+        viewModel.IsColorProfileEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
+        viewModel.IsFontEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
+        viewModel.IsResolutionEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
+        viewModel.IsSizeEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
+    }
+
+
+    private void SetSize(object? sender, RoutedEventArgs e)
+    {
+        var viewModel = DataContext as SettingsViewModel;
+        if (viewModel?.IsSizeEnabled != null) GlobalVariables.Options.SetMethod(Helpers.Methods.Size.Name, viewModel.IsSizeEnabled);
+    }
+
+
+    private void SetAnimations(object? sender, RoutedEventArgs e)
+    {
+        var viewModel = DataContext as SettingsViewModel;
+        if (viewModel?.IsAnimationEnabled != null) GlobalVariables.Options.SetMethod(Helpers.Methods.Animations.Name, viewModel.IsAnimationEnabled);
+    }
+
+    private void SetFonts(object? sender, RoutedEventArgs e)
+    {
+        var viewModel = DataContext as SettingsViewModel;
+        if (viewModel?.IsFontEnabled != null) GlobalVariables.Options.SetMethod(Helpers.Methods.Fonts.Name, viewModel.IsFontEnabled);
+    }
+
+    private void SetPointByPoint(object? sender, RoutedEventArgs e)
+    {
+        var viewModel = DataContext as SettingsViewModel;
+        if (viewModel?.IsPointByPointEnabled != null) GlobalVariables.Options.SetMethod(Helpers.Methods.PointByPoint.Name, viewModel.IsPointByPointEnabled);
+    }
+
+    private void SetResolution(object? sender, RoutedEventArgs e)
+    {
+        var viewModel = DataContext as SettingsViewModel;
+        if (viewModel?.IsResolutionEnabled != null) GlobalVariables.Options.SetMethod(Helpers.Methods.Resolution.Name, viewModel.IsResolutionEnabled);
+    }
+
+    private void SetColorProfile(object? sender, RoutedEventArgs e)
+    {
+        var viewModel = DataContext as SettingsViewModel;
+        if (viewModel?.IsColorProfileEnabled != null) GlobalVariables.Options.SetMethod(Helpers.Methods.ColorSpace.Name, viewModel.IsColorProfileEnabled);
+    }
+
+
+    private void SetPageCount(object? sender, RoutedEventArgs e)
+    {
+        var viewModel = DataContext as SettingsViewModel;
+        if (viewModel?.IsPageCountEnabled != null) GlobalVariables.Options.SetMethod(Helpers.Methods.Pages.Name, viewModel.IsPageCountEnabled);
     }
 }
 

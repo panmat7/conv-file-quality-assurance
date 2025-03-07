@@ -10,19 +10,33 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.IO;
 using System.Text.Json.Serialization;
+using DocumentFormat.OpenXml.Office2010.PowerPoint;
+using Aspose.Slides.Warnings;
 
 namespace AvaloniaDraft.Options;
+
+public enum SettingsProfile
+{
+    Default,
+    Custom1,
+    Custom2,
+    Custom3
+}
 
 /// <summary>
 /// Contains options for conversion
 /// </summary>
-class Options
+public class Options
 {
+    public SettingsProfile profile { get; set; }
+
+    private string? dir;
+
     public Dictionary<string, Dictionary<string, bool>> fileFormatsEnabled { get; set; }
     public Dictionary<string, bool> methodsEnabled { get; set; }
 
     public int? specifiedThreadCount { get; set; }
-    public bool errorOnUnsupportedFileType { get; set; }
+    public bool ignoreUnsupportedFileType { get; set; }
 
 
     /// <summary>
@@ -31,8 +45,10 @@ class Options
     /// <param name="optionsJSONSrc">Json file to intialize from. Leave out to set default settings</param>
     public void Initialize(string? optionsJSONSrc = null)
     {
-        fileFormatsEnabled = new Dictionary<string, Dictionary<string, bool>>();
+        SetDirPath();
+        profile = SettingsProfile.Default;
 
+        fileFormatsEnabled = new Dictionary<string, Dictionary<string, bool>>();
         methodsEnabled = new Dictionary<string, bool>();
 
         if (optionsJSONSrc != null)
@@ -78,15 +94,23 @@ class Options
         }
     }
 
+
     /// <summary>
     /// Get if a method is enabled or not
     /// </summary>
     /// /// <param name="method">The name of the method</param>
-    public bool? GetMethod(string method)
+    public bool GetMethod(string method)
     {
-        if (!methodsEnabled.ContainsKey(method)) return null;
-        return methodsEnabled[method];
+        if (methodsEnabled.ContainsKey(method))
+        {
+            return methodsEnabled[method];
+        } 
+        else
+        {
+            return false;
+        }
     }
+
 
     /// <summary>
     /// Set a method to be enabled or not
@@ -190,19 +214,61 @@ class Options
         InitializeEnabledFormats();
 
         specifiedThreadCount = null;
-        errorOnUnsupportedFileType = false;
+        ignoreUnsupportedFileType = true;
+    }
+
+    public void SaveSettings()
+    {
+        if (dir != null) ExportJSON(GetFilePath());
+    }
+
+    public void LoadSettings()
+    {
+        if (dir != null) ImportJSON(GetFilePath());
+    }
+
+
+    private void SetDirPath()
+    {
+        var currentDir = Directory.GetCurrentDirectory();
+        
+
+        while (currentDir != null)
+        {
+            if (Path.GetFileName(currentDir) == "FileVerifier")
+            {
+                dir = Path.Join(currentDir, "settings");
+                return;
+            }
+            currentDir = Directory.GetParent(currentDir)?.FullName;
+        }
+    }
+
+    private string GetFilePath()
+    {
+        return dir + "/" + profile switch
+        {
+            SettingsProfile.Default => "default",
+            SettingsProfile.Custom1 => "custom1",
+            SettingsProfile.Custom2 => "custom2",
+            SettingsProfile.Custom3 => "custom3",
+        } + ".json";
     }
 
     /// <summary>
     /// Export the current options to a JSON file
     /// </summary>
-    /// <param name="dir">The directory where the JSON file is to be exported</param>
-    public void ExportJSON(string path)
+    /// <param name="path">The directory where the JSON file is to be exported</param>
+    private void ExportJSON(string path)
     {
         try
         {
-            string jsonString = JsonSerializer.Serialize(this);
+            var jsonString = JsonSerializer.Serialize(this);
+            Trace.WriteLine(jsonString);
             File.WriteAllText(path, jsonString);
+
+            string checkJson = File.ReadAllText(path);
+            Trace.WriteLine("Written JSON: " + checkJson);
         }
         catch (Exception ex)
         {
@@ -215,29 +281,37 @@ class Options
     /// Import option values from a JSON file
     /// </summary>
     /// <param name="src">The JSON file to import</param>
-    public void ImportJSON(string src)
+    private void ImportJSON(string src)
     {
         try
         {
-            var seralizerOptions = new JsonSerializerOptions { 
-                PropertyNameCaseInsensitive = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            var jsonString = File.ReadAllText(src);
-
-            var o = JsonSerializer.Deserialize<Options>(jsonString, seralizerOptions);
-            if (o is Options opt)
+            if (File.Exists(src))
             {
-                this.fileFormatsEnabled = opt.fileFormatsEnabled;
-                this.methodsEnabled = opt.methodsEnabled;
-                this.specifiedThreadCount = opt.specifiedThreadCount;
-                this.errorOnUnsupportedFileType = opt.errorOnUnsupportedFileType;
+                var seralizerOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                };
+
+                var jsonString = File.ReadAllText(src);
+
+                var o = JsonSerializer.Deserialize<Options>(jsonString, seralizerOptions);
+                if (o is Options opt)
+                {
+                    this.fileFormatsEnabled = opt.fileFormatsEnabled;
+                    this.methodsEnabled = opt.methodsEnabled;
+                    this.specifiedThreadCount = opt.specifiedThreadCount;
+                    this.ignoreUnsupportedFileType = opt.ignoreUnsupportedFileType;
+                }
+            } 
+            else
+            {
+                SetDefaultSettings();
             }
         }
         catch (Exception ex)
         {
-            throw new Exception("Failed to load settings", ex);
+            //throw new Exception("Failed to load settings", ex);
         }
     }
 }

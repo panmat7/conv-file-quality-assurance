@@ -17,21 +17,22 @@
         
         <!-- Top Button Row -->
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
-            <Button VerticalAlignment="Center" FontSize="18" Margin="5"
+            <Button Click="ResetSettings" VerticalAlignment="Center" FontSize="18" Margin="5"
                     Background="#139A43" Foreground="White"
                     BorderBrush="#0DAB76" BorderThickness="2">
                 Reset Settings
             </Button>
             <Button VerticalAlignment="Center" FontSize="18" Margin="5"
                     Background="#139A43" Foreground="White"
-                    BorderBrush="#0DAB76" BorderThickness="2">
+                    BorderBrush="#0DAB76" BorderThickness="2"
+					Click="SaveSettings">
                 Save Settings
             </Button>
-            <ComboBox SelectedIndex="0" VerticalAlignment="Center" FontSize="18">
+            <ComboBox x:Name="SettingsProfile" SelectionChanged="SetProfile" SelectedIndex="0" VerticalAlignment="Center" FontSize="18">
                 <ComboBoxItem>Default</ComboBoxItem>
                 <ComboBoxItem>Custom Settings 1</ComboBoxItem>
-                <ComboBoxItem>Custom Settings 2</ComboBoxItem>
-                <ComboBoxItem>Custom Settings 3</ComboBoxItem>
+				<ComboBoxItem>Custom Settings 2</ComboBoxItem>
+				<ComboBoxItem>Custom Settings 3</ComboBoxItem>
             </ComboBox>
         </StackPanel>
 
@@ -53,7 +54,7 @@
                 <Expander Grid.Column="2" Grid.Row="0" HorizontalAlignment="Stretch">
                     <Expander.Header>General</Expander.Header>
                     <StackPanel>
-                        <CheckBox>Ignore Unsupported File Formats</CheckBox>
+                        <CheckBox Click="SetIgnoreUnsupportedFormats" IsChecked="{Binding IsIgnoreUnsupportedFormatsEnabled}">Ignore Unsupported File Formats</CheckBox>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
                             <TextBox Text="{Binding Value, ElementName=Slider, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
@@ -77,72 +78,72 @@
                 </Expander>
 
                 <!-- Size Comparison -->
-                <CheckBox Grid.Column="1" Grid.Row="1" VerticalAlignment="Top"
+                <CheckBox Click="SetSize" Grid.Column="1" Grid.Row="1" VerticalAlignment="Top"
                           IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" Margin="5"/>
                 <Expander Grid.Column="2" Grid.Row="1" HorizontalAlignment="Stretch">
                     <Expander.Header>Size Comparison</Expander.Header>
                     <StackPanel>
-                        <CheckBox IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}">Enable Size Comparison</CheckBox>
+                        <CheckBox Click="SetSize" IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}">Enable Size Comparison</CheckBox>
                     </StackPanel>
                 </Expander>
 
                 <!-- Resolution Comparison -->
-                <CheckBox Grid.Column="1" Grid.Row="2" VerticalAlignment="Top"
+                <CheckBox Click="SetResolution" Grid.Column="1" Grid.Row="2" VerticalAlignment="Top"
                           IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" Margin="5"/>
                 <Expander Grid.Column="2" Grid.Row="2" HorizontalAlignment="Stretch">
                     <Expander.Header>Image Resolution Comparison</Expander.Header>
                     <StackPanel>
-                        <CheckBox IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}">Enable Image Resolution Comparison</CheckBox>
+                        <CheckBox Click="SetResolution" IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}">Enable Image Resolution Comparison</CheckBox>
                     </StackPanel>
                 </Expander>
 
                 <!-- Color Profile Comparison -->
-                <CheckBox Grid.Column="1" Grid.Row="3" VerticalAlignment="Top"
+                <CheckBox Click="SetColorProfile" Grid.Column="1" Grid.Row="3" VerticalAlignment="Top"
                           IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" Margin="5"/>
                 <Expander Grid.Column="2" Grid.Row="3" HorizontalAlignment="Stretch">
                     <Expander.Header>Color Profile Comparison</Expander.Header>
                     <StackPanel>
-                        <CheckBox IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}">Enable Color Profile Comparison</CheckBox>
+                        <CheckBox Click="SetColorProfile" IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}">Enable Color Profile Comparison</CheckBox>
                     </StackPanel>
                 </Expander>
 
                 <!-- Font Comparison -->
-                <CheckBox Grid.Column="1" Grid.Row="4" VerticalAlignment="Top"
+                <CheckBox Click="SetFonts" Grid.Column="1" Grid.Row="4" VerticalAlignment="Top"
                           IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" Margin="5"/>
                 <Expander Grid.Column="2" Grid.Row="4" HorizontalAlignment="Stretch">
                     <Expander.Header>Font Comparison</Expander.Header>
                     <StackPanel>
-                        <CheckBox IsChecked="{Binding IsFontEnabled, Mode=TwoWay}">Enable Font Comparison</CheckBox>
+                        <CheckBox Click="SetFonts" IsChecked="{Binding IsFontEnabled, Mode=TwoWay}">Enable Font Comparison</CheckBox>
                     </StackPanel>
                 </Expander>
 
                 <!-- Point By Point Comparison -->
-                <CheckBox Grid.Column="1" Grid.Row="5" VerticalAlignment="Top"
+                <CheckBox Click="SetPointByPoint" Grid.Column="1" Grid.Row="5" VerticalAlignment="Top"
                           IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Margin="5"/>
                 <Expander Grid.Column="2" Grid.Row="5" HorizontalAlignment="Stretch">
                     <Expander.Header>Point By Point Comparison</Expander.Header>
                     <StackPanel>
-                        <CheckBox IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}">Enable Point By Point Comparison</CheckBox>
+                        <CheckBox Click="SetPointByPoint" IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}">Enable Point By Point Comparison</CheckBox>
                     </StackPanel>
                 </Expander>
 
                 <!-- Page Count Comparison -->
-                <CheckBox Grid.Column="1" Grid.Row="6" VerticalAlignment="Top"
+                <CheckBox Click="SetPageCount" Grid.Column="1" Grid.Row="6" VerticalAlignment="Top"
                           IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Margin="5"/>
                 <Expander Grid.Column="2" Grid.Row="6" HorizontalAlignment="Stretch">
                     <Expander.Header>Page Count Comparison</Expander.Header>
                     <StackPanel>
-                        <CheckBox IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}">Enable Page Count Comparison</CheckBox>
+                        <CheckBox Click="SetPageCount" IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}">Enable Page Count Comparison</CheckBox>
                     </StackPanel>
                 </Expander>
 
                 <!-- Animation Comparison -->
-                <CheckBox Grid.Column="1" Grid.Row="7" VerticalAlignment="Top"
+                <CheckBox Click="SetAnimations" Grid.Column="1" Grid.Row="7" VerticalAlignment="Top"
                           IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Margin="5"/>
                 <Expander Grid.Column="2" Grid.Row="7" HorizontalAlignment="Stretch">
                     <Expander.Header>Animation Comparison</Expander.Header>
                     <StackPanel>
-                        <CheckBox IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}">Enable Animation Comparison</CheckBox>
+                        <CheckBox Click="SetAnimations" IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}">Enable Animation Comparison</CheckBox>
                     </StackPanel>
                 </Expander>
             </Grid>
