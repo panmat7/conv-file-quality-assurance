@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
-using AvaloniaDraft.FileManager.ComparisonPipelines;
+using AvaloniaDraft.ComparingMethods.ComparisonPipelines;
 using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.FileManager;
@@ -63,7 +63,8 @@ public class FilePair
 }
 
 /// <summary>
-/// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process
+/// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process and
+/// starting the process itself.
 /// </summary>
 public sealed class FileManager
 {
