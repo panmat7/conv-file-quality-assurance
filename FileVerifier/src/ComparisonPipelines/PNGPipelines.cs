@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using AvaloniaDraft.ComparisonPipelines;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 
@@ -39,7 +40,7 @@ public static class PngPipelines
     /// <param name="markDone">Function marking the FilePair as done</param>
     private static void PNGToJPEGPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount, Action markDone)
     {
-        try
+        BasePipeline.ExecutePipeline(() =>
         {
             List<Error> e = [];
             
@@ -133,28 +134,13 @@ public static class PngPipelines
             ConsoleService.Instance.WriteToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
-        }
-        catch
-        {
-            var e = new Error(
-                "Error during file comparison.",
-                "There occured an internal error while trying to compare images.",
-                ErrorSeverity.Internal
-            );
-            
-            ConsoleService.Instance.WriteToConsole(e.FormatErrorMessage());
-        }
-        finally
-        {
-            updateThreadCount(-(1 + additionalThreads)); //Ensuring that this happens even if something fails
-            markDone();
-        }
+        }, additionalThreads, updateThreadCount, markDone);
     }
 
     private static void PNGToTIFFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
-        try
+        BasePipeline.ExecutePipeline(() =>
         {
             List<Error> e = [];
             
@@ -163,8 +149,6 @@ public static class PngPipelines
                 var res = ComperingMethods.GetFileSizeDifference(pair);
                 
                 var f = new FileInfo(pair.OriginalFilePath);
-                
-                Console.WriteLine($"TIFF: {f.Length} bytes, Difference: " + (res == null ? "NULL" : $"{res}"));
                 
                 if (res > f.Length * 0.5) //Adjust for accuracy later
                 {
@@ -250,28 +234,13 @@ public static class PngPipelines
             ConsoleService.Instance.WriteToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
-        }
-        catch
-        {
-            var e = new Error(
-                "Error during file comparison.",
-                "There occured an internal error while trying to compare images.",
-                ErrorSeverity.Internal
-            );
-            
-            ConsoleService.Instance.WriteToConsole(e.FormatErrorMessage());
-        }
-        finally
-        {
-            updateThreadCount(-(1 + additionalThreads)); //Ensuring that this happens even if something fails
-            markDone();
-        }
+        }, additionalThreads, updateThreadCount, markDone);
     }
 
     private static void PNGToBMPPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
-        try
+        BasePipeline.ExecutePipeline(() =>
         {
             List<Error> e = [];
             
@@ -365,22 +334,7 @@ public static class PngPipelines
             ConsoleService.Instance.WriteToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
-        }
-        catch
-        {
-            var e = new Error(
-                "Error during file comparison.",
-                "There occured an internal error while trying to compare images.",
-                ErrorSeverity.Internal
-            );
-            
-            ConsoleService.Instance.WriteToConsole(e.FormatErrorMessage());
-        }
-        finally
-        {
-            updateThreadCount(-(1 + additionalThreads)); //Ensuring that this happens even if something fails
-            markDone();
-        }
+        }, additionalThreads, updateThreadCount, markDone);
     }
 
     private static void PNGToPDFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
