@@ -5,6 +5,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using AvaloniaDraft.ComparingMethods.ComparisonPipelines;
+using AvaloniaDraft.ComparisonPipelines;
 using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.FileManager;
@@ -190,13 +191,8 @@ public sealed class FileManager
     /// <returns>False if no pipeline was found (meaning unsupported verification)</returns>
     private bool SelectAndStartPipeline(FilePair pair, int assigned)
     {
-        Action<FilePair, int, Action<int>, Action>? pipeline = null;
-        
-        //Get the correct pipeline
-        if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
-        {
-            pipeline = PngPipelines.GetPNGPipelines(pair.NewFileFormat);
-        }
+        //Get the correct pipeline based on pair formats
+        var pipeline = BasePipeline.SelectPipeline(pair);
         
         if (pipeline == null) return false; //None found
         

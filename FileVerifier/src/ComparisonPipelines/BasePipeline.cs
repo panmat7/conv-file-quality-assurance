@@ -1,4 +1,6 @@
 using System;
+using AvaloniaDraft.ComparingMethods.ComparisonPipelines;
+using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparisonPipelines;
@@ -35,5 +37,21 @@ public static class BasePipeline
             updateThreadCount(-(1 + additionalThreads));
             markDone();
         }
+    }
+
+    /// <summary>
+    /// <c>SelectPipeline</c> selects the pipeline to be used for file comparison. 
+    /// </summary>
+    /// <param name="pair">The two files to be compared, based on them a function will be chosen.</param>
+    /// <returns>The selected pipeline function, or null if none fitting the formats were found.</returns>
+    public static Action<FilePair, int, Action<int>, Action>? SelectPipeline(FilePair pair)
+    {
+        if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
+            return PngPipelines.GetPNGPipelines(pair.NewFileFormat);
+        
+        if(FormatCodes.PronomCodesDOCX.Contains(pair.OriginalFileFormat))
+            return DOCXPipelines.GetDocxPipeline(pair.NewFileFormat);
+        
+        return null;
     }
 }

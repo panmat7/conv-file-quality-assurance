@@ -13,7 +13,7 @@ public static class PngPipelines
     /// Function responsible for assigning the correct pipeline for PNG files
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
-    /// <returns>Function with the correct pipeline, null if none for were</returns>
+    /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
     public static Action<FilePair, int, Action<int>, Action>? GetPNGPipelines(string outputFormat)
     {
         if (FormatCodes.PronomCodesJPEG.Contains(outputFormat))
@@ -23,7 +23,7 @@ public static class PngPipelines
             return PNGToTIFFPipeline;
         
         if(FormatCodes.PronomCodesBMP.Contains(outputFormat))
-            return PNGToBMPPipeline;
+            return PNGToBMPipeline;
         
         if(FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
             return PNGToPDFPipeline;
@@ -34,7 +34,7 @@ public static class PngPipelines
     /// <summary>
     /// Pipeline responsible for comparing PNG to JPEG conversions
     /// </summary>
-    /// <param name="pair">The pair os files to compare</param>
+    /// <param name="pair">The pair of files to compare</param>
     /// <param name="additionalThreads">Number of threads available for usage</param>
     /// <param name="updateThreadCount">Callback function used to update current thread count</param>
     /// <param name="markDone">Function marking the FilePair as done</param>
@@ -137,6 +137,13 @@ public static class PngPipelines
         }, additionalThreads, updateThreadCount, markDone);
     }
 
+    /// <summary>
+    /// Pipeline responsible for comparing PNG to TIFF conversions
+    /// </summary>
+    /// <param name="pair">The pair of files to compare</param>
+    /// <param name="additionalThreads">Number of threads available for usage</param>
+    /// <param name="updateThreadCount">Callback function used to update current thread count</param>
+    /// <param name="markDone">Function marking the FilePair as done</param>
     private static void PNGToTIFFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
@@ -237,7 +244,14 @@ public static class PngPipelines
         }, additionalThreads, updateThreadCount, markDone);
     }
 
-    private static void PNGToBMPPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+    /// <summary>
+    /// Pipeline responsible for comparing PNG to BMP conversions
+    /// </summary>
+    /// <param name="pair">The pair of files to compare</param>
+    /// <param name="additionalThreads">Number of threads available for usage</param>
+    /// <param name="updateThreadCount">Callback function used to update current thread count</param>
+    /// <param name="markDone">Function marking the FilePair as done</param>
+    private static void PNGToBMPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
         BasePipeline.ExecutePipeline(() =>
