@@ -1,5 +1,4 @@
 using System;
-using AvaloniaDraft.ComparingMethods.ComparisonPipelines;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 

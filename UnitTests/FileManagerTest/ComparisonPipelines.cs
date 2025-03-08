@@ -1,4 +1,4 @@
-using AvaloniaDraft.ComparingMethods.ComparisonPipelines;
+using AvaloniaDraft.ComparisonPipelines;
 using AvaloniaDraft.FileManager;
 using UnitTests.ComparingMethodsTest;
 

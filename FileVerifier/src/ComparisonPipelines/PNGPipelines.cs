@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using AvaloniaDraft.ComparisonPipelines;
+using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 
-namespace AvaloniaDraft.ComparingMethods.ComparisonPipelines;
+namespace AvaloniaDraft.ComparisonPipelines;
 
 public static class PngPipelines
 {

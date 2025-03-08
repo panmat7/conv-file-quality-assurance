@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
-using AvaloniaDraft.ComparingMethods.ComparisonPipelines;
 using AvaloniaDraft.ComparisonPipelines;
 using AvaloniaDraft.Helpers;
 
