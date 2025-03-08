@@ -42,8 +42,7 @@ public class Options
     /// <summary>
     /// Initialize the options. This must be called before any other function
     /// </summary>
-    /// <param name="optionsJSONSrc">Json file to intialize from. Leave out to set default settings</param>
-    public void Initialize(string? optionsJSONSrc = null)
+    public void Initialize()
     {
         SetDirPath();
         profile = SettingsProfile.Default;
@@ -51,14 +50,7 @@ public class Options
         fileFormatsEnabled = new Dictionary<string, Dictionary<string, bool>>();
         methodsEnabled = new Dictionary<string, bool>();
 
-        if (optionsJSONSrc != null)
-        {
-            ImportJSON(optionsJSONSrc);
-        }
-        else
-        {
-            SetDefaultSettings();
-        }
+        LoadSettings();
     }
 
     /// <summary>
@@ -217,17 +209,28 @@ public class Options
         ignoreUnsupportedFileType = true;
     }
 
+
+    /// <summary>
+    /// Save settings to the selected settings profile (Options.profile)
+    /// </summary>
     public void SaveSettings()
     {
         if (dir != null) ExportJSON(GetFilePath());
     }
 
+
+    /// <summary>
+    /// Load settings from the selected settings profile (Options.profile)
+    /// </summary>
     public void LoadSettings()
     {
         if (dir != null) ImportJSON(GetFilePath());
     }
 
 
+    /// <summary>
+    /// Set the directory of the settings files
+    /// </summary>
     private void SetDirPath()
     {
         var currentDir = Directory.GetCurrentDirectory();
@@ -244,6 +247,10 @@ public class Options
         }
     }
 
+    /// <summary>
+    /// Get the path to the current settings profile file
+    /// </summary>
+    /// <returns></returns>
     private string GetFilePath()
     {
         return dir + "/" + profile switch
@@ -311,7 +318,7 @@ public class Options
         }
         catch (Exception ex)
         {
-            //throw new Exception("Failed to load settings", ex);
+            throw new Exception("Failed to load settings", ex);
         }
     }
 }

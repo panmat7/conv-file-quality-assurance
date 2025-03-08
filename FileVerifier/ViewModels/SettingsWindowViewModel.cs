@@ -51,13 +51,14 @@ using System.Collections.Generic;
             _selectedWindowSize = AvailableWindowSizes.Skip(1).FirstOrDefault();
 
 
-            _isSizeEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
-            _isResolutionEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Resolution.Name);
-            _isFontEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Fonts.Name);
-            _isPbPEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.PointByPoint.Name);
-            _isPageCountEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Pages.Name);
-            _isColorEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.ColorSpace.Name);
-            _isAnimationEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Animations.Name);
+            _isSizeEnabled = GlobalVariables.Options.GetMethod(Methods.Size.Name);
+            _isResolutionEnabled = GlobalVariables.Options.GetMethod(Methods.Resolution.Name);
+            _isFontEnabled = GlobalVariables.Options.GetMethod(Methods.Fonts.Name);
+            _isPbPEnabled = GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name);
+            _isPageCountEnabled = GlobalVariables.Options.GetMethod(Methods.Pages.Name);
+            _isColorEnabled = GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name);
+            _isAnimationEnabled = GlobalVariables.Options.GetMethod(Methods.Animations.Name);
+
             _isIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.ignoreUnsupportedFileType;
         }
 
@@ -69,6 +70,7 @@ using System.Collections.Generic;
             {
                 if (_isIgnoreUnsupportedFormatsEnabled == value) return;
                 _isIgnoreUnsupportedFormatsEnabled = value;
+                GlobalVariables.Options.ignoreUnsupportedFileType = value;
                 OnPropertyChanged(nameof(IsIgnoreUnsupportedFormatsEnabled));
             }
         }
@@ -80,6 +82,7 @@ using System.Collections.Generic;
             {
                 if (_isSizeEnabled == value) return;
                 _isSizeEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Size.Name);
                 OnPropertyChanged(nameof(IsSizeEnabled));
             }
         }
@@ -91,6 +94,7 @@ using System.Collections.Generic;
             {
                 if (_isResolutionEnabled == value) return;
                 _isResolutionEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Resolution.Name);
                 OnPropertyChanged(nameof(IsResolutionEnabled));
             }
         }
@@ -102,6 +106,7 @@ using System.Collections.Generic;
             {
                 if (_isFontEnabled == value) return;
                 _isFontEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Fonts.Name);
                 OnPropertyChanged(nameof(IsFontEnabled));
             }
         }
@@ -113,6 +118,7 @@ using System.Collections.Generic;
             {
                 if (_isPbPEnabled == value) return;
                 _isPbPEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.PointByPoint.Name);
                 OnPropertyChanged(nameof(IsPointByPointEnabled));
             }
         }
@@ -124,6 +130,7 @@ using System.Collections.Generic;
             {
                 if (_isPageCountEnabled == value) return;
                 _isPageCountEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Pages.Name);
                 OnPropertyChanged(nameof(IsPageCountEnabled));
             }
         }
@@ -135,6 +142,7 @@ using System.Collections.Generic;
             {
                 if (_isColorEnabled == value) return;
                 _isColorEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.ColorSpace.Name);
                 OnPropertyChanged(nameof(IsColorProfileEnabled));
             }
         }
@@ -146,6 +154,7 @@ using System.Collections.Generic;
             {
                 if (_isAnimationEnabled == value) return;
                 _isAnimationEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Animations.Name);
                 OnPropertyChanged(nameof(IsAnimationEnabled));
             }
         }

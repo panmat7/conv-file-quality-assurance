@@ -66,43 +66,43 @@
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures no differences in size across files" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Size Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Click="SetSize" Grid.Row="4" Grid.Column="1" IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" Margin="5"/>
         
         <StackPanel Grid.Column="0" Grid.Row="5" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures no differences in resolution across files" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Resolution Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Click="SetResolution" Grid.Row="5" Grid.Column="1" IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" Margin="5"/>
         
         <StackPanel Grid.Column="0" Grid.Row="6" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures color profiles stay consistent across files" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Color Profile Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Click="SetColorProfile" Grid.Row="6" Grid.Column="1" IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" Margin="5"/>
         
         <StackPanel Grid.Column="0" Grid.Row="7" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures no differences in font across files" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Font Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Click="SetFonts" Grid.Row="7" Grid.Column="1" IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="7" Grid.Column="1" IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" Margin="5"/>
         
         <StackPanel Grid.Column="0" Grid.Row="8" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures that visually both files look the same" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Point by Point Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Click="SetPointByPoint" Grid.Row="8" Grid.Column="1" IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="8" Grid.Column="1" IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Margin="5"/>
         
         <StackPanel Grid.Column="0" Grid.Row="9" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures both files have same page count" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Page Count Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Click="SetPageCount" Grid.Row="9" Grid.Column="1" IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Margin="5"/>
         
         <StackPanel Grid.Column="0" Grid.Row="10" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method flags PowerPoint files that use animations which will result in lost context when converted" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Animation Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Click="SetAnimations" Grid.Row="10" Grid.Column="1" IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Margin="5"/>
 
         <!-- Console -->
         <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="5" Margin="7" 
