@@ -58,29 +58,21 @@ public class Options
     /// </summary>
     public void InitializeEnabledFormats()
     {
-        var extensions = FileExtensions.list;
-
         // Get every field of FormatCodes, which are lists of pronom ids for every file type
         var fcFields = typeof(FormatCodes).GetFields();
-        foreach (var f in fcFields)
+        foreach (var fld in fcFields)
         {
-            var l = f.GetValue(null);
-            if (l is ImmutableList<string> list)
+            var ff = fld.GetValue(null);
+            if (ff is FileFormat fileFormat)
             {
-                var name = f.Name;
+                if (fileFormat.FormatCodes.Count != 1) continue;
 
-                var prefix = "PronomCodes";
-                if (name.StartsWith(prefix))
+                var type = fileFormat.FormatCodes[0].ToLower();
+
+                if (!fileFormatsEnabled.ContainsKey(type)) fileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                foreach (var fmt in fileFormat.PronomCodes)
                 {
-                    var ext = name.Substring(prefix.Length).ToLower();
-                    if (extensions.Contains(ext))
-                    {
-                        fileFormatsEnabled.Add(ext, new Dictionary<string, bool>());
-                        foreach (var fmt in list)
-                        {
-                            fileFormatsEnabled[ext][fmt] = true;
-                        }
-                    }
+                    fileFormatsEnabled[type][fmt] = true;
                 }
             }
         }
@@ -292,6 +284,8 @@ public class Options
     {
         try
         {
+            fileFormatsEnabled.Clear();
+
             if (File.Exists(src))
             {
                 var seralizerOptions = new JsonSerializerOptions
