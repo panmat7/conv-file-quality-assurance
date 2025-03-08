@@ -244,11 +244,11 @@ public static class ComperingMethods
         if(VerifyColorType(originalStandardized, newStandardized) is { } error)
             errors.Add(error);
 
-        if(!originalStandardized.VerifyPhysicalUnits() || !newStandardized.VerifyPhysicalUnits())
+        if(!originalStandardized.VerifyPhysicalUnits() ^ !newStandardized.VerifyPhysicalUnits()) //XOR
         {
             errors.Add(new Error(
                 "Physical units missing",
-                "Error trying to get original physical units",
+                "Only one file contains physical units.",
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
             ));
