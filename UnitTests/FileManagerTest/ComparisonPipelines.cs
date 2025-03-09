@@ -16,6 +16,6 @@ public class ComparisonPipelines : TestBase
         if(pjPipeline is null) Assert.Fail();
         if(nonePipeline is not null) Assert.Fail();
         
-        Assert.That(pjPipeline.Method.Name, Is.EqualTo("PNGToJPEGPipeline"));
+        Assert.That(pjPipeline?.Method.Name, Is.EqualTo("PNGToJPEGPipeline"));
     }
 }

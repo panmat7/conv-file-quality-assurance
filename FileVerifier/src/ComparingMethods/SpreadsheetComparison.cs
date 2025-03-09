@@ -19,16 +19,15 @@ public static class SpreadsheetComparison
     /// <returns>True/False is a break is probable</returns>
     public static bool PossibleSpreadsheetBreakExcel(string path)
     {
-        //NOTE: Considers columns width edited with even if they are empty
+        //NOTE: Considers columns with edited width even if they are empty
         
         const double breakLength = 15.5; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
         const double ppi = 96.0; //Default for excel, documents do not store
-        var widthSum = 0.0;
 
         using var wb = new XLWorkbook(path);
         foreach (var worksheet in wb.Worksheets)
         {
-            widthSum = 0.0;
+            var widthSum = 0.0;
             
             if (worksheet.Pictures.Count > 0) return true; //For now automatically flag if contains image
             
@@ -61,7 +60,7 @@ public static class SpreadsheetComparison
     /// <returns>True/False is a break is probable. Null if an error occurred reading the file.</returns>
     public static bool? PossibleSpreadsheetBreakOpenDoc(string path)
     {
-        const double breakLength = 15.5; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
+        const double breakPoint = 15.5; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
         
         using var arch = ZipFile.OpenRead(path);
         var content = arch.GetEntry("content.xml");
@@ -74,9 +73,9 @@ public static class SpreadsheetComparison
 
         try
         {
-            if (GetOdsImageCount(doc) > 0) return true;
+            if (CheckObjectBreaksOds(doc, breakPoint)) return true; //If any object causes a break
 
-            return GetOdsTableWidths(doc).Any(n => n > breakLength);
+            return GetOdsTableWidths(doc).Any(n => n > breakPoint);
         }
         catch
         {
@@ -85,26 +84,42 @@ public static class SpreadsheetComparison
     }
     
     /// <summary>
-    /// Returns the number of images embedded in an ods document
+    /// Checks whether any object (image, shape, etc.) is wide enough, and position in a place where it could cause a break.
     /// </summary>
-    /// <param name="doc">Document to be analyzed</param>
-    /// <returns>Number of images</returns>
-    private static int GetOdsImageCount(XDocument doc)
+    /// <param name="doc">The document to be checked.</param>
+    /// <param name="breakPoint">The width at which to flagg a potential break.</param>
+    /// <returns>True/False whether a break can occur.</returns>
+    private static bool CheckObjectBreaksOds(XDocument doc, double breakPoint)
     {
         //Checking if an image is embedded
         var drawNs = doc.Root.GetNamespaceOfPrefix("draw") ?? //Draw namespace
                      XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:drawing:1.0");
-        var xlinkNs = XNamespace.Get("http://www.w3.org/1999/xlink"); //Get xlink namespace
+        var svgNs = XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0");
     
         //Getting images
-        var images = doc.Descendants(drawNs + "image") //All images
-            .Select(img => img.Attribute(xlinkNs + "href")?.Value) //Which contain href attribute
-            .Where(href => href != null && href.StartsWith("Pictures/")) //referencing a picture
+        var frameCoords = doc.Descendants(drawNs + "frame") //All frames
+            .Select(f => new
+            {
+                X = f.Attribute(svgNs + "x")?.Value ?? "0cm",
+                Width = f.Attribute(svgNs + "width")?.Value ?? "0cm"
+            })
             .ToList();
         
-        return images.Count;
-    }
+        foreach(var frame in frameCoords)
+        {
+            var x = frame.X.Replace("cm", "").Trim(); //Trimming the cm ending
+            var width = frame.Width.Replace("cm", "").Trim();
+            if (double.TryParse(x, NumberStyles.Any, CultureInfo.InvariantCulture, out var xNum) //Converting to nums
+                && double.TryParse(width, NumberStyles.Any, CultureInfo.InvariantCulture, out var widthNum)
+                && xNum + widthNum > breakPoint) //Checking if the image poses a table break threat
+            {
+                return true;
+            }
+        }
 
+        return false;
+    }
+    
     /// <summary>
     /// Returns a list containing widths of all tables inside an ods document in cm
     /// </summary>
