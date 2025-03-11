@@ -13,6 +13,11 @@ namespace AvaloniaDraft.ComparingMethods;
 
 public static class ImageExtraction
 {
+    /// <summary>
+    /// Extracts all non duplicate images from a pdf in MagickImage format
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
     internal static List<MagickImage> ExtractImagesFromPdf(string filePath)
     {
         var pdfImages = GetNonDuplicatePdfImages(filePath);
@@ -45,6 +50,11 @@ public static class ImageExtraction
         return extractedImages;
     }
 
+    /// <summary>
+    /// Converts the images from a pdf to MagickImage which is used for color profile comparison
+    /// </summary>
+    /// <param name="pdfImages"></param>
+    /// <returns></returns>
     private static List<MagickImage> ConvertPdfImagesToMagickImages(List<IPdfImage> pdfImages)
     {
         var magickImages = new List<MagickImage>();
