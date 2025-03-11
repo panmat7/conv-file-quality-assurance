@@ -1,5 +1,6 @@
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.ComparingMethods;
+using AvaloniaDraft.Helpers;
 using SixLabors.ImageSharp.Formats.Png;
 
 namespace UnitTests.ComparingMethodsTest;
@@ -51,7 +52,7 @@ public class ComperingMethodsTest
         );
         
         var diff = ComperingMethods.GetFileSizeDifference(files);
-        Assert.AreEqual(33292, diff);
+        Assert.That(diff, Is.EqualTo(33292));
     }
     
     [Test]
@@ -65,6 +66,19 @@ public class ComperingMethodsTest
         
         var diff = ComperingMethods.GetFileSizeDifference(files);
         Assert.That(diff, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void GetFileSizeDifferenceTest_Invalid()
+    {
+        var files = new FilePair
+        (
+            "Not",
+            "Real"
+        );
+        
+        var diff = ComperingMethods.GetFileSizeDifference(files);
+        Assert.That(diff, Is.Null);
     }
 
     [Test]
@@ -107,6 +121,19 @@ public class ComperingMethodsTest
     }
 
     [Test]
+    public void GetImageResolutionDifferenceTest_Invalid()
+    {
+        var files = new FilePair
+        (
+            "Not",
+            "Real"
+        );
+        
+        var diff = ComperingMethods.GetImageResolutionDifference(files);
+        Assert.That(diff, Is.Null);
+    }
+
+    [Test]
     public void GetImageResolutionTest_225PNG()
     {
         var diff = ComperingMethods.GetImageResolution(_testFileDirectory + @"Images\225x225.png");
@@ -131,63 +158,11 @@ public class ComperingMethodsTest
     }
 
     [Test]
-    public void GetPageCountDifferenceTest_3DOCX_3ODT()
+    public void GetImageResolution_Invalid()
     {
-        var files = new FilePair
-        (
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.docx",
-            "fmt/412",
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/1756"
-        );
+        var diff = ComperingMethods.GetImageResolution("Not real");
         
-        var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.That(diff, Is.EqualTo(0));
-    }
-    
-    [Test]
-    public void GetPageCountDifferenceTest_8DOCX_3ODT()
-    {
-        var files = new FilePair
-        (
-            _testFileDirectory + @"TestDocuments\Image8Pages.docx",
-            "fmt/412",
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/1756"
-        );
-        
-        var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.That(diff, Is.EqualTo(5));
-    }
-    
-    [Test]
-    public void GetPageCountDifferenceTest_8PDF_3DOCX()
-    {
-        var files = new FilePair
-        (
-            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
-            "fmt/276",
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/1756"
-        );
-        
-        var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.That(diff, Is.EqualTo(5));
-    }
-
-    [Test]
-    public void GetPageCountDifferenceTest_2PPT_2PDF()
-    {
-        var files = new FilePair
-        (
-            _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
-            "fmt/126",
-            _testFileDirectory + @"PowerPoint\presentation_without_animations.pdf",
-            "fmt/19"
-        );
-        
-        var diff = ComperingMethods.GetPageCountDifference(files);
-        Assert.That(diff, Is.EqualTo(0));
+        Assert.That(diff, Is.Null);
     }
     
     [Test]
@@ -242,7 +217,7 @@ public class ComperingMethodsTest
         (
             _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
             "fmt/126",
-            _testFileDirectory + @"PowerPoint\presentation_without_animations.pdf",
+            _testFileDirectory + @"PDF\presentation_without_animations.pdf",
             "fmt/19"
         );
         
@@ -251,20 +226,16 @@ public class ComperingMethodsTest
     }
 
     [Test]
-    public void GetPageCountTest_8PDF_3ODT()
+    public void GetPageCountDifferenceExifTest_Invalid()
     {
         var files = new FilePair
         (
-            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
-            "fmt/276",
-            _testFileDirectory + @"TestDocuments\NoImage3Pages.odt",
-            "fmt/1756"
+            _testFileDirectory + @"Images\225x225.png",
+            _testFileDirectory + @"Images\450x600.tiff"
         );
-
-        var count1 = ComperingMethods.GetPageCount(files.OriginalFilePath, files.OriginalFileFormat);
-        var count2 = ComperingMethods.GetPageCount(files.NewFilePath, files.NewFileFormat);
         
-        Assert.That(count1 is 8 && count2 is 3);
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.Null);
     }
 
     [Test]
@@ -304,9 +275,25 @@ public class ComperingMethodsTest
     }
 
     [Test]
+    public void GetMissingOrWrongImageMetadataExifTest_Invalid()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + "Not",
+            "fmt/312312313",
+            _testFileDirectory + "Real",
+            "fmt/313132313"
+        );
+        
+        var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+        
+        Assert.That(result, Is.Null);
+    }
+
+    [Test]
     public void ContainsTransparencyTest_PNG_NoTransparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\225x225.png", "fmt/11");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\225x225.png");
         
         Assert.That(res, Is.False);
     }
@@ -314,7 +301,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_TIFF_NoTransparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\450x600.tiff", "fmt/353");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\450x600.tiff");
         
         Assert.That(res, Is.False);
     }
@@ -322,7 +309,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_JPG()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\600x450.jpg", "fmt/43");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\600x450.jpg");
         
         Assert.That(res, Is.False);
     }
@@ -330,7 +317,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_PNG_Transparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T225x225.png", "fmt/11");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T225x225.png");
         
         Assert.That(res, Is.True);
     }
@@ -338,7 +325,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_TIFF_Transparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T450x600.tiff", "fmt/353");
+        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T450x600.tiff");
         
         Assert.That(res, Is.True);
     }

@@ -1,5 +1,5 @@
 using Avalonia.Controls;
-using Avalonia.Interactivity;
+using AvaloniaDraft.ViewModels;
 
 namespace AvaloniaDraft.Views;
 

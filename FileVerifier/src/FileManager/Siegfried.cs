@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.FileManager;
 
@@ -103,7 +104,6 @@ public static class Siegfried
         //Assign files their format
         foreach (var file in files)
         {
-            Console.WriteLine($"{file.OriginalFilePath} - {file.NewFilePath}");
             file.OriginalFileFormat = originalOutput.Files.First(
                     f => f.Name == file.OriginalFilePath)
                 .Matches[0].id;
@@ -114,6 +114,4 @@ public static class Siegfried
         }
         process.WaitForExit();
     }
-    
-    
 }

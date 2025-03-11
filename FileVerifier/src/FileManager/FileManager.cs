@@ -64,7 +64,7 @@ public class FilePair
 /// <summary>
 /// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process
 /// </summary>
-public class FileManager
+public sealed class FileManager
 {
     private readonly string oDirectory;
     private readonly string nDirectory;
@@ -72,14 +72,14 @@ public class FileManager
     private readonly List<string> pairlessFiles;
     private readonly IFileSystem _fileSystem;
     
-    //Theading
+    public List<string> GetPairlessFiles() => pairlessFiles;
+    public List<FilePair> GetFilePairs() => filePairs;
+    
+    //Threading
     private int CurrentThreads = 0;
     private static readonly object _lock = new object();
     private static readonly object _listLock = new object();
     private readonly List<Thread> _threads = new();
-
-    public List<FilePair> GetFilePairs() => filePairs;
-    public List<string> GetPairlessFiles() => pairlessFiles;
     
     public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
     {
@@ -191,7 +191,7 @@ public class FileManager
         //Get the correct pipeline
         if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
         {
-            pipeline = VerificationPipelines.GetPNGPipelines(pair.NewFileFormat);
+            pipeline = PngPipelines.GetPNGPipelines(pair.NewFileFormat);
         }
         
         if (pipeline == null) return false; //None found
@@ -223,7 +223,7 @@ public class FileManager
     /// </summary>
     /// <param name="filePair">The pair of files</param>
     /// <returns>The recommended number of additional threads</returns>
-    private int GetAdditionalThreadCount(FilePair filePair)
+    private static int GetAdditionalThreadCount(FilePair filePair)
     {
         //TODO: The actual calculation
         return 0;
@@ -264,14 +264,39 @@ public class FileManager
     public void WritePairs()
     {
         Console.WriteLine("PAIRS:");
+
+        var pronomFormat = new Dictionary<string, Tuple<string, int>>();
+
         foreach (var pair in filePairs)
         {
             Console.WriteLine($"{pair.OriginalFilePath} ({pair.OriginalFileFormat}) - {pair.NewFilePath} ({pair.NewFileFormat})");
+
+            var extension = pair.OriginalFileFormat;
+            var fileExtension = Path.GetExtension(pair.OriginalFilePath);
+
+            if (pronomFormat.ContainsKey(extension))
+            {
+                var existingTuple = pronomFormat[extension];
+                
+                pronomFormat[extension] = new Tuple<string, int>(existingTuple.Item1, existingTuple.Item2 + 1);
+            }
+            else
+            {
+                pronomFormat.Add(extension, new Tuple<string, int>(fileExtension, 1));
+            }
         }
-        Console.WriteLine("PAIRLESS");
+
+        Console.WriteLine("PAIRLESS:");
         foreach (var file in pairlessFiles)
         {
             Console.WriteLine($"{file}");
         }
+        
+        
+        foreach (KeyValuePair<string, Tuple<string, int>> kvp in pronomFormat)
+        {
+            ConsoleService.Instance.WriteToConsole($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
+        }
     }
+
 }

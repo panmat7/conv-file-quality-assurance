@@ -1,6 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="AvaloniaDraft.Views.HomeView">
+             x:Class="AvaloniaDraft.Views.HomeView"
+             x:DataType="viewModels:SettingsViewModel"
+             xmlns:viewModels="clr-namespace:AvaloniaDraft.ViewModels">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -18,10 +20,12 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Input -->
-        <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5" Foreground="White">Input Folder</TextBlock>
+        <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5" Foreground="White">Original file Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="0" Margin="5"
                 Name="InputButton" Click="InputButton_OnClick"
                 PointerEntered="InputButton_OnPointerEntered"
@@ -33,7 +37,7 @@
         </Button>
 
         <!-- Output -->
-        <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="5" Foreground="White">Output Folder</TextBlock>
+        <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="5" Foreground="White">New file Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="1" Margin="5"
                 Name="OutputButton" Click="InputButton_OnClick"
                 PointerEntered="InputButton_OnPointerEntered"
@@ -43,22 +47,62 @@
                 Padding="10,5">
             Select
         </Button>
+        
+        <!-- Load -->
+        <Button Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" Margin="5"
+                Name="LoadButton" Click="LoadButton_OnClick"
+                Background="#139A43" Foreground="White"
+                BorderBrush="#0DAB76" BorderThickness="1" 
+                Padding="20,5" VerticalAlignment="Center">
+            Load
+        </Button>
+
 
         <!-- Quick Settings -->
-        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 1</TextBlock>
-        <CheckBox Grid.Column="1" Grid.Row="3" Margin="5"/>
-
-        <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 2</TextBlock>
-        <CheckBox Grid.Column="1" Grid.Row="4" Margin="5"/>
-
-        <TextBlock Grid.Column="0" Grid.Row="5" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 3</TextBlock>
-        <CheckBox Grid.Column="1" Grid.Row="5" Margin="5"/>
-
-        <TextBlock Grid.Column="0" Grid.Row="6" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 4</TextBlock>
-        <CheckBox Grid.Column="1" Grid.Row="6" Margin="5"/>
-
-        <TextBlock Grid.Column="0" Grid.Row="7" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Setting 5</TextBlock>
-        <CheckBox Grid.Column="1" Grid.Row="7" Margin="5"/>
+        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Settings</TextBlock>
+        <Border Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" BorderBrush="White" BorderThickness="0,0,0,1" Margin="5,0"/>
+        
+        <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures no differences in size across files" VerticalAlignment="Center" Margin="5"/>
+            <TextBlock Text="Enable Size Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
+        </StackPanel>
+        <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" Margin="5"/>
+        
+        <StackPanel Grid.Column="0" Grid.Row="5" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures no differences in resolution across files" VerticalAlignment="Center" Margin="5"/>
+            <TextBlock Text="Enable Resolution Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
+        </StackPanel>
+        <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" Margin="5"/>
+        
+        <StackPanel Grid.Column="0" Grid.Row="6" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures color profiles stay consistent across files" VerticalAlignment="Center" Margin="5"/>
+            <TextBlock Text="Enable Color Profile Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
+        </StackPanel>
+        <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" Margin="5"/>
+        
+        <StackPanel Grid.Column="0" Grid.Row="7" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures no differences in font across files" VerticalAlignment="Center" Margin="5"/>
+            <TextBlock Text="Enable Font Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
+        </StackPanel>
+        <CheckBox Grid.Row="7" Grid.Column="1" IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" Margin="5"/>
+        
+        <StackPanel Grid.Column="0" Grid.Row="8" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures that visually both files look the same" VerticalAlignment="Center" Margin="5"/>
+            <TextBlock Text="Enable Point by Point Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
+        </StackPanel>
+        <CheckBox Grid.Row="8" Grid.Column="1" IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Margin="5"/>
+        
+        <StackPanel Grid.Column="0" Grid.Row="9" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures both files have same page count" VerticalAlignment="Center" Margin="5"/>
+            <TextBlock Text="Enable Page Count Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
+        </StackPanel>
+        <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Margin="5"/>
+        
+        <StackPanel Grid.Column="0" Grid.Row="10" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method flags PowerPoint files that use animations which will result in lost context when converted" VerticalAlignment="Center" Margin="5"/>
+            <TextBlock Text="Enable Animation Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
+        </StackPanel>
+        <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Margin="5"/>
 
         <!-- Console -->
         <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="5" Margin="7" 
@@ -75,6 +119,8 @@
 
         <!-- Start Button -->
         <Button Grid.Column="3" Grid.Row="8" HorizontalAlignment="Right" 
+                Name="StartButton"
+                IsEnabled="False"
                 VerticalAlignment="Center"
                 FontSize="18"
                 Margin="5"

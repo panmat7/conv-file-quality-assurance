@@ -1,10 +1,11 @@
 using System.IO.Abstractions.TestingHelpers;
 using AvaloniaDraft.FileManager;
+using UnitTests.ComparingMethodsTest;
 
 namespace UnitTests.FileManagerTest;
 
 [TestFixture]
-public class FileManagerTest
+public class FileManagerTest : TestBase
 {
     [Test]
     public void FileManagerCreationTest()
@@ -22,6 +23,9 @@ public class FileManagerTest
         );
 
         var f = new FileManager(@"C:\testOriginal\", @"C:\testNew\", fileSystem);
+        
+        if(f == null) Assert.Fail();
+        
         var pairs = f.GetFilePairs();
         var pairless = f.GetPairlessFiles();
 

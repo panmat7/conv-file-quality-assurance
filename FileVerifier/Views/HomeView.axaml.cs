@@ -5,6 +5,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.Views;
 
@@ -12,10 +14,12 @@ public partial class HomeView : UserControl
 {
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
+    private bool Working { get; set; } = false;
 
     public HomeView()
     {
         InitializeComponent();
+        ConsoleService.Instance.OnMessageLogged += UpdateConsole;
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
     }
@@ -86,29 +90,44 @@ public partial class HomeView : UserControl
 
     private void Start_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
-
-        AppendMessageToConsole("INPUT:");
-        var files = Directory.GetFiles(InputPath);
-        foreach (var file in files) { AppendMessageToConsole(file); }
-
-        AppendMessageToConsole("OUTPUT:");
-        files = Directory.GetFiles(OutputPath);
-        foreach (var file in files) { AppendMessageToConsole(file); }
-
-        var f = new FileManager.FileManager(InputPath, OutputPath);
-        f.GetSiegfriedFormats();
-        f.WritePairs();
+        if (Working || GlobalVariables.FileManager == null) return;
+        
+        Working = true;
+        
+        StartButton.IsEnabled = false;
+        LoadButton.IsEnabled = false;
+        
+        GlobalVariables.FileManager.StartVerification();
+        
+        StartButton.IsEnabled = true;
+        LoadButton.IsEnabled = true;
+        
+        Working = false;
+        
+        ConsoleService.Instance.WriteToConsole("Testing start button");
     }
 
-    private void AppendMessageToConsole(string text)
-    {
-        if (!string.IsNullOrEmpty(Console.Text))
-        {
-            Console.Text += "\n";
-        }
+    
 
-        Console.Text += text;
-        Console.CaretIndex = Console.Text.Length;
+    private void LoadButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (Working || string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
+        GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+        GlobalVariables.FileManager.GetSiegfriedFormats();
+        GlobalVariables.FileManager.WritePairs();
+        StartButton.IsEnabled = true;
+    }
+    
+
+    private void UpdateConsole(string message)
+    {
+        Console.Text = null; // This should probably be some switch statement resetting only when something something
+        Dispatcher.UIThread.Post(() =>
+        {
+            Console.Text += message + Environment.NewLine;
+        });
     }
 }
+
+
+    
