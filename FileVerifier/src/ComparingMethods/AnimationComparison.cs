@@ -63,7 +63,7 @@ public static class AnimationComparison
         foreach (var slide in slides)
         {
             using var stream = slide.Open();
-            var slideXml = System.Xml.Linq.XDocument.Load(stream);
+            var slideXml = XDocument.Load(stream);
                     
             // Check if the slide's xml contents contains animations
             if (slideXml.Descendants().Any(e => e.Name.LocalName is "anim" or "animEffect" or "timing"))
