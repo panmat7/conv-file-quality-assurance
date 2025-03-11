@@ -46,8 +46,8 @@ public static class Siegfried
         string arguments = "";
         string windowsTerminal = "powershell.exe";
         string linuxTerminal = "/bin/bash";
-        string windowsArguments = $"-ExecutionPolicy Bypass -Command \"sf -json {originalDir}; sf -json {newDir}; sf -json {tempOriginalDir}; sf -json {tempNewDir}\"";
-        string linuxArguments = $"-c \"sf -json {originalDir}; sf -json {newDir}; sf -json {tempOriginalDir}; sf -json {tempNewDir}\"";
+        string windowsArguments = $"-ExecutionPolicy Bypass -Command \"sf -json \\\"{originalDir}\\\"; sf -json \\\"{newDir}\\\"; sf -json \\\"{tempOriginalDir}\\\"; sf -json \\\"{tempNewDir}\\\"\"";
+        string linuxArguments = $"-c \"sf -json '{originalDir}'; sf -json '{newDir}'; sf -json '{tempOriginalDir}'; sf -json '{tempNewDir}'\"";
 
         if (OperatingSystem.IsWindows())
         {
