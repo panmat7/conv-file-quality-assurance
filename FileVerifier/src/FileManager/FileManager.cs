@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using AvaloniaDraft.Helpers;
@@ -68,6 +69,8 @@ public sealed class FileManager
 {
     private readonly string oDirectory;
     private readonly string nDirectory;
+    private readonly string tempODirectory;
+    private readonly string tempNDirectory;
     private List<FilePair> filePairs;
     private readonly List<string> pairlessFiles;
     private readonly IFileSystem _fileSystem;
@@ -89,9 +92,24 @@ public sealed class FileManager
         
         filePairs = new List<FilePair>();
         pairlessFiles = new List<string>();
+
+        tempODirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        tempNDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempODirectory);
+        Directory.CreateDirectory(tempNDirectory);
+
+        ExtractZipFiles(oDirectory, tempODirectory);
+        ExtractZipFiles(nDirectory, tempNDirectory);
         
-        var originalFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories).ToList();
-        var newFiles = _fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories).ToList();
+        var originalFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories)
+            .Where(f => Path.GetExtension(f) != ".zip").ToList();
+        originalFiles.AddRange(_fileSystem.Directory.GetFiles(tempODirectory, "*", SearchOption.AllDirectories)
+            .Where(f => Path.GetExtension(f) != ".zip").ToList());
+        
+        var newFiles = _fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories)
+            .Where(f => Path.GetExtension(f) != ".zip").ToList();
+        newFiles.AddRange(_fileSystem.Directory.GetFiles(tempNDirectory, "*", SearchOption.AllDirectories)
+            .Where(f => Path.GetExtension(f) != ".zip").ToList());
         
         //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
         
@@ -118,6 +136,30 @@ public sealed class FileManager
         
         //Adding all files that do not have a pair from newfiles to pairless
         pairlessFiles.AddRange(newFiles.FindAll(f => !filePairs.Select(fp => fp.NewFilePath).Contains(f)));
+        
+        // Register cleanup of temporary directories on application exit
+        AppDomain.CurrentDomain.ProcessExit += (s, e) => CleanupTempDirectories(tempODirectory, tempNDirectory);
+    }
+
+    private void ExtractZipFiles(string directory, string tempDirectory)
+    {
+        var zipFiles = Directory.GetFiles(directory, "*.zip", SearchOption.AllDirectories);
+        foreach (var zipFile in zipFiles)
+        {
+            var extractPath = Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(zipFile));
+            ZipFile.ExtractToDirectory(zipFile, extractPath);
+        }
+    }
+
+    private void CleanupTempDirectories(params string[] tempDirectories)
+    {
+        foreach (var tempDir in tempDirectories)
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
     }
     
     /// <summary>
@@ -125,7 +167,7 @@ public sealed class FileManager
     /// </summary>
     public void GetSiegfriedFormats()
     {
-        Siegfried.GetFileFormats(oDirectory, nDirectory, ref filePairs);
+        Siegfried.GetFileFormats(oDirectory, nDirectory, tempODirectory, tempNDirectory,  ref filePairs);
     }
     
     /// <summary>
