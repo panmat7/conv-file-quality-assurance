@@ -4,6 +4,7 @@ using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft;
 
+
 sealed class Program
 {
     // Initialization code. Don't use any Avalonia, third-party APIs or any
@@ -15,7 +16,11 @@ sealed class Program
         //Ensure proper cleanup after exit
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledExceptionCleanup;
         AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
-        
+
+        GlobalVariables.Options = new Options.Options();
+        GlobalVariables.Options.Initialize();
+
+
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
     }

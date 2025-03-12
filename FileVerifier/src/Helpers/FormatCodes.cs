@@ -19,8 +19,8 @@ namespace AvaloniaDraft.Helpers;
 /// </summary>
 public class FileFormat
 {
-    private ImmutableList<string> FormatCodes { get; }
-    private ImmutableList<string> PronomCodes { get; }
+    public ImmutableList<string> FormatCodes { get; }
+    public ImmutableList<string> PronomCodes { get; }
 
     public FileFormat(ImmutableList<string> formatCodes, ImmutableList<string> pronomCodes)
     {
@@ -45,43 +45,6 @@ public class FileFormat
     }
 }
 
-public static class FileExtensions
-{
-    public static readonly ImmutableList<string> list =
-    [
-        "doc",
-        "docm",
-        "docx",
-        "dot",
-        "dotm",
-        "dotx",
-        "odt",
-        "pdf",
-        "pdf1a",
-        "pdf2a",
-        "pdf3a",
-        "pdf4a",
-        "ppt",
-        "pptm",
-        "pptx",
-        "odp",
-        "pot",
-        "pps",
-        "ppsx",
-        "ppsm",
-        "potx",
-        "potm",
-        "xml",
-        "xls",
-        "xlsm",
-        "xlsx",
-        "ods",
-        "csv",
-        "png",
-        "jpeg",
-        "gif"
-    ];
-}
 
 /// <summary>
 /// A helper class containing lists of PRONOM codes for file formats and groups

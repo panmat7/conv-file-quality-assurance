@@ -1,4 +1,5 @@
-﻿    using System.Collections.Generic;
+﻿using AvaloniaDraft.Helpers;
+using System.Collections.Generic;
     using System.ComponentModel;
     using System.Linq;
 
@@ -13,6 +14,8 @@
 
     public sealed class SettingsViewModel : INotifyPropertyChanged
     {
+        private bool _isIgnoreUnsupportedFormatsEnabled;
+
         private bool _isSizeEnabled;
         private bool _isResolutionEnabled;
         private bool _isFontEnabled;
@@ -46,8 +49,31 @@
         {
             // Set default to the first option:
             _selectedWindowSize = AvailableWindowSizes.Skip(1).FirstOrDefault();
+
+
+            _isSizeEnabled = GlobalVariables.Options.GetMethod(Methods.Size.Name);
+            _isResolutionEnabled = GlobalVariables.Options.GetMethod(Methods.Resolution.Name);
+            _isFontEnabled = GlobalVariables.Options.GetMethod(Methods.Fonts.Name);
+            _isPbPEnabled = GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name);
+            _isPageCountEnabled = GlobalVariables.Options.GetMethod(Methods.Pages.Name);
+            _isColorEnabled = GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name);
+            _isAnimationEnabled = GlobalVariables.Options.GetMethod(Methods.Animations.Name);
+
+            _isIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.ignoreUnsupportedFileType;
         }
 
+
+        public bool IsIgnoreUnsupportedFormatsEnabled
+        {
+            get => _isIgnoreUnsupportedFormatsEnabled;
+            set
+            {
+                if (_isIgnoreUnsupportedFormatsEnabled == value) return;
+                _isIgnoreUnsupportedFormatsEnabled = value;
+                GlobalVariables.Options.ignoreUnsupportedFileType = value;
+                OnPropertyChanged(nameof(IsIgnoreUnsupportedFormatsEnabled));
+            }
+        }
 
         public bool IsSizeEnabled
         {
@@ -56,6 +82,7 @@
             {
                 if (_isSizeEnabled == value) return;
                 _isSizeEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Size.Name);
                 OnPropertyChanged(nameof(IsSizeEnabled));
             }
         }
@@ -67,6 +94,7 @@
             {
                 if (_isResolutionEnabled == value) return;
                 _isResolutionEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Resolution.Name);
                 OnPropertyChanged(nameof(IsResolutionEnabled));
             }
         }
@@ -78,6 +106,7 @@
             {
                 if (_isFontEnabled == value) return;
                 _isFontEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Fonts.Name);
                 OnPropertyChanged(nameof(IsFontEnabled));
             }
         }
@@ -89,6 +118,7 @@
             {
                 if (_isPbPEnabled == value) return;
                 _isPbPEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.PointByPoint.Name);
                 OnPropertyChanged(nameof(IsPointByPointEnabled));
             }
         }
@@ -100,6 +130,7 @@
             {
                 if (_isPageCountEnabled == value) return;
                 _isPageCountEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Pages.Name);
                 OnPropertyChanged(nameof(IsPageCountEnabled));
             }
         }
@@ -111,6 +142,7 @@
             {
                 if (_isColorEnabled == value) return;
                 _isColorEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.ColorSpace.Name);
                 OnPropertyChanged(nameof(IsColorProfileEnabled));
             }
         }
@@ -122,6 +154,7 @@
             {
                 if (_isAnimationEnabled == value) return;
                 _isAnimationEnabled = value;
+                GlobalVariables.Options.SetMethod(Methods.Animations.Name);
                 OnPropertyChanged(nameof(IsAnimationEnabled));
             }
         }
