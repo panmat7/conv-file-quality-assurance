@@ -91,17 +91,15 @@ public static class SpreadsheetComparison
     /// <returns>True/False whether a break can occur.</returns>
     private static bool CheckObjectBreaksOds(XDocument doc, double breakPoint)
     {
-        //Checking if an image is embedded
         var drawNs = doc.Root.GetNamespaceOfPrefix("draw") ?? //Draw namespace
                      XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:drawing:1.0");
         var svgNs = XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0");
-    
-        //Getting images
+        
         var frameCoords = doc.Descendants(drawNs + "frame") //All frames
             .Select(f => new
             {
-                X = f.Attribute(svgNs + "x")?.Value ?? "0cm",
-                Width = f.Attribute(svgNs + "width")?.Value ?? "0cm"
+                X = f.Attribute(svgNs + "x")?.Value ?? "0cm", //X position
+                Width = f.Attribute(svgNs + "width")?.Value ?? "0cm" //Actual width
             })
             .ToList();
         
