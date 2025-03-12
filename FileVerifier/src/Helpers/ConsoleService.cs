@@ -6,6 +6,7 @@ namespace AvaloniaDraft.Helpers;
 public class ConsoleService
 {
     public event Action<string>? OnMessageLogged;
+    public event Action? UpdateProgressBar;
     
     private static ConsoleService? _instance;
     public static ConsoleService Instance => _instance ??= new ConsoleService();
@@ -15,5 +16,10 @@ public class ConsoleService
     public void WriteToConsole(string message)
     {
         Dispatcher.UIThread.InvokeAsync(() => OnMessageLogged?.Invoke(message));
+    }
+
+    public void MarkProgress()
+    {
+        Dispatcher.UIThread.InvokeAsync(() => UpdateProgressBar?.Invoke());
     }
 }

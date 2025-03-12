@@ -1,6 +1,9 @@
 using System;
+using Avalonia;
+using Avalonia.Threading;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Views;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -33,6 +36,7 @@ public static class BasePipeline
         }
         finally
         {
+            ConsoleService.Instance.MarkProgress();
             updateThreadCount(-(1 + additionalThreads));
             markDone();
         }

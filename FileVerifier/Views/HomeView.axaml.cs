@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -18,11 +19,17 @@ public partial class HomeView : UserControl
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
     private bool Working { get; set; } = false;
+    
+    //Progress bar
+    private int FileCount { get; set; } = 0;
+    private int FilesDone { get; set; } = 0;
+    private readonly object _lock = new object();
 
     public HomeView()
     {
         InitializeComponent();
         ConsoleService.Instance.OnMessageLogged += UpdateConsole;
+        ConsoleService.Instance.UpdateProgressBar += FileDone;
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
         DataContext = new SettingsViewModel();
@@ -92,7 +99,7 @@ public partial class HomeView : UserControl
         }
     }
 
-    private void Start_OnClick(object? sender, RoutedEventArgs e)
+    private async void Start_OnClick(object? sender, RoutedEventArgs e)
     {
         if (Working || GlobalVariables.FileManager == null) return;
         
@@ -101,7 +108,10 @@ public partial class HomeView : UserControl
         StartButton.IsEnabled = false;
         LoadButton.IsEnabled = false;
         
-        GlobalVariables.FileManager.StartVerification();
+        await Task.Run(() =>
+        {
+            GlobalVariables.FileManager.StartVerification();
+        });
         
         LoadButton.IsEnabled = true;
         
@@ -114,10 +124,13 @@ public partial class HomeView : UserControl
 
     private void LoadButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        ResetProgress();
+        
         if (Working || string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
         try
         {
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+            SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
         }
         catch (InvalidOperationException err)
         {
@@ -140,7 +153,39 @@ public partial class HomeView : UserControl
         GlobalVariables.FileManager.WritePairs();
         StartButton.IsEnabled = true;
     }
+
+    private void SetFileCount(int count)
+    {
+        lock (_lock)
+        {
+            FileCount = count;
+        }
+    }
+
+    private void ResetProgress()
+    {
+        lock (_lock)
+        {
+            FilesDone = 0;
+            Dispatcher.UIThread.Post(() =>
+            {
+                ProgressBar.Value = 0;
+            });
+        }
+    }
     
+    private void FileDone()
+    {
+        lock (_lock)
+        {
+            FilesDone++;
+            
+            Dispatcher.UIThread.Post(() =>
+            {
+                ProgressBar.Value = (FilesDone / (double)FileCount) * 100;
+            });
+        }
+    }
 
     private void UpdateConsole(string message)
     {
