@@ -98,8 +98,8 @@ public sealed class FileManager
         Directory.CreateDirectory(tempODirectory);
         Directory.CreateDirectory(tempNDirectory);
 
-        ExtractZipFiles(oDirectory, tempODirectory);
-        ExtractZipFiles(nDirectory, tempNDirectory);
+        ZipHelper.ExtractZipFiles(oDirectory, tempODirectory);
+        ZipHelper.ExtractZipFiles(nDirectory, tempNDirectory);
         
         var originalFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories)
             .Where(f => Path.GetExtension(f) != ".zip").ToList();
@@ -141,17 +141,7 @@ public sealed class FileManager
         AppDomain.CurrentDomain.ProcessExit += (s, e) => CleanupTempDirectories(tempODirectory, tempNDirectory);
     }
 
-    private void ExtractZipFiles(string directory, string tempDirectory)
-    {
-        var zipFiles = Directory.GetFiles(directory, "*.zip", SearchOption.AllDirectories);
-        foreach (var zipFile in zipFiles)
-        {
-            var extractPath = Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(zipFile));
-            ZipFile.ExtractToDirectory(zipFile, extractPath);
-        }
-    }
-
-    private void CleanupTempDirectories(params string[] tempDirectories)
+    private static void CleanupTempDirectories(params string[] tempDirectories)
     {
         foreach (var tempDir in tempDirectories)
         {
