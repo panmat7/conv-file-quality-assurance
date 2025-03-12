@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
+using AvaloniaDraft.ComparisonPipelines;
 using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.FileManager;
@@ -62,7 +63,8 @@ public class FilePair
 }
 
 /// <summary>
-/// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process
+/// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process and
+/// starting the process itself.
 /// </summary>
 public sealed class FileManager
 {
@@ -107,7 +109,9 @@ public sealed class FileManager
             try
             {
                 //Creating the file-to-file dictionary, getting first result of outputfiles containing file name 
-                var oFile = newFiles.First(f => f.Contains(_fileSystem.Path.GetFileNameWithoutExtension(iFile)));
+                var oFile = newFiles.First(f =>
+                    _fileSystem.Path.GetFileNameWithoutExtension(f) ==
+                    _fileSystem.Path.GetFileNameWithoutExtension(iFile));
                 filePairs.Add(new FilePair(iFile, "", oFile, ""));
             }
             catch
@@ -186,13 +190,8 @@ public sealed class FileManager
     /// <returns>False if no pipeline was found (meaning unsupported verification)</returns>
     private bool SelectAndStartPipeline(FilePair pair, int assigned)
     {
-        Action<FilePair, int, Action<int>, Action>? pipeline = null;
-        
-        //Get the correct pipeline
-        if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
-        {
-            pipeline = PngPipelines.GetPNGPipelines(pair.NewFileFormat);
-        }
+        //Get the correct pipeline based on pair formats
+        var pipeline = BasePipeline.SelectPipeline(pair);
         
         if (pipeline == null) return false; //None found
         
@@ -298,5 +297,4 @@ public sealed class FileManager
             ConsoleService.Instance.WriteToConsole($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
         }
     }
-
 }
