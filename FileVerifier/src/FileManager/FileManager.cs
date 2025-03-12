@@ -21,6 +21,8 @@ public class FilePair
     public bool Done { get; set; }
     public bool InProcess { get; set; }
 
+    public FilePair() { }
+
     public FilePair(string oFilePath, string nFilePath)
     {
         OriginalFilePath = oFilePath;

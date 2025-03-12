@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+using AvaloniaDraft.Logger;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 
 namespace AvaloniaDraft.Helpers;
@@ -9,6 +10,7 @@ public static class GlobalVariables
     public static FileManager.FileManager? FileManager { get; set; } = null!;
     public static readonly ExifTool ExifTool;
     public static Options.Options Options { get; set; }
+    public static Logger.Logger Logger { get; set; }
 
     static GlobalVariables()
     {

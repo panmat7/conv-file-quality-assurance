@@ -82,7 +82,7 @@ using System.Collections.Generic;
             {
                 if (_isSizeEnabled == value) return;
                 _isSizeEnabled = value;
-                GlobalVariables.Options.SetMethod(Methods.Size.Name);
+                GlobalVariables.Options.SetMethod(Methods.Size.Name, value);
                 OnPropertyChanged(nameof(IsSizeEnabled));
             }
         }
@@ -94,7 +94,7 @@ using System.Collections.Generic;
             {
                 if (_isResolutionEnabled == value) return;
                 _isResolutionEnabled = value;
-                GlobalVariables.Options.SetMethod(Methods.Resolution.Name);
+                GlobalVariables.Options.SetMethod(Methods.Resolution.Name, value);
                 OnPropertyChanged(nameof(IsResolutionEnabled));
             }
         }
@@ -106,7 +106,7 @@ using System.Collections.Generic;
             {
                 if (_isFontEnabled == value) return;
                 _isFontEnabled = value;
-                GlobalVariables.Options.SetMethod(Methods.Fonts.Name);
+                GlobalVariables.Options.SetMethod(Methods.Fonts.Name, value);
                 OnPropertyChanged(nameof(IsFontEnabled));
             }
         }
@@ -118,7 +118,7 @@ using System.Collections.Generic;
             {
                 if (_isPbPEnabled == value) return;
                 _isPbPEnabled = value;
-                GlobalVariables.Options.SetMethod(Methods.PointByPoint.Name);
+                GlobalVariables.Options.SetMethod(Methods.PointByPoint.Name, value);
                 OnPropertyChanged(nameof(IsPointByPointEnabled));
             }
         }
@@ -130,7 +130,7 @@ using System.Collections.Generic;
             {
                 if (_isPageCountEnabled == value) return;
                 _isPageCountEnabled = value;
-                GlobalVariables.Options.SetMethod(Methods.Pages.Name);
+                GlobalVariables.Options.SetMethod(Methods.Pages.Name, value);
                 OnPropertyChanged(nameof(IsPageCountEnabled));
             }
         }
@@ -142,7 +142,7 @@ using System.Collections.Generic;
             {
                 if (_isColorEnabled == value) return;
                 _isColorEnabled = value;
-                GlobalVariables.Options.SetMethod(Methods.ColorSpace.Name);
+                GlobalVariables.Options.SetMethod(Methods.ColorSpace.Name, value);
                 OnPropertyChanged(nameof(IsColorProfileEnabled));
             }
         }
@@ -154,7 +154,7 @@ using System.Collections.Generic;
             {
                 if (_isAnimationEnabled == value) return;
                 _isAnimationEnabled = value;
-                GlobalVariables.Options.SetMethod(Methods.Animations.Name);
+                GlobalVariables.Options.SetMethod(Methods.Animations.Name, value);
                 OnPropertyChanged(nameof(IsAnimationEnabled));
             }
         }
