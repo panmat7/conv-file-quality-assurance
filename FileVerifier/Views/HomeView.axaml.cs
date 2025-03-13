@@ -127,6 +127,21 @@ public partial class HomeView : UserControl
         finally
         {
             loadingWindow.Close();
+
+            try
+            {
+                if (GlobalVariables.FileManager != null)
+                {
+                    var ignoredFilesWindow = new IgnoredFilesView(
+                        GlobalVariables.FileManager.GetFilePairs().Count, GlobalVariables.FileManager.GetIgnoredFiles());
+                    ignoredFilesWindow.Show();
+                }
+            }
+            catch (Exception exception)
+            {
+                System.Console.WriteLine(exception);
+                throw;
+            }
         }
     }
     

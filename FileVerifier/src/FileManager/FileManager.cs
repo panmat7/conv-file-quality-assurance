@@ -69,14 +69,16 @@ public sealed class FileManager
 {
     private readonly string oDirectory;
     private readonly string nDirectory;
-    private readonly string tempODirectory;
-    private readonly string tempNDirectory;
+    private readonly string _tempODirectory;
+    private readonly string _tempNDirectory;
+    private readonly List<string> _ignoredFiles;
     private List<FilePair> filePairs;
     private readonly List<string> pairlessFiles;
     private readonly IFileSystem _fileSystem;
     
     public List<string> GetPairlessFiles() => pairlessFiles;
     public List<FilePair> GetFilePairs() => filePairs;
+    public List<string> GetIgnoredFiles() => _ignoredFiles;
     
     //Threading
     private int CurrentThreads = 0;
@@ -90,26 +92,35 @@ public sealed class FileManager
         oDirectory = originalDirectory;
         nDirectory = newDirectory;
         
+        _ignoredFiles = [];
+        
         filePairs = new List<FilePair>();
         pairlessFiles = new List<string>();
+        
+        // TODO: Add ignored files from temp directories. Add filtered out files
+        _ignoredFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories)
+            .Where(f => ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
 
-        tempODirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        tempNDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(tempODirectory);
-        Directory.CreateDirectory(tempNDirectory);
+        _ignoredFiles.AddRange(_fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories)
+            .Where(f => ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
+        
+        _tempODirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        _tempNDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(_tempODirectory);
+        Directory.CreateDirectory(_tempNDirectory);
 
-        ZipHelper.ExtractCompressedFiles(oDirectory, tempODirectory);
-        ZipHelper.ExtractCompressedFiles(nDirectory, tempNDirectory);
+        ZipHelper.ExtractCompressedFiles(oDirectory, _tempODirectory);
+        ZipHelper.ExtractCompressedFiles(nDirectory, _tempNDirectory);
         
         var originalFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
-        originalFiles.AddRange(_fileSystem.Directory.GetFiles(tempODirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
-        
+            .Where(f => !_ignoredFiles.Contains(f)).ToList();
+        originalFiles.AddRange(_fileSystem.Directory.GetFiles(_tempODirectory, "*", SearchOption.AllDirectories)
+            .Where(f => !_ignoredFiles.Contains(f)).ToList());
+
         var newFiles = _fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
-        newFiles.AddRange(_fileSystem.Directory.GetFiles(tempNDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
+            .Where(f => !_ignoredFiles.Contains(f)).ToList();
+        newFiles.AddRange(_fileSystem.Directory.GetFiles(_tempNDirectory, "*", SearchOption.AllDirectories)
+            .Where(f => !_ignoredFiles.Contains(f)).ToList());
         
         //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
         
@@ -138,7 +149,7 @@ public sealed class FileManager
         pairlessFiles.AddRange(newFiles.FindAll(f => !filePairs.Select(fp => fp.NewFilePath).Contains(f)));
         
         // Register cleanup of temporary directories on application exit
-        AppDomain.CurrentDomain.ProcessExit += (s, e) => CleanupTempDirectories(tempODirectory, tempNDirectory);
+        AppDomain.CurrentDomain.ProcessExit += (s, e) => CleanupTempDirectories(_tempODirectory, _tempNDirectory);
     }
 
     private static void CleanupTempDirectories(params string[] tempDirectories)
@@ -157,7 +168,7 @@ public sealed class FileManager
     /// </summary>
     public void GetSiegfriedFormats()
     {
-        Siegfried.GetFileFormats(oDirectory, nDirectory, tempODirectory, tempNDirectory,  ref filePairs);
+        Siegfried.GetFileFormats(oDirectory, nDirectory, _tempODirectory, _tempNDirectory,  ref filePairs);
     }
     
     /// <summary>

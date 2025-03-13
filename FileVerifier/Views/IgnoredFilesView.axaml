@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvaloniaDraft.Views.IgnoredFilesView"
+        x:DataType="viewModels:IgnoredFilesViewModel"
+        xmlns:viewModels="clr-namespace:AvaloniaDraft.ViewModels"
+        WindowStartupLocation="CenterOwner"
+        Title="Loading"
+        Width="600"
+        Height="400">
+        
+        <Window.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#1E1E1E" Offset="0"/>
+                        <GradientStop Color="#121212" Offset="1"/>
+                </LinearGradientBrush>
+        </Window.Background>
+        
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" Margin="10" Text="{Binding Message}"/>
+                <TextBlock Foreground="White" HorizontalAlignment="Center" Margin="10" Text="The following files were ignored when creating file pairs"/>
+                <StackPanel Height="250" Width="500" Background="#1E1E1E">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding FilePaths}">
+                                        <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                        <TextBlock Text="{Binding}"
+                                                                   Foreground="White"
+                                                                   Margin="5"/>
+                                                </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                        </ScrollViewer>
+                </StackPanel>
+                
+                <Button Name="OkButton" Click="OKButton_OnClick_" Background="#139A43" Foreground="White"
+                        BorderBrush="#0DAB76" BorderThickness="1" 
+                        Padding="20,5" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        OK
+                </Button>
+        </StackPanel>
+</Window>
