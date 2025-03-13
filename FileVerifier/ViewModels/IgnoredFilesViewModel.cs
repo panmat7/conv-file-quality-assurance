@@ -31,7 +31,14 @@ public sealed class IgnoredFilesViewModel : INotifyPropertyChanged
         {
             foreach (var file in ignoredFiles)
             {
-                FilePaths.Add(file.FilePath);
+                var reason = file.Reason switch
+                {
+                    ReasonForIgnoring.Encrypted => " | Encrypted",
+                    ReasonForIgnoring.Filtered => " | Filtered out",
+                    ReasonForIgnoring.UnsupportedFormat => " | Unsupported file format",
+                    _ => " | Unknown"
+                };
+                FilePaths.Add(file.FilePath + reason);
             }
         }
         else
