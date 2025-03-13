@@ -133,7 +133,7 @@ public partial class HomeView : UserControl
                 if (GlobalVariables.FileManager != null)
                 {
                     var ignoredFilesWindow = new IgnoredFilesView(
-                        GlobalVariables.FileManager.GetFilePairs().Count, GlobalVariables.FileManager.GetIgnoredFiles());
+                        GlobalVariables.FileManager.GetFilePairs().Count, GlobalVariables.FileManager.IgnoredFiles);
                     ignoredFilesWindow.Show();
                 }
             }

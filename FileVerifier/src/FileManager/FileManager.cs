@@ -62,65 +62,88 @@ public class FilePair
     }
 }
 
+public class IgnoredFile
+{
+    public string FilePath { get; set; }
+    public ReasonForIgnoring Reason { get; set; }
+
+    public IgnoredFile(string filePath, ReasonForIgnoring reason = ReasonForIgnoring.Unknown)
+    {
+        FilePath = filePath;
+        Reason = reason;
+    }
+    
+}
+
+public enum ReasonForIgnoring
+{
+    Encrypted,
+    Filtered,
+    UnsupportedFormat,
+    Unknown
+}
+
 /// <summary>
 /// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process
 /// </summary>
 public sealed class FileManager
 {
-    private readonly string oDirectory;
-    private readonly string nDirectory;
+    private readonly string _oDirectory;
+    private readonly string _nDirectory;
     private readonly string _tempODirectory;
     private readonly string _tempNDirectory;
-    private readonly List<string> _ignoredFiles;
-    private List<FilePair> filePairs;
-    private readonly List<string> pairlessFiles;
+    internal List<IgnoredFile> IgnoredFiles { get; set; }
+    private List<FilePair> _filePairs;
+    private readonly List<string> _pairlessFiles;
     private readonly IFileSystem _fileSystem;
     
-    public List<string> GetPairlessFiles() => pairlessFiles;
-    public List<FilePair> GetFilePairs() => filePairs;
-    public List<string> GetIgnoredFiles() => _ignoredFiles;
+    public List<string> GetPairlessFiles() => _pairlessFiles;
+    public List<FilePair> GetFilePairs() => _filePairs;
     
     //Threading
-    private int CurrentThreads = 0;
-    private static readonly object _lock = new object();
-    private static readonly object _listLock = new object();
-    private readonly List<Thread> _threads = new();
+    private int _currentThreads = 0;
+    private static readonly object Lock = new object();
+    private static readonly object ListLock = new object();
+    private readonly List<Thread> _threads = [];
     
     public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
     {
+        Console.WriteLine("Test1");
         _fileSystem = fileSystem ?? new FileSystem();
-        oDirectory = originalDirectory;
-        nDirectory = newDirectory;
+        _oDirectory = originalDirectory;
+        _nDirectory = newDirectory;
         
-        _ignoredFiles = [];
+        IgnoredFiles = [];
         
-        filePairs = new List<FilePair>();
-        pairlessFiles = new List<string>();
-        
-        // TODO: Add ignored files from temp directories. Add filtered out files
-        _ignoredFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
-
-        _ignoredFiles.AddRange(_fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
+        _filePairs = [];
+        _pairlessFiles = [];
         
         _tempODirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         _tempNDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(_tempODirectory);
         Directory.CreateDirectory(_tempNDirectory);
 
-        ZipHelper.ExtractCompressedFiles(oDirectory, _tempODirectory);
-        ZipHelper.ExtractCompressedFiles(nDirectory, _tempNDirectory);
-        
-        var originalFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !_ignoredFiles.Contains(f)).ToList();
-        originalFiles.AddRange(_fileSystem.Directory.GetFiles(_tempODirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !_ignoredFiles.Contains(f)).ToList());
+        ProcessDirectories();
 
-        var newFiles = _fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !_ignoredFiles.Contains(f)).ToList();
+        foreach (var file in IgnoredFiles)
+        {
+            Console.WriteLine("\n----");
+            Console.WriteLine(file.FilePath);
+        }
+        
+        var originalFiles = _fileSystem.Directory.GetFiles(_oDirectory, "*", SearchOption.AllDirectories)
+            .Where(f => !IgnoredFiles.Any(ignored => 
+                string.Equals(ignored.FilePath, f, StringComparison.OrdinalIgnoreCase))).ToList();
+        originalFiles.AddRange(_fileSystem.Directory.GetFiles(_tempODirectory, "*", SearchOption.AllDirectories)
+            .Where(f => !IgnoredFiles.Any(ignored => 
+                string.Equals(ignored.FilePath, f, StringComparison.OrdinalIgnoreCase))).ToList());
+        
+        var newFiles = _fileSystem.Directory.GetFiles(_nDirectory, "*", SearchOption.AllDirectories)
+            .Where(f => !IgnoredFiles.Any(ignored => 
+                string.Equals(ignored.FilePath, f, StringComparison.OrdinalIgnoreCase))).ToList();
         newFiles.AddRange(_fileSystem.Directory.GetFiles(_tempNDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !_ignoredFiles.Contains(f)).ToList());
+            .Where(f => !IgnoredFiles.Any(ignored => 
+                string.Equals(ignored.FilePath, f, StringComparison.OrdinalIgnoreCase))).ToList());
         
         //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
         
@@ -137,16 +160,16 @@ public sealed class FileManager
             {
                 //Creating the file-to-file dictionary, getting first result of outputfiles containing file name 
                 var oFile = newFiles.First(f => f.Contains(_fileSystem.Path.GetFileNameWithoutExtension(iFile)));
-                filePairs.Add(new FilePair(iFile, "", oFile, ""));
+                _filePairs.Add(new FilePair(iFile, "", oFile, ""));
             }
             catch
             {
-                pairlessFiles.Add(iFile);
+                _pairlessFiles.Add(iFile);
             }
         }
         
         //Adding all files that do not have a pair from newfiles to pairless
-        pairlessFiles.AddRange(newFiles.FindAll(f => !filePairs.Select(fp => fp.NewFilePath).Contains(f)));
+        _pairlessFiles.AddRange(newFiles.FindAll(f => !_filePairs.Select(fp => fp.NewFilePath).Contains(f)));
         
         // Register cleanup of temporary directories on application exit
         AppDomain.CurrentDomain.ProcessExit += (s, e) => CleanupTempDirectories(_tempODirectory, _tempNDirectory);
@@ -162,13 +185,58 @@ public sealed class FileManager
             }
         }
     }
+
+    private void ProcessDirectories()
+    {
+        ProcessDirectory(_oDirectory, _tempODirectory);
+        ProcessDirectory(_nDirectory, _tempNDirectory);
+    }
+    
+    private void ProcessDirectory(string sourceDir, string tempDir)
+    {
+        // Process compressed files
+        var compressedFiles = _fileSystem.Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories)
+            .Where(f => ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f).ToLower()));
+        
+        foreach (var file in compressedFiles)
+        {
+            var reason = ZipHelper.IsCompressedEncrypted(file) 
+                ? ReasonForIgnoring.Encrypted 
+                : ReasonForIgnoring.Filtered;
+
+            IgnoredFiles.Add(new IgnoredFile(file, reason));
+            
+            if (!ZipHelper.IsCompressedEncrypted(file))
+            {
+                Console.WriteLine($"Starting to compress files from {file}");
+                ZipHelper.ExtractCompressedFiles(file, tempDir);
+                Console.WriteLine("Test10");
+            }
+        }
+        
+        // Process regular files
+        var regularFiles = _fileSystem.Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories)
+            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains(Path.GetExtension(f)));
+        
+        foreach (var file in regularFiles)
+        {
+            // if (false) // Check if the format is supported
+            // {
+            //     IgnoredFiles.Add(new IgnoredFile(file, ReasonForIgnoring.UnsupportedFormat));
+            // }
+            // else if (false) // Check if the file format is filtered out
+            // {
+            //     IgnoredFiles.Add(new IgnoredFile(file, ReasonForIgnoring.Filtered));
+            // }
+        }
+    }
     
     /// <summary>
     /// Calls Siegfried to identify format of files in both directories
     /// </summary>
     public void GetSiegfriedFormats()
     {
-        Siegfried.GetFileFormats(oDirectory, nDirectory, _tempODirectory, _tempNDirectory,  ref filePairs);
+        Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs);
     }
     
     /// <summary>
@@ -181,26 +249,26 @@ public sealed class FileManager
         //Continuing until done with all files
         while (true)
         {
-            lock (_lock)
+            lock (Lock)
             {
-                Console.WriteLine($"Using {CurrentThreads} threads of {maxThreads} threads.");
+                Console.WriteLine($"Using {_currentThreads} threads of {maxThreads} threads.");
                 
-                if (CurrentThreads < maxThreads)
+                if (_currentThreads < maxThreads)
                 {
-                    var pair = filePairs.FirstOrDefault((p) => !p.InProcess && !p.Done);
+                    var pair = _filePairs.FirstOrDefault((p) => !p.InProcess && !p.Done);
                     if (pair == null) break; //We are done, everything either in progress or done
                     
                     pair.StartProcess();
-                    Console.WriteLine($"Done with {filePairs.IndexOf(pair)} files out of {filePairs.Count} files.");
+                    Console.WriteLine($"Done with {_filePairs.IndexOf(pair)} files out of {_filePairs.Count} files.");
                     
                     var assigned = GetAdditionalThreadCount(pair);
-                    if (maxThreads < CurrentThreads + (1 + assigned))
-                        assigned = maxThreads - CurrentThreads - 1; //Making sure we don't create too many threads
+                    if (maxThreads < _currentThreads + (1 + assigned))
+                        assigned = maxThreads - _currentThreads - 1; //Making sure we don't create too many threads
 
                     if (SelectAndStartPipeline(pair, assigned))
                     {
                         Console.WriteLine($"THREAD STARTED");
-                        CurrentThreads += (1 + assigned); //Main thread + additional assigned
+                        _currentThreads += (1 + assigned); //Main thread + additional assigned
                     }
                     else
                     {
@@ -215,7 +283,7 @@ public sealed class FileManager
 
         AwaitThreads(); //Awaiting all remaining threads
         
-        foreach (var file in filePairs)
+        foreach (var file in _filePairs)
         {
             Console.WriteLine($"This file is verified: {file.Done}");
         }
@@ -247,14 +315,14 @@ public sealed class FileManager
             }
             finally
             {
-                lock (_listLock)
+                lock (ListLock)
                 {
                     _threads.Remove(Thread.CurrentThread); //When finished, remove from list
                 }
             }
         });
         
-        lock (_listLock) _threads.Add(thread); //Add the thread to list of currently active
+        lock (ListLock) _threads.Add(thread); //Add the thread to list of currently active
         
         thread.Start();
         
@@ -278,9 +346,9 @@ public sealed class FileManager
     /// <param name="change">The change in thread count</param>
     private void ReturnUsedThreadsAndFinishFile(int change)
     {
-        lock (_lock)
+        lock (Lock)
         {
-            CurrentThreads += change;
+            _currentThreads += change;
         }
     }
     
@@ -291,14 +359,14 @@ public sealed class FileManager
     {
         List<Thread> toAwait;
         
-        lock (_listLock) toAwait = new List<Thread>(_threads);
+        lock (ListLock) toAwait = new List<Thread>(_threads);
         
         foreach (var t in toAwait)
         {
             t.Join();
         }
         
-        lock (_listLock) _threads.Clear();
+        lock (ListLock) _threads.Clear();
     }
     
     /// <summary>
@@ -310,7 +378,7 @@ public sealed class FileManager
 
         var pronomFormat = new Dictionary<string, Tuple<string, int>>();
 
-        foreach (var pair in filePairs)
+        foreach (var pair in _filePairs)
         {
             Console.WriteLine($"{pair.OriginalFilePath} ({pair.OriginalFileFormat}) - {pair.NewFilePath} ({pair.NewFileFormat})");
 
@@ -330,7 +398,7 @@ public sealed class FileManager
         }
 
         Console.WriteLine("PAIRLESS:");
-        foreach (var file in pairlessFiles)
+        foreach (var file in _pairlessFiles)
         {
             Console.WriteLine($"{file}");
         }

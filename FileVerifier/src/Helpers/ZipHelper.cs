@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -8,10 +9,7 @@ namespace AvaloniaDraft.Helpers;
 
 public abstract class ZipHelper
 {
-    public static readonly string[] CompressedFilesExtensions =
-    [
-        "*.zip", "*.rar", "*.7z", "*.tar", "*.gz"
-    ];
+    public static readonly string[] CompressedFilesExtensions = ["*.zip", "*.rar", "*.7z", "*.tar", "*.gz"];
     
     /// <summary>
     /// Extracts files inside a zip archive into a temp directory
@@ -20,12 +18,12 @@ public abstract class ZipHelper
     /// <param name="tempDirectory"></param>
     internal static void ExtractCompressedFiles(string directory, string tempDirectory)
     {
-        var files = CompressedFilesExtensions.SelectMany(ext => Directory.GetFiles(directory, ext, SearchOption.AllDirectories));
+        var files = Directory.GetFiles(directory, "*.*", SearchOption.AllDirectories)
+            .Where(f => CompressedFilesExtensions.Contains(Path.GetExtension(f).ToLower()));
+
         foreach (var file in files)
         {
-            // Dont work with encrypted zip archives
-            if (IsCompressedEncrypted(file)) continue;
-            
+            Console.WriteLine($"File {file} in compressed state {directory}");
             var extractPath = Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(file));
 
             Directory.CreateDirectory(extractPath);
@@ -50,7 +48,7 @@ public abstract class ZipHelper
     /// </summary>
     /// <param name="zipPath"></param>
     /// <returns></returns>
-    private static bool IsCompressedEncrypted(string zipPath)
+    internal static bool IsCompressedEncrypted(string zipPath)
     {
         try
         {

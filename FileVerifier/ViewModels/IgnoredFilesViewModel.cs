@@ -1,12 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using AvaloniaDraft.FileManager;
 
 namespace AvaloniaDraft.ViewModels;
 
-public class IgnoredFilesViewModel : INotifyPropertyChanged
+public sealed class IgnoredFilesViewModel : INotifyPropertyChanged
 {
     private string? _message;
     public ObservableCollection<string> FilePaths { get; } = [];
@@ -21,15 +23,15 @@ public class IgnoredFilesViewModel : INotifyPropertyChanged
         }
     }
 
-    public IgnoredFilesViewModel(int totalFilePairs, List<string> filePaths)
+    public IgnoredFilesViewModel(int totalFilePairs, List<IgnoredFile> ignoredFiles)
     {
         Message = $"{totalFilePairs} file pairs were created and are ready for verification";
 
-        if (filePaths.Count != 0)
+        if (ignoredFiles.Count != 0)
         {
-            foreach (var path in filePaths)
+            foreach (var file in ignoredFiles)
             {
-                FilePaths.Add(path);
+                FilePaths.Add(file.FilePath);
             }
         }
         else
@@ -40,7 +42,7 @@ public class IgnoredFilesViewModel : INotifyPropertyChanged
     
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
