@@ -17,21 +17,36 @@
         
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <TextBlock Foreground="White" HorizontalAlignment="Center" Margin="10" Text="{Binding Message}"/>
-                <TextBlock Foreground="White" HorizontalAlignment="Center" Margin="10" Text="The following files were ignored when creating file pairs"/>
-                <StackPanel Height="250" Width="500" Background="#1E1E1E">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <ItemsControl ItemsSource="{Binding FilePaths}">
+                <TextBlock Foreground="White" HorizontalAlignment="Center" Margin="10" 
+                           Text="The following files were ignored when creating file pairs"/>
+        
+                <!-- Scrollable Content Area -->
+                <Border Height="250" Width="500" Background="#1E1E1E">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      HorizontalAlignment="Stretch"
+                                      VerticalAlignment="Stretch">
+                                <ItemsControl ItemsSource="{Binding FilePaths}"
+                                              HorizontalAlignment="Stretch">
                                         <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
-                                                        <TextBlock Text="{Binding}"
-                                                                   Foreground="White"
-                                                                   Margin="5"/>
+                                                        <TextBlock Text="{Binding}" 
+                                                                   Foreground="White" 
+                                                                   Margin="5,2"
+                                                                   TextWrapping="Wrap"/>
                                                 </DataTemplate>
                                         </ItemsControl.ItemTemplate>
+                    
+                                        <!-- Use VirtualizingStackPanel for better performance -->
+                                        <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                        <VirtualizingStackPanel Orientation="Vertical"/>
+                                                </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
                                 </ItemsControl>
                         </ScrollViewer>
-                </StackPanel>
-                
+                </Border>
+        
                 <Button Name="OkButton" Click="OKButton_OnClick_" Background="#139A43" Foreground="White"
                         BorderBrush="#0DAB76" BorderThickness="1" 
                         Padding="20,5" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center">

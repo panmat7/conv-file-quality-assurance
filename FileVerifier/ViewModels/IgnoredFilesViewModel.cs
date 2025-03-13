@@ -23,7 +23,7 @@ public class IgnoredFilesViewModel : INotifyPropertyChanged
 
     public IgnoredFilesViewModel(int totalFilePairs, List<string> filePaths)
     {
-        Message = $"{totalFilePairs} file pairs created and ready for verification";
+        Message = $"{totalFilePairs} file pairs were created and are ready for verification";
 
         if (filePaths.Count != 0)
         {
