@@ -96,19 +96,7 @@ public partial class ReportView : UserControl
 
     private Expander CreateComparisonResultExpander(Logger.Logger.ComparisonResult result)
     {
-        var oFile = System.IO.Path.GetFileName(result.filePair.OriginalFilePath);
-        var oFormat = result.filePair.OriginalFileFormat;
-
-        var nFile = System.IO.Path.GetFileName(result.filePair.NewFilePath);
-        var nFormat = result.filePair.NewFileFormat;
-
-
-        var headerText = $"{oFile} ({oFormat}) -> {nFile} ({nFormat})";
-
-        var expander = new Expander()
-        {
-            Header = new TextBlock { Text = headerText }
-        };
+        var expander = new Expander();
         expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
 
         Grid.SetColumn(expander, 2);
@@ -121,8 +109,12 @@ public partial class ReportView : UserControl
         int totalTests = 0;
         int passedTests = 0;
 
+        var passText = new TextBlock() { Foreground = Brushes.White };
+        stackPanel.Children.Add(passText);
+
         var testSummary = new TextBlock() { Foreground = Brushes.White };
         stackPanel.Children.Add(testSummary);
+
 
         foreach (var test in result.tests)
         {
@@ -130,13 +122,25 @@ public partial class ReportView : UserControl
             if (test.Value.pass) passedTests++;
 
             var testExpander = CreateTestResultExpander(test.Value);
-            var passOrFail = test.Value.pass ? "PASS" : "FAIL";
-            testExpander.Header = new TextBlock { Text = $"{passOrFail} - {test.Key}" };
+            testExpander.Header = new TextBlock { Text = $"{(test.Value.pass ? "PASS" : "FAIL")} - {test.Key}" };
 
             stackPanel.Children.Add(testExpander);
         }
+
+        var pass = (passedTests > 0);
+
+        passText.Text = $"Passed: {(pass ? "Yes" : "No")}";
+
         testSummary.Text = $"Tests ({passedTests}/{totalTests} passed) :";
         expander.Content = stackPanel;
+
+        var oFile = System.IO.Path.GetFileName(result.filePair.OriginalFilePath);
+        var oFormat = result.filePair.OriginalFileFormat;
+        var nFile = System.IO.Path.GetFileName(result.filePair.NewFilePath);
+        var nFormat = result.filePair.NewFileFormat;
+
+        var headerText = $"{(pass ? "PASS" : "FAIL")} - {oFile} ({oFormat}) -> {nFile} ({nFormat})";
+        expander.Header = new TextBlock { Text = headerText };
 
         return expander;
     }
