@@ -98,18 +98,18 @@ public sealed class FileManager
         Directory.CreateDirectory(tempODirectory);
         Directory.CreateDirectory(tempNDirectory);
 
-        ZipHelper.ExtractZipFiles(oDirectory, tempODirectory);
-        ZipHelper.ExtractZipFiles(nDirectory, tempNDirectory);
+        ZipHelper.ExtractCompressedFiles(oDirectory, tempODirectory);
+        ZipHelper.ExtractCompressedFiles(nDirectory, tempNDirectory);
         
         var originalFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => Path.GetExtension(f) != ".zip").ToList();
+            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
         originalFiles.AddRange(_fileSystem.Directory.GetFiles(tempODirectory, "*", SearchOption.AllDirectories)
-            .Where(f => Path.GetExtension(f) != ".zip").ToList());
+            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
         
         var newFiles = _fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => Path.GetExtension(f) != ".zip").ToList();
+            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
         newFiles.AddRange(_fileSystem.Directory.GetFiles(tempNDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => Path.GetExtension(f) != ".zip").ToList());
+            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
         
         //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
         

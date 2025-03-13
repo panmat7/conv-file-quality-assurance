@@ -1,24 +1,47 @@
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using SharpCompress.Archives;
+using SharpCompress.Common;
 
 namespace AvaloniaDraft.Helpers;
 
 public abstract class ZipHelper
 {
+    public static readonly string[] CompressedFilesExtensions =
+    [
+        "*.zip", "*.rar", "*.7z", "*.tar", "*.gz"
+    ];
+    
     /// <summary>
     /// Extracts files inside a zip archive into a temp directory
     /// </summary>
     /// <param name="directory"></param>
     /// <param name="tempDirectory"></param>
-    internal static void ExtractZipFiles(string directory, string tempDirectory)
+    internal static void ExtractCompressedFiles(string directory, string tempDirectory)
     {
-        var zipFiles = Directory.GetFiles(directory, "*.zip", SearchOption.AllDirectories);
-        foreach (var zipFile in zipFiles)
+        var files = CompressedFilesExtensions.SelectMany(ext => Directory.GetFiles(directory, ext, SearchOption.AllDirectories));
+        foreach (var file in files)
         {
             // Dont work with encrypted zip archives
-            if (IsZipEncrypted(zipFile)) continue;
-            var extractPath = Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(zipFile));
-            ZipFile.ExtractToDirectory(zipFile, extractPath);
+            if (IsCompressedEncrypted(file)) continue;
+            
+            var extractPath = Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(file));
+
+            Directory.CreateDirectory(extractPath);
+
+            using var archive = ArchiveFactory.Open(file);
+            foreach (var entry in archive.Entries)
+            {
+                if (!entry.IsDirectory)
+                {
+                    entry.WriteToDirectory(extractPath, new ExtractionOptions()
+                    {
+                        ExtractFullPath = true,
+                        Overwrite = true
+                    });
+                }
+            }
         }
     }
 
@@ -27,30 +50,22 @@ public abstract class ZipHelper
     /// </summary>
     /// <param name="zipPath"></param>
     /// <returns></returns>
-    private static bool IsZipEncrypted(string zipPath)
+    private static bool IsCompressedEncrypted(string zipPath)
     {
         try
         {
-            using var archive = ZipFile.OpenRead(zipPath);
-            foreach (var entry in archive.Entries)
-            {
-                try
-                {
-                    // Attempt to read the first byte of each entry
-                    using var stream = entry.Open();
-                    stream.ReadByte();
-                }
-                catch (InvalidDataException)
-                {
-                    // Entry is encrypted or corrupted
-                    return true;
-                }
-            }
+            using var archive = ArchiveFactory.Open(zipPath);
+
+            var firstEntry = archive.Entries.FirstOrDefault();
+            if (firstEntry == null) return false;
+            using var stream = firstEntry.OpenEntryStream();
+            stream.ReadByte();
+
             return false;
         }
         catch
         {
-            // Fallback for unreadable/corrupted ZIPs
+            // Archive is encrypted or corrupted
             return true;
         }
     }
