@@ -14,12 +14,13 @@ public abstract class ZipHelper
     [
         "*.zip", "*.rar", "*.7z", "*.tar", "*.gz"
     ];
-    
+
     /// <summary>
     /// Extracts files inside a zip archive into a temp directory
     /// </summary>
     /// <param name="directory"></param>
     /// <param name="tempDirectory"></param>
+    /// <param name="fileManager"></param>
     internal static void ExtractCompressedFiles(string directory, string tempDirectory, FileManager.FileManager fileManager)
     {
         var files = CompressedFilesExtensions.SelectMany(ext => Directory.GetFiles(directory, ext, SearchOption.AllDirectories));
@@ -58,7 +59,7 @@ public abstract class ZipHelper
     /// </summary>
     /// <param name="zipPath"></param>
     /// <returns></returns>
-    public static bool IsCompressedEncrypted(string zipPath)
+    private static bool IsCompressedEncrypted(string zipPath)
     {
         try
         {
