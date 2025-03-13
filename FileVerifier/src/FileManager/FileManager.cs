@@ -122,28 +122,19 @@ public sealed class FileManager
         _tempNDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(_tempODirectory);
         Directory.CreateDirectory(_tempNDirectory);
-
-        ProcessDirectories();
-
-        foreach (var file in IgnoredFiles)
-        {
-            Console.WriteLine("\n----");
-            Console.WriteLine(file.FilePath);
-        }
+        
+        ZipHelper.ExtractCompressedFiles(_oDirectory, _tempODirectory, this);
+        ZipHelper.ExtractCompressedFiles(_nDirectory, _tempNDirectory, this);
         
         var originalFiles = _fileSystem.Directory.GetFiles(_oDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !IgnoredFiles.Any(ignored => 
-                string.Equals(ignored.FilePath, f, StringComparison.OrdinalIgnoreCase))).ToList();
+            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
         originalFiles.AddRange(_fileSystem.Directory.GetFiles(_tempODirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !IgnoredFiles.Any(ignored => 
-                string.Equals(ignored.FilePath, f, StringComparison.OrdinalIgnoreCase))).ToList());
+            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
         
         var newFiles = _fileSystem.Directory.GetFiles(_nDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !IgnoredFiles.Any(ignored => 
-                string.Equals(ignored.FilePath, f, StringComparison.OrdinalIgnoreCase))).ToList();
+            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
         newFiles.AddRange(_fileSystem.Directory.GetFiles(_tempNDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => !IgnoredFiles.Any(ignored => 
-                string.Equals(ignored.FilePath, f, StringComparison.OrdinalIgnoreCase))).ToList());
+            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
         
         //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
         
@@ -183,51 +174,6 @@ public sealed class FileManager
             {
                 Directory.Delete(tempDir, true);
             }
-        }
-    }
-
-    private void ProcessDirectories()
-    {
-        ProcessDirectory(_oDirectory, _tempODirectory);
-        ProcessDirectory(_nDirectory, _tempNDirectory);
-    }
-    
-    private void ProcessDirectory(string sourceDir, string tempDir)
-    {
-        // Process compressed files
-        var compressedFiles = _fileSystem.Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories)
-            .Where(f => ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f).ToLower()));
-        
-        foreach (var file in compressedFiles)
-        {
-            var reason = ZipHelper.IsCompressedEncrypted(file) 
-                ? ReasonForIgnoring.Encrypted 
-                : ReasonForIgnoring.Filtered;
-
-            IgnoredFiles.Add(new IgnoredFile(file, reason));
-            
-            if (!ZipHelper.IsCompressedEncrypted(file))
-            {
-                Console.WriteLine($"Starting to compress files from {file}");
-                ZipHelper.ExtractCompressedFiles(file, tempDir);
-                Console.WriteLine("Test10");
-            }
-        }
-        
-        // Process regular files
-        var regularFiles = _fileSystem.Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories)
-            .Where(f => !ZipHelper.CompressedFilesExtensions.Contains(Path.GetExtension(f)));
-        
-        foreach (var file in regularFiles)
-        {
-            // if (false) // Check if the format is supported
-            // {
-            //     IgnoredFiles.Add(new IgnoredFile(file, ReasonForIgnoring.UnsupportedFormat));
-            // }
-            // else if (false) // Check if the file format is filtered out
-            // {
-            //     IgnoredFiles.Add(new IgnoredFile(file, ReasonForIgnoring.Filtered));
-            // }
         }
     }
     

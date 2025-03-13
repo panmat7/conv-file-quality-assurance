@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using AvaloniaDraft.FileManager;
 using SharpCompress.Archives;
 using SharpCompress.Common;
 
@@ -9,35 +10,44 @@ namespace AvaloniaDraft.Helpers;
 
 public abstract class ZipHelper
 {
-    public static readonly string[] CompressedFilesExtensions = ["*.zip", "*.rar", "*.7z", "*.tar", "*.gz"];
+    public static readonly string[] CompressedFilesExtensions =
+    [
+        "*.zip", "*.rar", "*.7z", "*.tar", "*.gz"
+    ];
     
     /// <summary>
     /// Extracts files inside a zip archive into a temp directory
     /// </summary>
     /// <param name="directory"></param>
     /// <param name="tempDirectory"></param>
-    internal static void ExtractCompressedFiles(string directory, string tempDirectory)
+    internal static void ExtractCompressedFiles(string directory, string tempDirectory, FileManager.FileManager fileManager)
     {
-        var files = Directory.GetFiles(directory, "*.*", SearchOption.AllDirectories)
-            .Where(f => CompressedFilesExtensions.Contains(Path.GetExtension(f).ToLower()));
-
+        var files = CompressedFilesExtensions.SelectMany(ext => Directory.GetFiles(directory, ext, SearchOption.AllDirectories));
         foreach (var file in files)
         {
-            Console.WriteLine($"File {file} in compressed state {directory}");
-            var extractPath = Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(file));
-
-            Directory.CreateDirectory(extractPath);
-
-            using var archive = ArchiveFactory.Open(file);
-            foreach (var entry in archive.Entries)
+            if (IsCompressedEncrypted(file))
             {
-                if (!entry.IsDirectory)
+                Console.WriteLine("\n---------------\n");
+                Console.WriteLine(file);
+                fileManager.IgnoredFiles.Add(new IgnoredFile(file, ReasonForIgnoring.Encrypted));
+            }
+            else
+            {
+                var extractPath = Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(file));
+
+                Directory.CreateDirectory(extractPath);
+
+                using var archive = ArchiveFactory.Open(file);
+                foreach (var entry in archive.Entries)
                 {
-                    entry.WriteToDirectory(extractPath, new ExtractionOptions()
+                    if (!entry.IsDirectory)
                     {
-                        ExtractFullPath = true,
-                        Overwrite = true
-                    });
+                        entry.WriteToDirectory(extractPath, new ExtractionOptions()
+                        {
+                            ExtractFullPath = true,
+                            Overwrite = true
+                        });
+                    }
                 }
             }
         }
@@ -48,7 +58,7 @@ public abstract class ZipHelper
     /// </summary>
     /// <param name="zipPath"></param>
     /// <returns></returns>
-    internal static bool IsCompressedEncrypted(string zipPath)
+    public static bool IsCompressedEncrypted(string zipPath)
     {
         try
         {
