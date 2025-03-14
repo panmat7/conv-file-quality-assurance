@@ -131,4 +131,12 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
         var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
         Assert.Equal(ReasonForIgnoring.None, result);
     }
+
+    [Test]
+    public void TestUnsupportedFile()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "225x225.png");
+        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        Assert.Equal(ReasonForIgnoring.None, result);
+    }
 }
