@@ -24,7 +24,7 @@ public abstract class ZipHelper
         var files = CompressedFilesExtensions.SelectMany(ext => Directory.GetFiles(directory, ext, SearchOption.AllDirectories));
         foreach (var file in files)
         {
-            if (EncryptedFileHelper.IsCompressedEncrypted(file))
+            if (EncryptionOrCorruptionChecker.IsCompressedEncrypted(file))
             {
                 fileManager.IgnoredFiles.Add(new IgnoredFile(file, ReasonForIgnoring.Encrypted));
             }

@@ -9,7 +9,7 @@ using UglyToad.PdfPig;
 
 namespace AvaloniaDraft.Helpers;
 
-internal static class EncryptedFileHelper
+public static class EncryptionOrCorruptionChecker
 {
 
     /// <summary>
@@ -69,7 +69,7 @@ internal static class EncryptedFileHelper
         // Likely a corrupted file
         catch (Exception)
         {
-            return ReasonForIgnoring.Corrupted;
+            return ReasonForIgnoring.EncryptedOrCorrupted;
         }
     }
 
