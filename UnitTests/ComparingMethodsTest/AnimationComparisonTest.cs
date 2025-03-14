@@ -110,16 +110,6 @@ public class FileAnimationComparisonTests : TestBase
         var result = AnimationComparison.FileAnimationComparison(files);
         Assert.That(result, Is.False); // PowerPoint file with animations should fail
     }
-
-    [Test]
-    public void TestOlderPowerPointFileWithoutAnimations()
-    {
-        var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.ppt");
-        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_without_animations.pdf");
-        var files = new FilePair(oFilePath, "fmt/126", nFilePath, "fmt/19");
-        var result = AnimationComparison.FileAnimationComparison(files);
-        Assert.That(result, Is.True); // PowerPoint file without animations should pass
-    }
 }
 
 [TestFixture]

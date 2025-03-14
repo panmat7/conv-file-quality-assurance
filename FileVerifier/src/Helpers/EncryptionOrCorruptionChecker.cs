@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using AvaloniaDraft.FileManager;
 using SharpCompress.Archives;
 using UglyToad.PdfPig;
+using UglyToad.PdfPig.Exceptions;
 
 namespace AvaloniaDraft.Helpers;
 
@@ -48,9 +49,10 @@ public static class EncryptionOrCorruptionChecker
 
             return xDoc.Descendants(ns + "encryption-data").Any() ? ReasonForIgnoring.Encrypted : ReasonForIgnoring.None;
         }
+        // File is corrupted
         catch (Exception)
         {
-            return ReasonForIgnoring.Corrupted;
+            return ReasonForIgnoring.None;
         }
     }
 
@@ -66,10 +68,15 @@ public static class EncryptionOrCorruptionChecker
             using var pdf = PdfDocument.Open(filePath);
             return pdf.IsEncrypted ? ReasonForIgnoring.Encrypted : ReasonForIgnoring.None;
         }
-        // Likely a corrupted file
+        // File is encrypted
+        catch (PdfDocumentEncryptedException)
+        {
+            return ReasonForIgnoring.Encrypted;
+        }
+        // File is likely corrupted
         catch (Exception)
         {
-            return ReasonForIgnoring.EncryptedOrCorrupted;
+            return ReasonForIgnoring.None;
         }
     }
 
@@ -82,21 +89,34 @@ public static class EncryptionOrCorruptionChecker
     {
         try
         {
-            using var zip = ZipFile.OpenRead(filePath);
-            
-            if (zip.Entries.Any(e => e.FullName.Equals("EncryptedPackage", StringComparison.OrdinalIgnoreCase)))
+            // Read first 8 bytes of the file
+            var header = new byte[8];
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                fs.ReadExactly(header, 0, header.Length);
+            }
+
+            // Check if it's a standard ZIP archive
+            if (header[0] == 0x50 && header[1] == 0x4B)
+            {
+                // It's a normal Office file (not encrypted)
+                return ReasonForIgnoring.None;
+            }
+
+            // Check if it matches the CBF (Compound File Binary Format) signature
+            if (header[0] == 0xD0 && header[1] == 0xCF && header[2] == 0x11 && header[3] == 0xE0 &&
+                header[4] == 0xA1 && header[5] == 0xB1 && header[6] == 0x1A && header[7] == 0xE1)
+            {
                 return ReasonForIgnoring.Encrypted;
-            
-            var contentTypes = zip.GetEntry("[Content_Types].xml");
-            if (contentTypes == null) return ReasonForIgnoring.None;
-            using var stream = contentTypes.Open();
-            using var reader = new StreamReader(stream);
-            return reader.ReadToEnd().Contains("EncryptedPackage") ? ReasonForIgnoring.Encrypted : ReasonForIgnoring.None;
+            }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return ReasonForIgnoring.Corrupted;
+            Console.WriteLine($"Error checking encryption status: {ex.Message}");
+            return ReasonForIgnoring.None;
         }
+
+        return ReasonForIgnoring.None;
     }
     
     /// <summary>
