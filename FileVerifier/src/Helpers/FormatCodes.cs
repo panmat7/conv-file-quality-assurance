@@ -256,7 +256,7 @@ public static class FormatCodes
     ]);
 
     public static readonly FileFormat PronomCodesXLSX = new FileFormat(["xlsx"], [
-
+        "fmt/214"
     ]);
 
     public static readonly FileFormat PronomCodesODS = new FileFormat(["ods"], [
