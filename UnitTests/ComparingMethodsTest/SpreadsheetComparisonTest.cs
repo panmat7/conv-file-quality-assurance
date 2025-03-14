@@ -150,4 +150,14 @@ public class SpreadsheetComparisonTest
         
         Assert.That(res, Is.False);
     }
+
+    [Test]
+    public void PossibleSpreadsheetBreakCSV_NoDelimiter()
+    {
+        var res = SpreadsheetComparison.PossibleLineBreakCsv(_testFileDirectory + @"Spreadsheet\csv_no_delimiter.csv");
+        
+        if(res is not null) Assert.Fail();
+        
+        Assert.That(res, Is.Null);
+    }
 }

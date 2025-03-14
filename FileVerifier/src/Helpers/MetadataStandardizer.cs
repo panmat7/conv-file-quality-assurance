@@ -20,6 +20,9 @@ public enum ColorType
     Unknown
 }
 
+/// <summary>
+/// Class used to store image metadata in a standardized objects. 
+/// </summary>
 public class StandardizedImageMetadata
 {
     public string Path { get; set; } = "";

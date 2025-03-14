@@ -52,7 +52,13 @@ public static class DocumentSegmentation
             return null;
         }
     }
-
+    
+    /// <summary>
+    /// Preforms the entire image segmentation on the inputted image.
+    /// </summary>
+    /// <param name="img">The image as Emgu.Cv.Mat.</param>
+    /// <param name="darkBackground">Whether the document has a white or black background.</param>
+    /// <returns></returns>
     private static List<Rectangle>? GetRects(Mat img, bool darkBackground = false)
     {
         try

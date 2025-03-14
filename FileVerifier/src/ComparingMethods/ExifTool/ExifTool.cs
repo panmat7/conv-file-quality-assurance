@@ -10,6 +10,9 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace AvaloniaDraft.ComparingMethods.ExifTool;
 
+/// <summary>
+/// Used to store metadata of image files.
+/// </summary>
 public class ImageMetadata
 {
     public string SourceFile { get; set; } = "";
@@ -27,7 +30,10 @@ public sealed class ExifTool : IDisposable
     private readonly object _processLock = new();
     private readonly string _terminal = OperatingSystem.IsWindows() ? "cmd" : "/bin/bash"; //Assuming the app will never start on MacOS
     private int _disposed = 0; //Int so that Interlocked Exchange can be used
-
+    
+    /// <summary>
+    /// Disposes of the Exiftool object
+    /// </summary>
     public void Dispose()
     {
         //Making sure called only once
@@ -45,6 +51,12 @@ public sealed class ExifTool : IDisposable
     
     ~ExifTool() => Dispose();
     
+    /// <summary>
+    /// Executes an Exiftool command. If the process is not already running in the background, starts a new one.
+    /// </summary>
+    /// <param name="filenames">Name of the files exiftool is to check.</param>
+    /// <param name="group">Whether the group tag is to be used.</param>
+    /// <returns>The ExifTool output as a string. Null if an error occured.</returns>
     private string? RunExiftoolStayingOpen(string[] filenames, bool group = true)
     {
         lock (_processLock)
@@ -105,7 +117,10 @@ public sealed class ExifTool : IDisposable
             return outputTask.Result;
         }
     }
-
+    
+    /// <summary>
+    /// Tries to gracefully stop the process. Force terminates if necessary. 
+    /// </summary>
     private void Stop()
     {
         if(!_isLoaded) return;
@@ -132,6 +147,11 @@ public sealed class ExifTool : IDisposable
         }
     }
     
+    /// <summary>
+    /// The error handler.
+    /// </summary>
+    /// <param name="sender">Sender object.</param>
+    /// <param name="e">Error event data.</param>
     private static void ExifErrorHandler(object sender, DataReceivedEventArgs e)
     {
         if (!string.IsNullOrEmpty(e.Data))
@@ -140,11 +160,20 @@ public sealed class ExifTool : IDisposable
         }
     }
     
+    /// <summary>
+    /// Gets ExifTool output data for a set of files and returns it as a dictionary.
+    /// </summary>
+    /// <param name="filenames">Files to be checked, in form of their absolute paths.</param>
+    /// <param name="group">Whether the group tag is to be used.</param>
+    /// <returns>Exif data as string-object dictionary. Null if an error occured.</returns>
     public List<Dictionary<string, object>>? GetExifDataDictionary(string[] filenames, bool group = true)
     {
         if (_disposed == 1) return null;
-        
-        var output = RunExiftoolStayingOpen(filenames, group);
+
+        string? output;
+
+        try { output = RunExiftoolStayingOpen(filenames, group); }
+        catch { return null; }
 
         if (output == null) return null;
         
@@ -163,11 +192,19 @@ public sealed class ExifTool : IDisposable
 
     }
     
+    /// <summary>
+    /// Gets ExifTool output data for a set of files and returns it as ImageMetadata objects.
+    /// </summary>
+    /// <param name="files">Files to be checked, in form of their absolute paths.</param>
+    /// <returns>Exif data as an list of ImageMetadata objects. Null if an error occured.</returns>
     public List<ImageMetadata>? GetExifDataImageMetadata(string[] files)
     {
         if(_disposed == 1) return null;
+
+        string? output;
         
-        var output = RunExiftoolStayingOpen(files);
+        try { output = RunExiftoolStayingOpen(files); }
+        catch { return null; }
         
         if (output == null) return null;
         
@@ -184,7 +221,11 @@ public sealed class ExifTool : IDisposable
         
         return metadata;
     }
-
+    
+    /// <summary>
+    /// Tries to find the absolute path to the exiftool executable.
+    /// </summary>
+    /// <returns></returns>
     public static string? GetExifPath()
     {
         var curDir = Directory.GetCurrentDirectory();

@@ -1,13 +1,16 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.OpenGL.Surfaces;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.ViewModels;
 
 namespace AvaloniaDraft.Views;
 
@@ -23,6 +26,7 @@ public partial class HomeView : UserControl
         ConsoleService.Instance.OnMessageLogged += UpdateConsole;
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
+        DataContext = new SettingsViewModel();
     }
 
     private async void InputButton_OnClick(object? sender, RoutedEventArgs e)
@@ -100,7 +104,6 @@ public partial class HomeView : UserControl
         
         GlobalVariables.FileManager.StartVerification();
         
-        StartButton.IsEnabled = true;
         LoadButton.IsEnabled = true;
         
         Working = false;
@@ -147,7 +150,26 @@ public partial class HomeView : UserControl
     
     private void PerformBackgroundWork()
     {
-        GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+        try
+        {
+            GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+        }
+        catch (InvalidOperationException err)
+        {
+            var errWindow =
+                new ErrorWindow(
+                    "Duplicate file names in the input or output folder! Ensure all files have unique names, matching their converted counterpart.");
+            errWindow.ShowDialog((this.VisualRoot as Window)!);
+            return;
+        }
+        catch
+        {
+            var errWindow =
+                new ErrorWindow(
+                    "An error occured when forming file pairs.");
+            errWindow.ShowDialog((this.VisualRoot as Window)!);
+            return;
+        }
         GlobalVariables.FileManager.GetSiegfriedFormats();
         GlobalVariables.FileManager.WritePairs();
     }

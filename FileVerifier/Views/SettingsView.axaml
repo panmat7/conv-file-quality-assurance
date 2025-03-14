@@ -17,21 +17,21 @@
         
         <!-- Top Button Row -->
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
-            <Button VerticalAlignment="Center" FontSize="18" Margin="5"
+            <Button Click="ResetSettings" VerticalAlignment="Center" FontSize="18" Margin="5"
                     Background="#139A43" Foreground="White"
                     BorderBrush="#0DAB76" BorderThickness="2">
                 Reset Settings
             </Button>
-            <Button VerticalAlignment="Center" FontSize="18" Margin="5"
+            <Button Click="SaveSettings" VerticalAlignment="Center" FontSize="18" Margin="5"
                     Background="#139A43" Foreground="White"
                     BorderBrush="#0DAB76" BorderThickness="2">
                 Save Settings
             </Button>
-            <ComboBox SelectedIndex="0" VerticalAlignment="Center" FontSize="18">
+            <ComboBox x:Name="SettingsProfile" SelectionChanged="SetProfile" SelectedIndex="0" VerticalAlignment="Center" FontSize="18">
                 <ComboBoxItem>Default</ComboBoxItem>
                 <ComboBoxItem>Custom Settings 1</ComboBoxItem>
-                <ComboBoxItem>Custom Settings 2</ComboBoxItem>
-                <ComboBoxItem>Custom Settings 3</ComboBoxItem>
+				<ComboBoxItem>Custom Settings 2</ComboBoxItem>
+				<ComboBoxItem>Custom Settings 3</ComboBoxItem>
             </ComboBox>
         </StackPanel>
 
@@ -53,7 +53,7 @@
                 <Expander Grid.Column="2" Grid.Row="0" HorizontalAlignment="Stretch">
                     <Expander.Header>General</Expander.Header>
                     <StackPanel>
-                        <CheckBox>Ignore Unsupported File Formats</CheckBox>
+                        <CheckBox IsChecked="{Binding IsIgnoreUnsupportedFormatsEnabled}">Ignore Unsupported File Formats</CheckBox>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
                             <TextBox Text="{Binding Value, ElementName=Slider, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
