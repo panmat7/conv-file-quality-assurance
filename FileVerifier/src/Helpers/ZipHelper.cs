@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using AvaloniaDraft.FileManager;
 using SharpCompress.Archives;
@@ -26,10 +24,8 @@ public abstract class ZipHelper
         var files = CompressedFilesExtensions.SelectMany(ext => Directory.GetFiles(directory, ext, SearchOption.AllDirectories));
         foreach (var file in files)
         {
-            if (IsCompressedEncrypted(file))
+            if (EncryptedFileHelper.IsCompressedEncrypted(file))
             {
-                Console.WriteLine("\n---------------\n");
-                Console.WriteLine(file);
                 fileManager.IgnoredFiles.Add(new IgnoredFile(file, ReasonForIgnoring.Encrypted));
             }
             else
@@ -51,31 +47,6 @@ public abstract class ZipHelper
                     }
                 }
             }
-        }
-    }
-
-    /// <summary>
-    /// Checks if a zip file is encrypted
-    /// </summary>
-    /// <param name="zipPath"></param>
-    /// <returns></returns>
-    private static bool IsCompressedEncrypted(string zipPath)
-    {
-        try
-        {
-            using var archive = ArchiveFactory.Open(zipPath);
-
-            var firstEntry = archive.Entries.FirstOrDefault();
-            if (firstEntry == null) return false;
-            using var stream = firstEntry.OpenEntryStream();
-            stream.ReadByte();
-
-            return false;
-        }
-        catch
-        {
-            // Archive is encrypted or corrupted
-            return true;
         }
     }
 }

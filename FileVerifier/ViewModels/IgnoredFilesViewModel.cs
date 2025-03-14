@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using AvaloniaDraft.FileManager;
 
@@ -35,6 +33,7 @@ public sealed class IgnoredFilesViewModel : INotifyPropertyChanged
                 {
                     ReasonForIgnoring.Encrypted => " | Encrypted",
                     ReasonForIgnoring.Filtered => " | Filtered out",
+                    ReasonForIgnoring.Corrupted => " | Corrupted",
                     ReasonForIgnoring.UnsupportedFormat => " | Unsupported file format",
                     _ => " | Unknown"
                 };

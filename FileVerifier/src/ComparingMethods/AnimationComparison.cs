@@ -3,7 +3,6 @@ using System;
 using System.IO.Compression;
 using System.Linq;
 using System.Xml.Linq;
-using Aspose.Slides;
 using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -35,7 +34,7 @@ public static class AnimationComparison
             {
                 _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(files.OriginalFileFormat)
                     => CheckXmlBasedFormatForAnimation(files.OriginalFilePath),
-                _ => CheckOtherFormatsForAnimation(files.OriginalFilePath)
+                _ => false,
             };
         }
         catch (Exception e)
@@ -99,18 +98,5 @@ public static class AnimationComparison
         // Check for ANY element in the animation namespace
         return contentXml.Descendants()
             .Any(e => e.Name.Namespace == animNs);
-    }
-    
-    /// <summary>
-    ///  Checks if the PowerPoint files other than pptx contain animations
-    /// </summary>
-    /// <param name="filePath"> File path to file </param>
-    /// <returns> Returns whether if animations were found </returns>
-    public static bool CheckOtherFormatsForAnimation(string filePath)
-    {
-        using var file = new Presentation(filePath);
-        
-        // Check if the ppt file contains animations by checking the timeline of each slide
-        return file.Slides.All(slide => slide.Timeline.MainSequence.Count <= 0);
     }
 }

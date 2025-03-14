@@ -79,8 +79,10 @@ public enum ReasonForIgnoring
 {
     Encrypted,
     Filtered,
+    Corrupted,
     UnsupportedFormat,
-    Unknown
+    Unknown,
+    None
 }
 
 /// <summary>
@@ -127,14 +129,22 @@ public sealed class FileManager
         ZipHelper.ExtractCompressedFiles(_nDirectory, _tempNDirectory, this);
         
         var originalFiles = _fileSystem.Directory.GetFiles(_oDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
+            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) 
+                        && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))
+                        && EncryptedFileHelper.CheckFileEncryptionOrCorruption(f) == ReasonForIgnoring.None).ToList();
         originalFiles.AddRange(_fileSystem.Directory.GetFiles(_tempODirectory, "*", SearchOption.AllDirectories)
-            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
+            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) 
+                        && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))
+                        && EncryptedFileHelper.CheckFileEncryptionOrCorruption(f) == ReasonForIgnoring.None).ToList());
         
         var newFiles = _fileSystem.Directory.GetFiles(_nDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList();
+            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) 
+                        && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))
+                        && EncryptedFileHelper.CheckFileEncryptionOrCorruption(f) == ReasonForIgnoring.None).ToList();
         newFiles.AddRange(_fileSystem.Directory.GetFiles(_tempNDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))).ToList());
+            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) 
+                        && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))
+                        && EncryptedFileHelper.CheckFileEncryptionOrCorruption(f) == ReasonForIgnoring.None).ToList());
         
         //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
         
