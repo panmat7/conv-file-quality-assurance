@@ -128,24 +128,10 @@ public sealed class FileManager
         
         ZipHelper.ExtractCompressedFiles(_oDirectory, _tempODirectory, this);
         ZipHelper.ExtractCompressedFiles(_nDirectory, _tempNDirectory, this);
-        
-        var originalFiles = _fileSystem.Directory.GetFiles(_oDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) 
-                        && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))
-                        && EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(f) == ReasonForIgnoring.None).ToList();
-        originalFiles.AddRange(_fileSystem.Directory.GetFiles(_tempODirectory, "*", SearchOption.AllDirectories)
-            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) 
-                        && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))
-                        && EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(f) == ReasonForIgnoring.None).ToList());
-        
-        var newFiles = _fileSystem.Directory.GetFiles(_nDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) 
-                        && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))
-                        && EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(f) == ReasonForIgnoring.None).ToList();
-        newFiles.AddRange(_fileSystem.Directory.GetFiles(_tempNDirectory, "*", SearchOption.AllDirectories)
-            .Where(f => IgnoredFiles.All(ignored => ignored.FilePath != f) 
-                        && !ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f))
-                        && EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(f) == ReasonForIgnoring.None).ToList());
+
+        // Process files to work on
+        var originalFiles = ProcessFiles(_oDirectory, _tempODirectory);
+        var newFiles = ProcessFiles(_nDirectory, _tempNDirectory);
         
         //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
         
@@ -175,6 +161,33 @@ public sealed class FileManager
         
         // Register cleanup of temporary directories on application exit
         AppDomain.CurrentDomain.ProcessExit += (s, e) => CleanupTempDirectories(_tempODirectory, _tempNDirectory);
+    }
+
+    private List<string> ProcessFiles(string srcPath, string tempPath)
+    {
+        var files = _fileSystem.Directory.GetFiles(srcPath, "*", SearchOption.AllDirectories)
+            .Where(f =>
+            {
+                if (ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f)))
+                    return false;
+                var reason = EncryptionChecker.CheckForEncryption(f);
+                if (reason == ReasonForIgnoring.None) return true;
+                IgnoredFiles.Add(new IgnoredFile(f, reason));
+                return false;
+            }).ToList();
+        
+        files.AddRange(_fileSystem.Directory.GetFiles(tempPath, "*", SearchOption.AllDirectories)
+            .Where(f =>
+            {
+                if (ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f)))
+                    return false;
+                var reason = EncryptionChecker.CheckForEncryption(f);
+                if (reason == ReasonForIgnoring.None) return true;
+                IgnoredFiles.Add(new IgnoredFile(f, reason));
+                return false;
+            }).ToList());
+
+        return files;
     }
 
     private static void CleanupTempDirectories(params string[] tempDirectories)

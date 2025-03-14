@@ -12,7 +12,7 @@ public class IsCompressedEncryptedTest : TestBase
     public void TestEncryptedZipFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.zip");
-        var result = EncryptionOrCorruptionChecker.IsCompressedEncrypted(filePath);
+        var result = EncryptionChecker.IsCompressedEncrypted(filePath);
         Assert.True(result);
     }
 
@@ -20,7 +20,7 @@ public class IsCompressedEncryptedTest : TestBase
     public void TestNonEncryptedZipFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.zip");
-        var result = EncryptionOrCorruptionChecker.IsCompressedEncrypted(filePath);
+        var result = EncryptionChecker.IsCompressedEncrypted(filePath);
         Assert.False(result);
     }
     
@@ -28,7 +28,7 @@ public class IsCompressedEncryptedTest : TestBase
     public void TestEncryptedRarFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.rar");
-        var result = EncryptionOrCorruptionChecker.IsCompressedEncrypted(filePath);
+        var result = EncryptionChecker.IsCompressedEncrypted(filePath);
         Assert.True(result);
     }
 
@@ -36,7 +36,7 @@ public class IsCompressedEncryptedTest : TestBase
     public void TestNonEncryptedRarFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.rar");
-        var result = EncryptionOrCorruptionChecker.IsCompressedEncrypted(filePath);
+        var result = EncryptionChecker.IsCompressedEncrypted(filePath);
         Assert.False(result);
     }
 }
@@ -48,7 +48,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestEncryptedPdfFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.pdf");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.Encrypted, result);
     }
 
@@ -56,7 +56,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestNonEncryptedPdfFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.pdf");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.None, result);
     }
     
@@ -64,7 +64,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestEncryptedOdtFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.odt");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.Encrypted, result);
     }
 
@@ -72,7 +72,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestNonEncryptedOdtFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.odt");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.None, result);
     }
     
@@ -80,7 +80,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestEncryptedDocxFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.docx");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.Encrypted, result);
     }
 
@@ -88,7 +88,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestNonEncryptedDocxFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.docx");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.None, result);
     }
     
@@ -96,7 +96,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestEncryptedPptxFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.pptx");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.Encrypted, result);
     }
     
@@ -104,7 +104,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestEncryptedOdpFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.odp");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.Encrypted, result);
     }
     
@@ -112,7 +112,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestCorruptedOdtFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "corrupted.odt");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.None, result);
     }
     
@@ -120,7 +120,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestCorruptedPdfFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "corrupted.pdf");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.None, result);
     }
     
@@ -128,7 +128,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestCorruptedDocxFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "corrupted.docx");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.None, result);
     }
 
@@ -136,7 +136,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     public void TestUnsupportedFile()
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "225x225.png");
-        var result = EncryptionOrCorruptionChecker.CheckFileEncryptionOrCorruption(filePath);
+        var result = EncryptionChecker.CheckForEncryption(filePath);
         Assert.Equal(ReasonForIgnoring.None, result);
     }
 }

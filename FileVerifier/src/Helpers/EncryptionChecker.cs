@@ -10,7 +10,7 @@ using UglyToad.PdfPig.Exceptions;
 
 namespace AvaloniaDraft.Helpers;
 
-public static class EncryptionOrCorruptionChecker
+public static class EncryptionChecker
 {
 
     /// <summary>
@@ -18,7 +18,7 @@ public static class EncryptionOrCorruptionChecker
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    public static ReasonForIgnoring CheckFileEncryptionOrCorruption(string filePath)
+    public static ReasonForIgnoring CheckForEncryption(string filePath)
     {
         return Path.GetExtension(filePath).ToLower() switch
         {
