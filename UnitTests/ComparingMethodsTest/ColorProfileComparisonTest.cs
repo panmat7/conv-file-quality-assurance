@@ -359,6 +359,113 @@ public class PowerPointToPdfColorProfileComparisonTest : TestBase
 }
 
 [TestFixture]
+public class EmlToPdfColorProfileComparison : TestBase
+{
+    [Test]
+    public void TestEmailWithNoImages()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-no-images.eml");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-no-images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/950", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.EmlToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestEmailWithOneMissingProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-one-missing-profile.eml");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-one-missing-profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/950", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.EmlToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestEmailWithTwoSameImages()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-two-same-images.eml");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-two-same-images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/950", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.EmlToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+}
+
+[TestFixture]
+public class OdtAndOdpToPdfColorProfileComparison : TestBase
+{
+    [Test]
+    public void TestOdtWithNoImages()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODT", "odt-with-no-images.odt");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "odt-with-no-images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/1756", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.OdtAndOdpToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestOdtWithOneMissingProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODT", "odt-with-one-missing-color-profiles.odt");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "odt-with-one-missing-color-profiles.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/1756", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.OdtAndOdpToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestOdtWithTwoDifferentProfiles()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODT", "odt-with-two-color-profiles.odt");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "odt-with-two-color-profiles.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/1756", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.OdtAndOdpToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+    
+    [Test]
+    public void TestOdpWithNoImages()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODP", "odp-with-no-images.odp");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "odp-with-no-images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/1754", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.OdtAndOdpToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestOdpWithOneMissingProfile()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODP", "odp-with-one-missing-color-profile.odp");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "odp-with-one-missing-color-profile.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/1754", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.OdtAndOdpToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestOdpWithTwoDifferentProfiles()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODP", "odp-with-two-color-profiles.odp");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "odp-with-two-color-profiles.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/1754", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.OdtAndOdpToPdfColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+}
+
+[TestFixture]
 public class XlsxToPdfColorProfileComparison : TestBase
 {
     [Test]
@@ -416,7 +523,7 @@ public class GetNonAnchoredImagesFromXlsxTest : TestBase
             "excel_with_two_images_of_different_profile_over_cells.xlsx");
 
         var expected = new List<string> { "image2.jpg" };
-        var result = ColorProfileComparison.GetNonAnchoredImagesFromXlsx(filePath);
+        var result = ImageExtraction.GetNonAnchoredImagesFromXlsx(filePath);
         
         Assert.That(result, Is.EqualTo(expected));
     }
@@ -509,6 +616,28 @@ public class FileColorProfileComparisonTest : TestBase
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_two_images_of_different_profile_over_cells.pdf");
 
         var files = new FilePair(oFilePath, "fmt/214", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestSameImageUsedMultipleTimes()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation-with-same-image-multiple-times.pptx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation-with-same-image-multiple-times.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/477");
+        var result = ColorProfileComparison.FileColorProfileComparison(files);
+        Assert.That(result, Is.True); // Two files where color profiles match should pass
+    }
+    
+    [Test]
+    public void TestEmlToPdf()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-two-same-images.eml");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-two-same-images.pdf");
+
+        var files = new FilePair(oFilePath, "fmt/950", nFilePath, "fmt/477");
         var result = ColorProfileComparison.FileColorProfileComparison(files);
         Assert.That(result, Is.True);
     }

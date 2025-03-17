@@ -2,7 +2,7 @@
 using System;
 using System.IO.Compression;
 using System.Linq;
-using Aspose.Slides;
+using System.Xml.Linq;
 using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -34,7 +34,7 @@ public static class AnimationComparison
             {
                 _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(files.OriginalFileFormat)
                     => CheckXmlBasedFormatForAnimation(files.OriginalFilePath),
-                _ => CheckOtherFormatsForAnimation(files.OriginalFilePath)
+                _ => false,
             };
         }
         catch (Exception e)
@@ -62,7 +62,7 @@ public static class AnimationComparison
         foreach (var slide in slides)
         {
             using var stream = slide.Open();
-            var slideXml = System.Xml.Linq.XDocument.Load(stream);
+            var slideXml = XDocument.Load(stream);
                     
             // Check if the slide's xml contents contains animations
             if (slideXml.Descendants().Any(e => e.Name.LocalName is "anim" or "animEffect" or "timing"))
@@ -74,17 +74,29 @@ public static class AnimationComparison
 
         return true;
     }
-    
+
     /// <summary>
-    ///  Checks if the PowerPoint files other than pptx contain animations
+    /// Checks for animations OpenDocument presentation
     /// </summary>
-    /// <param name="filePath"> File path to file </param>
-    /// <returns> Returns whether if animations were found </returns>
-    public static bool CheckOtherFormatsForAnimation(string filePath)
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static bool CheckOdpForAnimation(string filePath)
     {
-        using var file = new Presentation(filePath);
+        using var zip = ZipFile.OpenRead(filePath);
+        // Gather all slides
+        var contentEntry = zip.Entries.FirstOrDefault(e => 
+            e.Name.Equals("content.xml", StringComparison.OrdinalIgnoreCase));
+            
+        if (contentEntry == null) return false;
         
-        // Check if the ppt file contains animations by checking the timeline of each slide
-        return file.Slides.All(slide => slide.Timeline.MainSequence.Count <= 0);
+        using var stream = contentEntry.Open();
+        var contentXml = XDocument.Load(stream);
+        
+        // Define the animation namespace URI
+        XNamespace animNs = "urn:oasis:names:tc:opendocument:xmlns:animation:1.0";
+    
+        // Check for ANY element in the animation namespace
+        return contentXml.Descendants()
+            .Any(e => e.Name.Namespace == animNs);
     }
 }

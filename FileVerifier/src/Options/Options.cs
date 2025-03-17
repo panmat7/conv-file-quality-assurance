@@ -11,7 +11,6 @@ using System.Text.Json;
 using System.IO;
 using System.Text.Json.Serialization;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
-using Aspose.Slides.Warnings;
 
 namespace AvaloniaDraft.Options;
 

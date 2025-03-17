@@ -219,7 +219,7 @@ public static class FormatCodes
     ]);
 
     public static readonly FileFormat PronomCodesXLSX = new FileFormat(["xlsx"], [
-
+        "fmt/214"
     ]);
 
     public static readonly FileFormat PronomCodesODS = new FileFormat(["ods"], [
@@ -285,5 +285,15 @@ public static class FormatCodes
         PronomCodesTIFF,
         PronomCodesBMP,
         PronomCodesGIF
+    ]);
+    
+    // Mail
+    public static readonly FileFormat PronomCodesEML = new FileFormat(["eml"],
+    [
+        "fmt/950"
+    ]);
+
+    public static readonly FileFormat PronomCodesMails = new FileFormat([
+        PronomCodesEML,
     ]);
 }
