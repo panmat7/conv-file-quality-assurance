@@ -71,6 +71,7 @@ public sealed class FileManager
     private readonly string oDirectory;
     private readonly string nDirectory;
     private List<FilePair> filePairs;
+    private readonly List<string> fileDuplicates;
     private readonly List<string> pairlessFiles;
     private readonly IFileSystem _fileSystem;
     
@@ -91,15 +92,22 @@ public sealed class FileManager
         
         filePairs = new List<FilePair>();
         pairlessFiles = new List<string>();
+        fileDuplicates = new List<string>();
         
         var originalFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories).ToList();
         var newFiles = _fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories).ToList();
         
-        //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
-        
         //If any file name appears more than once - inform
-        if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != originalFiles.Count)
-            throw new InvalidOperationException("FILENAME DUPLICATES IN ORIGINAL DIRECTORY");
+        if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() !=
+            originalFiles.Count)
+        {
+            fileDuplicates.AddRange(
+                originalFiles.GroupBy(x => _fileSystem.Path.GetFileNameWithoutExtension(x))
+                    .Where(g => g.Count() > 1)
+                    .SelectMany(g => g)
+            );
+        }
+        
         
         if (newFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != newFiles.Count)
             throw new InvalidOperationException("FILENAME DUPLICATES IN NEW DIRECTORY");
@@ -116,7 +124,29 @@ public sealed class FileManager
             }
             catch
             {
-                pairlessFiles.Add(iFile);
+                //Checking if its one of the duplicates, if not - to pairless
+                if (fileDuplicates.Contains(iFile))
+                {
+                    //Constructing the name using the same method as the conversion tool
+                    var constructedName = _fileSystem.Path.GetFileNameWithoutExtension(iFile) + "_" +
+                                          _fileSystem.Path.GetExtension(iFile).TrimStart('.').ToUpper();
+                    
+                    //We have a match, create pair, otherwise add to pairless
+                    if (newFiles.Any(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName))
+                    {
+                        filePairs.Add(new FilePair(iFile, "",
+                            newFiles.First(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName),
+                            ""));
+                    }
+                    else
+                    {
+                        pairlessFiles.Add(iFile);
+                    }
+                }
+                else
+                {
+                    pairlessFiles.Add(iFile);
+                }
             }
         }
         
