@@ -244,7 +244,10 @@ public static class ComperingMethods
 
         if(VerifyColorType(originalStandardized, newStandardized) is { } error)
             errors.Add(error);
-
+        
+        var fcErr = originalStandardized.CompareFrameCount(newStandardized);
+        if (fcErr != null) errors.Add(fcErr);
+        
         if(!originalStandardized.VerifyPhysicalUnits() ^ !newStandardized.VerifyPhysicalUnits()) //XOR
         {
             errors.Add(new Error(

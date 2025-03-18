@@ -9,7 +9,7 @@ public static class TempFiles
     /// </summary>
     /// <param name="bytes">Byte content of the file.</param>
     /// <param name="extension">The expected extension of the file. Left out if .temp is fine.</param>
-    /// <returns></returns>
+    /// <returns>Path to the file on disk.</returns>
     public static string? CreateTemporaryFile(byte[] bytes, string? extension = null)
     {
         if (extension == null)
