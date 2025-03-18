@@ -16,7 +16,7 @@ public static class PngPipelines
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
     public static Action<FilePair, int, Action<int>, Action>? GetPNGPipelines(string outputFormat)
     {
-        if (FormatCodes.PronomCodesImages.Contains(outputFormat))
+        if (!FormatCodes.PronomCodesPNG.Contains(outputFormat) && FormatCodes.PronomCodesImages.Contains(outputFormat))
             return PNGToImagePipeline;
         
         if(FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))

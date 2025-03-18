@@ -16,7 +16,7 @@ public static class JpgPipelines
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
     public static Action<FilePair, int, Action<int>, Action>? GetJPEGPipelines(string outputFormat)
     {
-        if (FormatCodes.PronomCodesImages.Contains(outputFormat))
+        if (!FormatCodes.PronomCodesJPEG.Contains(outputFormat) && FormatCodes.PronomCodesImages.Contains(outputFormat))
             return JPEGToImagePipeline;
         
         if(FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
