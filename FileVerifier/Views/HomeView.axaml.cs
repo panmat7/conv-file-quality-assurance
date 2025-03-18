@@ -169,18 +169,23 @@ public partial class HomeView : UserControl
         }
         catch (InvalidOperationException err)
         {
-            var errWindow =
-                new ErrorWindow(
-                    "Duplicate file names in the input or output folder! Ensure all files have unique names, matching their converted counterpart.");
-            errWindow.ShowDialog((this.VisualRoot as Window)!);
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow = new ErrorWindow(
+                    "Duplicate file names in the input or output folder! Ensure all files have unique names, matching their converted counterpart."
+                );
+                errWindow.ShowDialog((this.VisualRoot as Window)!);
+            });
             return;
         }
         catch
         {
-            var errWindow =
-                new ErrorWindow(
-                    "An error occured when forming file pairs.");
-            errWindow.ShowDialog((this.VisualRoot as Window)!);
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow =
+                    new ErrorWindow("An error occured when forming file pairs.");
+                errWindow.ShowDialog((this.VisualRoot as Window)!);
+            });
             return;
         }
         GlobalVariables.FileManager.GetSiegfriedFormats();

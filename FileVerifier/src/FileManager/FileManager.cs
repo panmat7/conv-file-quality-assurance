@@ -105,6 +105,7 @@ public sealed class FileManager
     
     public List<string> GetPairlessFiles() => _pairlessFiles;
     public List<FilePair> GetFilePairs() => _filePairs;
+    public IFileSystem GetFilesystem() => _fileSystem;
     
     //Threading
     private int _currentThreads = 0;
@@ -124,10 +125,10 @@ public sealed class FileManager
         _pairlessFiles = new List<string>();
         _fileDuplicates = new List<string>();
         
-        _tempODirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        _tempNDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(_tempODirectory);
-        Directory.CreateDirectory(_tempNDirectory);
+        _tempODirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), _fileSystem.Path.GetRandomFileName());
+        _tempNDirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), _fileSystem.Path.GetRandomFileName());
+        _fileSystem.Directory.CreateDirectory(_tempODirectory);
+        _fileSystem.Directory.CreateDirectory(_tempNDirectory);
         
         ZipHelper.ExtractCompressedFiles(_oDirectory, _tempODirectory, this);
         ZipHelper.ExtractCompressedFiles(_nDirectory, _tempNDirectory, this);
@@ -201,7 +202,7 @@ public sealed class FileManager
         var files = _fileSystem.Directory.GetFiles(srcPath, "*", SearchOption.AllDirectories)
             .Where(f =>
             {
-                if (ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f)))
+                if (ZipHelper.CompressedFilesExtensions.Contains("*" + _fileSystem.Path.GetExtension(f)))
                     return false;
                 var reason = EncryptionChecker.CheckForEncryption(f);
                 if (reason == ReasonForIgnoring.None) return true;
@@ -212,7 +213,7 @@ public sealed class FileManager
         files.AddRange(_fileSystem.Directory.GetFiles(tempPath, "*", SearchOption.AllDirectories)
             .Where(f =>
             {
-                if (ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f)))
+                if (ZipHelper.CompressedFilesExtensions.Contains("*" + _fileSystem.Path.GetExtension(f)))
                     return false;
                 var reason = EncryptionChecker.CheckForEncryption(f);
                 if (reason == ReasonForIgnoring.None) return true;
