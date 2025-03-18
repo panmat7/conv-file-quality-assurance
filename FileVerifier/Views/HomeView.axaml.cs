@@ -108,7 +108,7 @@ public partial class HomeView : UserControl
         
         Working = false;
         
-        ConsoleService.Instance.WriteToConsole("Testing start button");
+        //ConsoleService.Instance.WriteToConsole("Testing start button");
     }
 
     
@@ -126,6 +126,17 @@ public partial class HomeView : UserControl
             await Task.Run(PerformBackgroundWork);
 
             StartButton.IsEnabled = true;
+        }
+        catch (InvalidOperationException err)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow = new ErrorWindow(
+                    "Duplicate file names in the input or output folder! Ensure all files have unique names, matching their converted counterpart."
+                );
+                errWindow.ShowDialog((this.VisualRoot as Window)!);
+            });
+            return;
         }
         finally
         {
