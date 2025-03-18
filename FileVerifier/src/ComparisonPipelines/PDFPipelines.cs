@@ -7,7 +7,7 @@ using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
-public static class PdfPipeline
+public static class PDFPipelines
 {
     /// <summary>
     /// Function responsible for assigning the correct pipeline for PDF files
@@ -94,7 +94,7 @@ public static class PdfPipeline
                 {
                     e.Add(new Error(
                         "Difference in images contained in the pdf's color profile",
-                        "The images contained in the two pdfs did not pass Color Profile comparison.",
+                        "The images contained in the two pdf files did not pass Color Profile comparison.",
                         ErrorSeverity.Medium,
                         ErrorType.Metadata
                     ));
