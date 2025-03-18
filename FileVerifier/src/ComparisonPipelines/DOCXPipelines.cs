@@ -6,7 +6,7 @@ using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
-public static class DOCXPipelines
+public static class DocxPipelines
 {
     /// <summary>
     /// Function resposible for assigning the correct pipeline for DOCX files
@@ -76,6 +76,6 @@ public static class DOCXPipelines
 
             
             
-        }, additionalThreads, updateThreadCount, markDone);
+        }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

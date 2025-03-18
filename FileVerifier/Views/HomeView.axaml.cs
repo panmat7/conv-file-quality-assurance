@@ -28,8 +28,9 @@ public partial class HomeView : UserControl
     public HomeView()
     {
         InitializeComponent();
-        ConsoleService.Instance.OnMessageLogged += UpdateConsole;
-        ConsoleService.Instance.UpdateProgressBar += FileDone;
+        UiControlService.Instance.OnMessageLogged += AppendConsole;
+        UiControlService.Instance.OverwriteConsole += OverwriteConsole;
+        UiControlService.Instance.UpdateProgressBar += FileDone;
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
         DataContext = new SettingsViewModel();
@@ -108,6 +109,8 @@ public partial class HomeView : UserControl
         StartButton.IsEnabled = false;
         LoadButton.IsEnabled = false;
         
+        OverwriteConsole(null);
+        
         await Task.Run(() =>
         {
             GlobalVariables.FileManager.StartVerification();
@@ -116,8 +119,6 @@ public partial class HomeView : UserControl
         LoadButton.IsEnabled = true;
         
         Working = false;
-        
-        ConsoleService.Instance.WriteToConsole("Testing start button");
     }
 
     
@@ -187,13 +188,20 @@ public partial class HomeView : UserControl
         }
     }
 
-    private void UpdateConsole(string message)
+    private void AppendConsole(string message)
     {
-        Console.Text = null; // This should probably be some switch statement resetting only when something something
         Dispatcher.UIThread.Post(() =>
         {
             Console.Text += message + Environment.NewLine;
         });
+    }
+
+    private void OverwriteConsole(string? message)
+    {
+        Console.Text = null;
+
+        if (message != null)
+            AppendConsole(message);
     }
 }
 

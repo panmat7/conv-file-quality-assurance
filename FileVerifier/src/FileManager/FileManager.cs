@@ -294,7 +294,7 @@ public sealed class FileManager
         
         foreach (KeyValuePair<string, Tuple<string, int>> kvp in pronomFormat)
         {
-            ConsoleService.Instance.WriteToConsole($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
+            UiControlService.Instance.OverwriteConsoleOutput($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
         }
     }
 }
