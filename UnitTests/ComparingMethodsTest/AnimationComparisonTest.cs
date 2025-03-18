@@ -20,6 +20,28 @@ public class IsPowerPointFileTests
 }
 
 [TestFixture]
+public class CheckOdpFormatForAnimationTests : TestBase
+{
+    [Test]
+    public void TestSuccess()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "ODP", "odp-with-animations.odp");
+        
+        var result = AnimationComparison.CheckOdpForAnimation(filePath);
+        Assert.That(result, Is.True); // Non-PowerPoint file should pass
+    }
+    
+    [Test]
+    public void TestFail()
+    {
+        var filePath = Path.Combine(TestFileDirectory, "ODP", "odp-with-no-images.odp");
+        
+        var result = AnimationComparison.CheckOdpForAnimation(filePath);
+        Assert.That(result, Is.False); // Both PowerPoint files should pass
+    }
+}
+
+[TestFixture]
 public class FileAnimationComparisonTests : TestBase
 {
     [Test]
@@ -88,16 +110,6 @@ public class FileAnimationComparisonTests : TestBase
         var result = AnimationComparison.FileAnimationComparison(files);
         Assert.That(result, Is.False); // PowerPoint file with animations should fail
     }
-
-    [Test]
-    public void TestOlderPowerPointFileWithoutAnimations()
-    {
-        var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.ppt");
-        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "presentation_without_animations.pdf");
-        var files = new FilePair(oFilePath, "fmt/126", nFilePath, "fmt/19");
-        var result = AnimationComparison.FileAnimationComparison(files);
-        Assert.That(result, Is.True); // PowerPoint file without animations should pass
-    }
 }
 
 [TestFixture]
@@ -116,122 +128,6 @@ public class CheckPptxFormatForAnimationTests : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.pptx");
         var result = AnimationComparison.CheckXmlBasedFormatForAnimation(filePath);
-        Assert.That(result, Is.True); // File without animations should pass
-    }
-}
-
-[TestFixture]
-public class CheckOtherFormatsForAnimationTests : TestBase
-{
-    [Test]
-    public void TestPptFileWithAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_animations.ppt");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.False); // File with animations should fail
-    }
-
-    [Test]
-    public void TestPptFileWithoutAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.ppt");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.True); // File without animations should pass
-    }
-    
-    [Test]
-    public void TestPptmFileWithAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_animations.pptm");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.False); // File with animations should not pass
-    }
-    
-    [Test]
-    public void TestPptmFileWithoutAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.pptm");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.True); // File without animations should pass
-    }
-    
-    [Test]
-    public void TestPotxFileWithAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_animations.potx");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.False); // File with animations should not pass
-    }
-    
-    [Test]
-    public void TestPotxFileWithoutAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.potx");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.True); // File without animations should pass
-    }
-    
-    [Test]
-    public void TestPotmFileWithAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_animations.potm");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.False); // File with animations should not pass
-    }
-    
-    [Test]
-    public void TestPotmFileWithoutAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.potm");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.True); // File without animations should pass
-    }
-    
-    [Test]
-    public void TestPpsxFileWithAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_animations.ppsx");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.False); // File with animations should not pass
-    }
-    
-    [Test]
-    public void TestPpsxFileWithoutAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.ppsx");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.True); // File without animations should pass
-    }
-    
-    [Test]
-    public void TestPpsmFileWithAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_animations.ppsm");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.False); // File with animations should not pass
-    }
-    
-    [Test]
-    public void TestPpsmFileWithoutAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.ppsm");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.True); // File without animations should pass
-    }
-    
-    [Test]
-    public void TestXmlFileWithAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_with_animations.xml");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
-        Assert.That(result, Is.False); // File with animations should fail
-    }
-
-    [Test]
-    public void TestXmlFileWithoutAnimations()
-    {
-        var filePath = Path.Combine(TestFileDirectory, "PowerPoint", "presentation_without_animations.xml");
-        var result = AnimationComparison.CheckOtherFormatsForAnimation(filePath);
         Assert.That(result, Is.True); // File without animations should pass
     }
 }

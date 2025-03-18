@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using AvaloniaDraft.ComparisonPipelines;
@@ -62,46 +63,84 @@ public class FilePair
     }
 }
 
+public class IgnoredFile
+{
+    public string FilePath { get; set; }
+    public ReasonForIgnoring Reason { get; set; }
+
+    public IgnoredFile(string filePath, ReasonForIgnoring reason = ReasonForIgnoring.Unknown)
+    {
+        FilePath = filePath;
+        Reason = reason;
+    }
+    
+}
+
+public enum ReasonForIgnoring
+{
+    Encrypted,
+    Filtered,
+    Corrupted,
+    EncryptedOrCorrupted,
+    UnsupportedFormat,
+    Unknown,
+    None
+}
+
 /// <summary>
 /// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process and
 /// starting the process itself.
 /// </summary>
 public sealed class FileManager
 {
-    private readonly string oDirectory;
-    private readonly string nDirectory;
-    private List<FilePair> filePairs;
-    private readonly List<string> fileDuplicates;
-    private readonly List<string> pairlessFiles;
+    private readonly string _oDirectory;
+    private readonly string _nDirectory;
+    private readonly string _tempODirectory;
+    private readonly string _tempNDirectory;
+    internal List<IgnoredFile> IgnoredFiles { get; set; }
+    private List<FilePair> _filePairs;
+    private readonly List<string> _pairlessFiles;
+    private readonly List<string> _fileDuplicates;
     private readonly IFileSystem _fileSystem;
     
-    public List<string> GetPairlessFiles() => pairlessFiles;
-    public List<FilePair> GetFilePairs() => filePairs;
+    public List<string> GetPairlessFiles() => _pairlessFiles;
+    public List<FilePair> GetFilePairs() => _filePairs;
     
     //Threading
-    private int CurrentThreads = 0;
-    private static readonly object _lock = new object();
-    private static readonly object _listLock = new object();
-    private readonly List<Thread> _threads = new();
+    private int _currentThreads = 0;
+    private static readonly object Lock = new object();
+    private static readonly object ListLock = new object();
+    private readonly List<Thread> _threads = [];
     
     public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
     {
         _fileSystem = fileSystem ?? new FileSystem();
-        oDirectory = originalDirectory;
-        nDirectory = newDirectory;
+        _oDirectory = originalDirectory;
+        _nDirectory = newDirectory;
         
-        filePairs = new List<FilePair>();
-        pairlessFiles = new List<string>();
-        fileDuplicates = new List<string>();
+        IgnoredFiles = [];
         
-        var originalFiles = _fileSystem.Directory.GetFiles(oDirectory, "*", SearchOption.AllDirectories).ToList();
-        var newFiles = _fileSystem.Directory.GetFiles(nDirectory, "*", SearchOption.AllDirectories).ToList();
+        _filePairs = new List<FilePair>();
+        _pairlessFiles = new List<string>();
+        _fileDuplicates = new List<string>();
+        
+        _tempODirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        _tempNDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(_tempODirectory);
+        Directory.CreateDirectory(_tempNDirectory);
+        
+        ZipHelper.ExtractCompressedFiles(_oDirectory, _tempODirectory, this);
+        ZipHelper.ExtractCompressedFiles(_nDirectory, _tempNDirectory, this);
+
+        // Process files to work on
+        var originalFiles = ProcessFiles(_oDirectory, _tempODirectory);
+        var newFiles = ProcessFiles(_nDirectory, _tempNDirectory);
         
         //If any file name appears more than once - inform
         if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() !=
             originalFiles.Count)
         {
-            fileDuplicates.AddRange(
+            _fileDuplicates.AddRange(
                 originalFiles.GroupBy(x => _fileSystem.Path.GetFileNameWithoutExtension(x))
                     .Where(g => g.Count() > 1)
                     .SelectMany(g => g)
@@ -120,12 +159,12 @@ public sealed class FileManager
                 var oFile = newFiles.First(f =>
                     _fileSystem.Path.GetFileNameWithoutExtension(f) ==
                     _fileSystem.Path.GetFileNameWithoutExtension(iFile));
-                filePairs.Add(new FilePair(iFile, "", oFile, ""));
+                _filePairs.Add(new FilePair(iFile, "", oFile, ""));
             }
             catch
             {
                 //Checking if its one of the duplicates, if not - to pairless
-                if (fileDuplicates.Contains(iFile))
+                if (_fileDuplicates.Contains(iFile))
                 {
                     //Constructing the name using the same method as the conversion tool
                     var constructedName = _fileSystem.Path.GetFileNameWithoutExtension(iFile) + "_" +
@@ -134,24 +173,65 @@ public sealed class FileManager
                     //We have a match, create pair, otherwise add to pairless
                     if (newFiles.Any(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName))
                     {
-                        filePairs.Add(new FilePair(iFile, "",
+                        _filePairs.Add(new FilePair(iFile, "",
                             newFiles.First(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName),
                             ""));
                     }
                     else
                     {
-                        pairlessFiles.Add(iFile);
+                        _pairlessFiles.Add(iFile);
                     }
                 }
                 else
                 {
-                    pairlessFiles.Add(iFile);
+                    _pairlessFiles.Add(iFile);
                 }
             }
         }
         
         //Adding all files that do not have a pair from newfiles to pairless
-        pairlessFiles.AddRange(newFiles.FindAll(f => !filePairs.Select(fp => fp.NewFilePath).Contains(f)));
+        _pairlessFiles.AddRange(newFiles.FindAll(f => !_filePairs.Select(fp => fp.NewFilePath).Contains(f)));
+        
+        // Register cleanup of temporary directories on application exit
+        AppDomain.CurrentDomain.ProcessExit += (s, e) => CleanupTempDirectories(_tempODirectory, _tempNDirectory);
+    }
+
+    private List<string> ProcessFiles(string srcPath, string tempPath)
+    {
+        var files = _fileSystem.Directory.GetFiles(srcPath, "*", SearchOption.AllDirectories)
+            .Where(f =>
+            {
+                if (ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f)))
+                    return false;
+                var reason = EncryptionChecker.CheckForEncryption(f);
+                if (reason == ReasonForIgnoring.None) return true;
+                IgnoredFiles.Add(new IgnoredFile(f, reason));
+                return false;
+            }).ToList();
+        
+        files.AddRange(_fileSystem.Directory.GetFiles(tempPath, "*", SearchOption.AllDirectories)
+            .Where(f =>
+            {
+                if (ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f)))
+                    return false;
+                var reason = EncryptionChecker.CheckForEncryption(f);
+                if (reason == ReasonForIgnoring.None) return true;
+                IgnoredFiles.Add(new IgnoredFile(f, reason));
+                return false;
+            }).ToList());
+
+        return files;
+    }
+
+    private static void CleanupTempDirectories(params string[] tempDirectories)
+    {
+        foreach (var tempDir in tempDirectories)
+        {
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
     }
     
     /// <summary>
@@ -159,7 +239,7 @@ public sealed class FileManager
     /// </summary>
     public void GetSiegfriedFormats()
     {
-        Siegfried.GetFileFormats(oDirectory, nDirectory, ref filePairs);
+        Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs);
     }
     
     /// <summary>
@@ -172,26 +252,26 @@ public sealed class FileManager
         //Continuing until done with all files
         while (true)
         {
-            lock (_lock)
+            lock (Lock)
             {
-                Console.WriteLine($"Using {CurrentThreads} threads of {maxThreads} threads.");
+                Console.WriteLine($"Using {_currentThreads} threads of {maxThreads} threads.");
                 
-                if (CurrentThreads < maxThreads)
+                if (_currentThreads < maxThreads)
                 {
-                    var pair = filePairs.FirstOrDefault((p) => !p.InProcess && !p.Done);
+                    var pair = _filePairs.FirstOrDefault((p) => !p.InProcess && !p.Done);
                     if (pair == null) break; //We are done, everything either in progress or done
                     
                     pair.StartProcess();
-                    Console.WriteLine($"Done with {filePairs.IndexOf(pair)} files out of {filePairs.Count} files.");
+                    Console.WriteLine($"Done with {_filePairs.IndexOf(pair)} files out of {_filePairs.Count} files.");
                     
                     var assigned = GetAdditionalThreadCount(pair);
-                    if (maxThreads < CurrentThreads + (1 + assigned))
-                        assigned = maxThreads - CurrentThreads - 1; //Making sure we don't create too many threads
+                    if (maxThreads < _currentThreads + (1 + assigned))
+                        assigned = maxThreads - _currentThreads - 1; //Making sure we don't create too many threads
 
                     if (SelectAndStartPipeline(pair, assigned))
                     {
                         Console.WriteLine($"THREAD STARTED");
-                        CurrentThreads += (1 + assigned); //Main thread + additional assigned
+                        _currentThreads += (1 + assigned); //Main thread + additional assigned
                     }
                     else
                     {
@@ -206,7 +286,7 @@ public sealed class FileManager
 
         AwaitThreads(); //Awaiting all remaining threads
         
-        foreach (var file in filePairs)
+        foreach (var file in _filePairs)
         {
             Console.WriteLine($"This file is verified: {file.Done}");
         }
@@ -233,14 +313,14 @@ public sealed class FileManager
             }
             finally
             {
-                lock (_listLock)
+                lock (ListLock)
                 {
                     _threads.Remove(Thread.CurrentThread); //When finished, remove from list
                 }
             }
         });
         
-        lock (_listLock) _threads.Add(thread); //Add the thread to list of currently active
+        lock (ListLock) _threads.Add(thread); //Add the thread to list of currently active
         
         thread.Start();
         
@@ -264,9 +344,9 @@ public sealed class FileManager
     /// <param name="change">The change in thread count</param>
     private void ReturnUsedThreadsAndFinishFile(int change)
     {
-        lock (_lock)
+        lock (Lock)
         {
-            CurrentThreads += change;
+            _currentThreads += change;
         }
     }
     
@@ -277,14 +357,14 @@ public sealed class FileManager
     {
         List<Thread> toAwait;
         
-        lock (_listLock) toAwait = new List<Thread>(_threads);
+        lock (ListLock) toAwait = new List<Thread>(_threads);
         
         foreach (var t in toAwait)
         {
             t.Join();
         }
         
-        lock (_listLock) _threads.Clear();
+        lock (ListLock) _threads.Clear();
     }
     
     /// <summary>
@@ -296,7 +376,7 @@ public sealed class FileManager
 
         var pronomFormat = new Dictionary<string, Tuple<string, int>>();
 
-        foreach (var pair in filePairs)
+        foreach (var pair in _filePairs)
         {
             Console.WriteLine($"{pair.OriginalFilePath} ({pair.OriginalFileFormat}) - {pair.NewFilePath} ({pair.NewFileFormat})");
 
@@ -316,7 +396,7 @@ public sealed class FileManager
         }
 
         Console.WriteLine("PAIRLESS:");
-        foreach (var file in pairlessFiles)
+        foreach (var file in _pairlessFiles)
         {
             Console.WriteLine($"{file}");
         }

@@ -123,11 +123,45 @@ public partial class HomeView : UserControl
 
     
 
-    private void LoadButton_OnClick(object? sender, RoutedEventArgs e)
+    private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
     {
         ResetProgress();
         
         if (Working || string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
+
+        var loadingWindow = new LoadingView();
+
+        try
+        {
+            loadingWindow.Show();
+
+            await Task.Run(PerformBackgroundWork);
+
+            StartButton.IsEnabled = true;
+        }
+        finally
+        {
+            loadingWindow.Close();
+
+            try
+            {
+                if (GlobalVariables.FileManager != null)
+                {
+                    var ignoredFilesWindow = new IgnoredFilesView(
+                        GlobalVariables.FileManager.GetFilePairs().Count, GlobalVariables.FileManager.IgnoredFiles);
+                    ignoredFilesWindow.Show();
+                }
+            }
+            catch (Exception exception)
+            {
+                System.Console.WriteLine(exception);
+                throw;
+            }
+        }
+    }
+    
+    private void PerformBackgroundWork()
+    {
         try
         {
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
@@ -149,10 +183,8 @@ public partial class HomeView : UserControl
             errWindow.ShowDialog((this.VisualRoot as Window)!);
             return;
         }
-        
         GlobalVariables.FileManager.GetSiegfriedFormats();
         GlobalVariables.FileManager.WritePairs();
-        StartButton.IsEnabled = true;
     }
 
     private void SetFileCount(int count)
