@@ -83,6 +83,8 @@ public sealed class ExifTool : IDisposable
 
                 _exifProcess.Start();
                 _exifProcess.BeginErrorReadLine();
+                
+                _exifProcess.StandardInput.WriteLine("-execute"); //Doing this to clear the std input
             
                 _isLoaded = true;
             }

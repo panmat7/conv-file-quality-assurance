@@ -60,7 +60,7 @@ public static class DocumentSegmentation
     /// <param name="darkBackground">Whether the document has a white or black background.</param>
     /// <param name="presentation">Whether the document is a presentation, if yes will apply additional iteration for
     /// morphing resulting is better grouping for lager objects.</param>
-    /// <returns></returns>
+    /// <returns>List of segments ad rectangles. Null if an error occured.</returns>
     private static List<Rectangle>? GetRects(Mat img, bool darkBackground = false, bool presentation = false)
     {
         try

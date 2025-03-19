@@ -11,11 +11,13 @@ public class ComparisonPipelines : TestBase
     public void PNGPipelinesTest()
     {
         var pjPipeline = PngPipelines.GetPNGPipelines("fmt/43"); //To jpeg
+        var dpPipeline = DocxPipelines.GetDocxPipeline("fmt/95"); //To pdf
         var nonePipeline = PngPipelines.GetPNGPipelines("none");
         
         if(pjPipeline is null) Assert.Fail();
         if(nonePipeline is not null) Assert.Fail();
         
-        Assert.That(pjPipeline?.Method.Name, Is.EqualTo("PNGToJPEGPipeline"));
+        Assert.That(pjPipeline?.Method.Name, Is.EqualTo("PNGToImagePipeline"));
+        Assert.That(dpPipeline?.Method.Name, Is.EqualTo("DOCXToPDFPipeline"));
     }
 }
