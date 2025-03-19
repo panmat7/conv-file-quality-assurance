@@ -131,6 +131,68 @@ public static class PngPipelines
                 }
             }
             
+            if (true) // Check for color profile later
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = ColorProfileComparison.ImageToImageColorProfileComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    e.Add(new Error(
+                        "Error comparing color profiles",
+                        "There occurred an error while extracting and comparing color profiles.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+
+                if (!exceptionOccurred && !res)
+                {
+                    e.Add(new Error(
+                        "Difference in both images color profile",
+                        "The images did not pass Color Profile comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+            }
+            
+            if (true) // Check for transparency later
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = TransparencyComparison.ImageToImageTransparencyComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    e.Add(new Error(
+                        "Error comparing transparency",
+                        "There occurred an error while comparing transparency.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+                
+                if (!exceptionOccurred && !res)
+                {
+                    e.Add(new Error(
+                        "Difference in both images transparency",
+                        "The images did not pass Transparency comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Visual
+                    ));
+                }
+            }
+            
             ConsoleService.Instance.WriteToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
@@ -238,6 +300,68 @@ public static class PngPipelines
                 }
             }
             
+            if (true) // Check for color profile later
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = ColorProfileComparison.ImageToImageColorProfileComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    e.Add(new Error(
+                        "Error comparing color profiles",
+                        "There occurred an error while extracting and comparing color profiles.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+
+                if (!exceptionOccurred && !res)
+                {
+                    e.Add(new Error(
+                        "Difference in both images color profile",
+                        "The images did not pass Color Profile comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+            }
+            
+            if (true) // Check for transparency later
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = TransparencyComparison.ImageToImageTransparencyComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    e.Add(new Error(
+                        "Error comparing transparency",
+                        "There occurred an error while comparing transparency.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+                
+                if (!exceptionOccurred && !res)
+                {
+                    e.Add(new Error(
+                        "Difference in both images transparency",
+                        "The images did not pass Transparency comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Visual
+                    ));
+                }
+            }
+            
             ConsoleService.Instance.WriteToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
@@ -341,6 +465,68 @@ public static class PngPipelines
                         ErrorSeverity.High,
                         ErrorType.Visual,
                         res.ToString("0.##")
+                    ));
+                }
+            }
+            
+            if (true) // Check for color profile later
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = ColorProfileComparison.ImageToImageColorProfileComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    e.Add(new Error(
+                        "Error comparing color profiles",
+                        "There occurred an error while extracting and comparing color profiles.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+
+                if (!exceptionOccurred && !res)
+                {
+                    e.Add(new Error(
+                        "Difference in both images color profile",
+                        "The images did not pass Color Profile comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+            }
+            
+            if (true) // Check for transparency later
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = TransparencyComparison.ImageToImageTransparencyComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    e.Add(new Error(
+                        "Error comparing transparency",
+                        "There occurred an error while comparing transparency.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+                
+                if (!exceptionOccurred && !res)
+                {
+                    e.Add(new Error(
+                        "Difference in both images transparency",
+                        "The images did not pass Transparency comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Visual
                     ));
                 }
             }

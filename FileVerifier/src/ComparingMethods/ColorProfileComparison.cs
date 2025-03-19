@@ -12,47 +12,6 @@ namespace AvaloniaDraft.ComparingMethods;
 public static class ColorProfileComparison
 {
     /// <summary>
-    /// Checks if color profile in original and new file are the same
-    /// </summary>
-    /// <param name="files"> Takes in the two files used during comparison </param>
-    /// <returns> Returns whether it passed the test </returns>
-    public static bool FileColorProfileComparison(FilePair files)
-    {
-        var oFormat = files.OriginalFileFormat;
-        var nFormat = files.NewFileFormat;
-
-        try
-        {
-            return oFormat switch
-            {
-                _ when FormatCodes.PronomCodesImages.Contains(oFormat) && FormatCodes.PronomCodesImages.Contains(nFormat) 
-                    => ImageToImageColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesImages.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
-                    => ImageToPdfColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesPDFA.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat) =>
-                       PdfToPdfColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
-                    => XmlBasedPowerPointToPdfColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesDOCX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
-                    => DocxToPdfColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesXLSX.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
-                    => XlsxToPdfColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesEML.Contains(oFormat) && FormatCodes.PronomCodesPDFA.Contains(nFormat)
-                    => EmlToPdfColorProfileComparison(files),
-                _ when FormatCodes.PronomCodesODT.Contains(oFormat) || FormatCodes.PronomCodesODP.Contains(oFormat) && 
-                    FormatCodes.PronomCodesPDFA.Contains(nFormat)
-                    => OdtAndOdpToPdfColorProfileComparison(files),
-                _ => throw new NotSupportedException("Unsupported comparison format.")
-            };
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Error while comparing color profiles: {e.Message}");
-            return false; // If checking for color profile fails it automatically fails the test
-        }
-    }
-    
-    /// <summary>
     /// Compares the color profiles of two images
     /// </summary>
     /// <param name="files"></param>
