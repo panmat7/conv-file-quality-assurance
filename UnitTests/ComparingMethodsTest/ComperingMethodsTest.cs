@@ -30,7 +30,7 @@ public class ComperingMethodsTest
     }
 
     [Test]
-    public void GetFileSizeDifferenceTest_0B_1B()
+    public void CheckFileSizeDifferenceTest_0B_1B()
     {
         var files = new FilePair
         (
@@ -38,12 +38,15 @@ public class ComperingMethodsTest
             _testFileDirectory + @"TestDocuments\OneLetter.txt"
         );
         
-        var diff = ComperingMethods.GetFileSizeDifference(files);
-        Assert.That(diff, Is.EqualTo(1));
+        var diff = ComperingMethods.CheckFileSizeDifference(files, 0.5);
+        
+        if(diff is null) Assert.Fail();
+       
+        Assert.That(diff, Is.True);
     }
     
     [Test]
-    public void GetFileSizeDifferenceTest_33293B_1B()
+    public void CheckFileSizeDifferenceTest_33293B_1B()
     {
         var files = new FilePair
         (
@@ -51,12 +54,15 @@ public class ComperingMethodsTest
             _testFileDirectory + @"TestDocuments\OneLetter.txt"
         );
         
-        var diff = ComperingMethods.GetFileSizeDifference(files);
-        Assert.That(diff, Is.EqualTo(33292));
+        var diff = ComperingMethods.CheckFileSizeDifference(files, 0.5);
+        
+        if(diff is null) Assert.Fail();
+        
+        Assert.That(diff, Is.True);
     }
     
     [Test]
-    public void GetFileSizeDifferenceTest_33293B_33293B()
+    public void CheckFileSizeDifferenceTest_33293B_33293B()
     {
         var files = new FilePair
         (
@@ -64,12 +70,15 @@ public class ComperingMethodsTest
             _testFileDirectory + @"TestDocuments\NoImage3Pages.pdf"
         );
         
-        var diff = ComperingMethods.GetFileSizeDifference(files);
-        Assert.That(diff, Is.EqualTo(0));
+        var diff = ComperingMethods.CheckFileSizeDifference(files, 0.5);
+        
+        if(diff is null) Assert.Fail();
+        
+        Assert.That(diff, Is.False);
     }
 
     [Test]
-    public void GetFileSizeDifferenceTest_Invalid()
+    public void CheckFileSizeDifferenceTest_Invalid()
     {
         var files = new FilePair
         (
@@ -77,7 +86,7 @@ public class ComperingMethodsTest
             "Real"
         );
         
-        var diff = ComperingMethods.GetFileSizeDifference(files);
+        var diff = ComperingMethods.CheckFileSizeDifference(files, 0.5);
         Assert.That(diff, Is.Null);
     }
 

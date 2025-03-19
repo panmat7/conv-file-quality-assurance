@@ -52,14 +52,16 @@ public static class DocumentSegmentation
             return null;
         }
     }
-    
+
     /// <summary>
     /// Preforms the entire image segmentation on the inputted image.
     /// </summary>
     /// <param name="img">The image as Emgu.Cv.Mat.</param>
     /// <param name="darkBackground">Whether the document has a white or black background.</param>
+    /// <param name="presentation">Whether the document is a presentation, if yes will apply additional iteration for
+    /// morphing resulting is better grouping for lager objects.</param>
     /// <returns></returns>
-    private static List<Rectangle>? GetRects(Mat img, bool darkBackground = false)
+    private static List<Rectangle>? GetRects(Mat img, bool darkBackground = false, bool presentation = false)
     {
         try
         {
@@ -78,7 +80,7 @@ public static class DocumentSegmentation
             //Morphing to connect parts together
             var kernel = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(5, 5), new Point(-1, -1));
             var morph = new Mat();
-            CvInvoke.MorphologyEx(threshold, morph, MorphOp.Dilate, kernel, new Point(-1, -1), 3, BorderType.Default,
+            CvInvoke.MorphologyEx(threshold, morph, MorphOp.Dilate, kernel, new Point(-1, -1), (presentation ? 4 : 3), BorderType.Default,
                 new MCvScalar());
 
             //Finding contours

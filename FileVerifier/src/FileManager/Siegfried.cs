@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -68,6 +69,8 @@ public static class Siegfried
             RedirectStandardOutput = true,
             UseShellExecute = false,
             RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8, //Otherwise causes errors with certain characters
+            StandardErrorEncoding = Encoding.UTF8,
         };
 
         using var process = new Process();

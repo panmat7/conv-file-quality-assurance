@@ -32,7 +32,7 @@ public class SpreadsheetComparisonTest
     {
         var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(_testFileDirectory + @"Spreadsheet\excel_bellow_break.xlsx");
         
-        Assert.That(res, Is.False);
+        Assert.That(res, Is.Empty);
     }
 
     [Test]
@@ -40,7 +40,19 @@ public class SpreadsheetComparisonTest
     {
         var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(_testFileDirectory + @"Spreadsheet\excel_above_break.xlsx");
         
-        Assert.That(res, Is.True);
+        if(res.Count == 1 && res[0].Name == "Table break") Assert.Pass();
+        
+        Assert.Fail();
+    }
+    
+    [Test]
+    public void PossibleBreakExcelCellTest_Manual_Break()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(_testFileDirectory + @"Spreadsheet\excel_manual_break.xlsx");
+        
+        if(res.Count == 1 && res[0].Name == "Manual page break found") Assert.Pass();
+        
+        Assert.Fail();
     }
 
     [Test]
@@ -48,7 +60,9 @@ public class SpreadsheetComparisonTest
     {
         var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(_testFileDirectory + @"Spreadsheet\excel_with_one_missing_profile_over_cells.xlsx");
         
-        Assert.That(res, Is.True);
+        if(res.Count == 1 && res[0].Name == "Images found in spreadsheet") Assert.Pass();
+        
+        Assert.Fail();
     }
 
     [Test]
@@ -57,7 +71,9 @@ public class SpreadsheetComparisonTest
         var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(_testFileDirectory +
                                                                       @"Spreadsheet\excel_multi_break.xlsx");
         
-        Assert.That(res, Is.True);
+        if(res.Count == 1 && res[0].Name == "Table break") Assert.Pass();
+        
+        Assert.Fail();
     }
 
     [Test]
@@ -66,7 +82,7 @@ public class SpreadsheetComparisonTest
         var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(_testFileDirectory +
                                                                       @"Spreadsheet\excel_multi_no_break.xlsx");
         
-        Assert.That(res, Is.False);
+        Assert.That(res, Is.Empty);
     }
 
     [Test]
@@ -76,7 +92,7 @@ public class SpreadsheetComparisonTest
         
         if(res is null) Assert.Fail();
         
-        Assert.That(res, Is.False);
+        Assert.That(res, Is.Empty);
     }
 
     [Test]
@@ -86,7 +102,21 @@ public class SpreadsheetComparisonTest
         
         if(res is null) Assert.Fail();
         
-        Assert.That(res, Is.True);
+        if(res.Count == 1 && res[0].Name == "Table break") Assert.Pass();
+        
+        Assert.Fail();
+    }
+    
+    [Test]
+    public void PossibleSpreadsheetBreakOpenDocTest_Manual_Break()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(_testFileDirectory + @"Spreadsheet\opendoc_manual_break.ods");
+        
+        if(res is null) Assert.Fail();
+        
+        if(res.Count == 1 && res[0].Name == "Manual page break found") Assert.Pass();
+        
+        Assert.Fail();
     }
 
     [Test]
@@ -97,7 +127,20 @@ public class SpreadsheetComparisonTest
         
         if(res is null) Assert.Fail();
         
-        Assert.That(res, Is.True);
+        Assert.That(res, Is.Empty);
+    }
+    
+    [Test]
+    public void PossibleSpreadsheetBreakOpenDocTest_Wide_Image()
+    {
+        var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(_testFileDirectory +
+                                                                        @"Spreadsheet\opendoc_with_wide_image.ods");
+        
+        if(res is null) Assert.Fail();
+        
+        if(res.Count == 1 && res[0].Name == "Object break") Assert.Pass();
+        
+        Assert.Fail();
     }
 
     [Test]
@@ -108,7 +151,9 @@ public class SpreadsheetComparisonTest
         
         if(res is null) Assert.Fail();
         
-        Assert.That(res, Is.True);
+        if(res.Count == 1 && res[0].Name == "Table break") Assert.Pass();
+        
+        Assert.Fail();
     }
 
     [Test]
@@ -118,7 +163,7 @@ public class SpreadsheetComparisonTest
         
         if(res is null) Assert.Fail();
         
-        Assert.That(res, Is.False);
+        Assert.That(res, Is.Empty);
     }
 
     [Test]

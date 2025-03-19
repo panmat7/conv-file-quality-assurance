@@ -100,10 +100,12 @@ public sealed class FileManager
     internal List<IgnoredFile> IgnoredFiles { get; set; }
     private List<FilePair> _filePairs;
     private readonly List<string> _pairlessFiles;
+    private readonly List<string> _fileDuplicates;
     private readonly IFileSystem _fileSystem;
     
     public List<string> GetPairlessFiles() => _pairlessFiles;
     public List<FilePair> GetFilePairs() => _filePairs;
+    public IFileSystem GetFilesystem() => _fileSystem;
     
     //Threading
     private int _currentThreads = 0;
@@ -113,20 +115,20 @@ public sealed class FileManager
     
     public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
     {
-        Console.WriteLine("Test1");
         _fileSystem = fileSystem ?? new FileSystem();
         _oDirectory = originalDirectory;
         _nDirectory = newDirectory;
         
         IgnoredFiles = [];
         
-        _filePairs = [];
-        _pairlessFiles = [];
+        _filePairs = new List<FilePair>();
+        _pairlessFiles = new List<string>();
+        _fileDuplicates = new List<string>();
         
-        _tempODirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        _tempNDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(_tempODirectory);
-        Directory.CreateDirectory(_tempNDirectory);
+        _tempODirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), _fileSystem.Path.GetRandomFileName());
+        _tempNDirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), _fileSystem.Path.GetRandomFileName());
+        _fileSystem.Directory.CreateDirectory(_tempODirectory);
+        _fileSystem.Directory.CreateDirectory(_tempNDirectory);
         
         ZipHelper.ExtractCompressedFiles(_oDirectory, _tempODirectory, this);
         ZipHelper.ExtractCompressedFiles(_nDirectory, _tempNDirectory, this);
@@ -135,11 +137,17 @@ public sealed class FileManager
         var originalFiles = ProcessFiles(_oDirectory, _tempODirectory);
         var newFiles = ProcessFiles(_nDirectory, _tempNDirectory);
         
-        //Check for number of files here? Like, we probably don't want to run 1 000 000 files...
-        
         //If any file name appears more than once - inform
-        if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != originalFiles.Count)
-            throw new InvalidOperationException("FILENAME DUPLICATES IN ORIGINAL DIRECTORY");
+        if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() !=
+            originalFiles.Count)
+        {
+            _fileDuplicates.AddRange(
+                originalFiles.GroupBy(x => _fileSystem.Path.GetFileNameWithoutExtension(x))
+                    .Where(g => g.Count() > 1)
+                    .SelectMany(g => g)
+            );
+        }
+        
         
         if (newFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != newFiles.Count)
             throw new InvalidOperationException("FILENAME DUPLICATES IN NEW DIRECTORY");
@@ -156,7 +164,29 @@ public sealed class FileManager
             }
             catch
             {
-                _pairlessFiles.Add(iFile);
+                //Checking if its one of the duplicates, if not - to pairless
+                if (_fileDuplicates.Contains(iFile))
+                {
+                    //Constructing the name using the same method as the conversion tool
+                    var constructedName = _fileSystem.Path.GetFileNameWithoutExtension(iFile) + "_" +
+                                          _fileSystem.Path.GetExtension(iFile).TrimStart('.').ToUpper();
+                    
+                    //We have a match, create pair, otherwise add to pairless
+                    if (newFiles.Any(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName))
+                    {
+                        _filePairs.Add(new FilePair(iFile, "",
+                            newFiles.First(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName),
+                            ""));
+                    }
+                    else
+                    {
+                        _pairlessFiles.Add(iFile);
+                    }
+                }
+                else
+                {
+                    _pairlessFiles.Add(iFile);
+                }
             }
         }
         
@@ -172,7 +202,7 @@ public sealed class FileManager
         var files = _fileSystem.Directory.GetFiles(srcPath, "*", SearchOption.AllDirectories)
             .Where(f =>
             {
-                if (ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f)))
+                if (ZipHelper.CompressedFilesExtensions.Contains("*" + _fileSystem.Path.GetExtension(f)))
                     return false;
                 var reason = EncryptionChecker.CheckForEncryption(f);
                 if (reason == ReasonForIgnoring.None) return true;
@@ -183,7 +213,7 @@ public sealed class FileManager
         files.AddRange(_fileSystem.Directory.GetFiles(tempPath, "*", SearchOption.AllDirectories)
             .Where(f =>
             {
-                if (ZipHelper.CompressedFilesExtensions.Contains("*" + Path.GetExtension(f)))
+                if (ZipHelper.CompressedFilesExtensions.Contains("*" + _fileSystem.Path.GetExtension(f)))
                     return false;
                 var reason = EncryptionChecker.CheckForEncryption(f);
                 if (reason == ReasonForIgnoring.None) return true;
@@ -375,7 +405,7 @@ public sealed class FileManager
         
         foreach (KeyValuePair<string, Tuple<string, int>> kvp in pronomFormat)
         {
-            ConsoleService.Instance.WriteToConsole($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
+            UiControlService.Instance.OverwriteConsoleOutput($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
         }
     }
 }
