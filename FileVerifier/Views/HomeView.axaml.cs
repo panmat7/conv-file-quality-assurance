@@ -139,6 +139,17 @@ public partial class HomeView : UserControl
 
             StartButton.IsEnabled = true;
         }
+        catch (InvalidOperationException err)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow = new ErrorWindow(
+                    "Duplicate file names in the input or output folder! Ensure all files have unique names, matching their converted counterpart."
+                );
+                errWindow.ShowDialog((this.VisualRoot as Window)!);
+            });
+            return;
+        }
         finally
         {
             loadingWindow.Close();
