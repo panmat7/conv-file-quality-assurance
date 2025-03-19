@@ -26,7 +26,7 @@ public static class PngPipelines
     }
 
     /// <summary>
-    /// Pipeline responsible for comparing PNG to other image format conversions
+    /// Pipeline responsible for comparing PNG to TIFF conversions
     /// </summary>
     /// <param name="pair">The pair of files to compare</param>
     /// <param name="additionalThreads">Number of threads available for usage</param>
@@ -127,6 +127,37 @@ public static class PngPipelines
                         ErrorSeverity.High,
                         ErrorType.Visual,
                         res.ToString("0.##")
+                    ));
+                }
+            }
+            
+            if (true) // Check for color profile later
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = ColorProfileComparison.ImageToImageColorProfileComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    e.Add(new Error(
+                        "Error comparing color profiles",
+                        "There occurred an error while extracting and comparing color profiles.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+
+                if (!exceptionOccurred && !res)
+                {
+                    e.Add(new Error(
+                        "Difference in both images color profile",
+                        "The images did not pass Color Profile comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
                     ));
                 }
             }
