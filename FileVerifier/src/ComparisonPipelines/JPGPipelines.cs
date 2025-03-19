@@ -7,32 +7,32 @@ using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
-public static class PngPipelines
+public static class JpgPipelines
 {
     /// <summary>
-    /// Function responsible for assigning the correct pipeline for PNG files
+    /// Function responsible for assigning the correct pipeline for JPEG files
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetPNGPipelines(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetJPEGPipelines(string outputFormat)
     {
-        if (!FormatCodes.PronomCodesPNG.Contains(outputFormat) && FormatCodes.PronomCodesImages.Contains(outputFormat))
-            return PNGToImagePipeline;
+        if (!FormatCodes.PronomCodesJPEG.Contains(outputFormat) && FormatCodes.PronomCodesImages.Contains(outputFormat))
+            return JPEGToImagePipeline;
         
         if(FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
-            return PNGToPDFPipeline;
+            return JPEGToPDFPipieline;
 
         return null;
     }
 
     /// <summary>
-    /// Pipeline responsible for comparing PNG to TIFF conversions
+    /// Pipeline responsible for comparing JPEG to other image format conversions
     /// </summary>
     /// <param name="pair">The pair of files to compare</param>
     /// <param name="additionalThreads">Number of threads available for usage</param>
     /// <param name="updateThreadCount">Callback function used to update current thread count</param>
     /// <param name="markDone">Function marking the FilePair as done</param>
-    private static void PNGToImagePipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount, Action markDone)
+    private static void JPEGToImagePipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount, Action markDone)
     {
         BasePipeline.ExecutePipeline(() =>
         {
@@ -109,7 +109,7 @@ public static class PngPipelines
             {
                 var acceptance = 85; //Read from options later ?
 
-                var res = ImageRegistration.CalculateHistogramSimilarity(pair);
+                var res = PbpComparison.CalculateImageSimilarity(pair, additionalThreads);
 
                 if (res < 0)
                 {
@@ -131,46 +131,18 @@ public static class PngPipelines
                 }
             }
             
-            if (true) // Check for color profile later
-            {
-                var res = false;
-                var exceptionOccurred = false;
-
-                try
-                {
-                    res = ColorProfileComparison.ImageToImageColorProfileComparison(pair);
-                }
-                catch (Exception)
-                {
-                    exceptionOccurred = true;
-                    e.Add(new Error(
-                        "Error comparing color profiles",
-                        "There occurred an error while extracting and comparing color profiles.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Metadata
-                    ));
-                }
-
-                if (!exceptionOccurred && !res)
-                {
-                    e.Add(new Error(
-                        "Difference in both images color profile",
-                        "The images did not pass Color Profile comparison.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Metadata
-                    ));
-                }
-            }
-            
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
-    
-    private static void PNGToPDFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+
+    private static void JPEGToPDFPipieline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
-        
+        BasePipeline.ExecutePipeline(() =>
+        {
+            
+        }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

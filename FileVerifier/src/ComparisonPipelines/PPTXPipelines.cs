@@ -25,17 +25,23 @@ public static class PptxPipelines
             
             if (true) //Check options for file size check later
             {
-                var res = ComperingMethods.GetFileSizeDifference(pair);
-                
-                var f = new FileInfo(pair.OriginalFilePath);
-                
-                if (res > f.Length * 0.5) //Adjust for accuracy later
+                var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
+
+                if (res == null)
+                {
+                    e.Add(new Error(
+                        "Could not get file size difference",
+                        "The tool was unable to get the file size difference for at least one file.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    ));
+                } else if ((bool)res)
                 {
                     //For now only printing to console
                     e.Add(new Error(
                         "File Size Difference",
                         "The difference in size for the two files exceeds expected values.",
-                        ErrorSeverity.High,
+                        ErrorSeverity.Medium,
                         ErrorType.FileError
                     ));
                 }
@@ -153,12 +159,10 @@ public static class PptxPipelines
                 }
             }
             
-            ConsoleService.Instance.WriteToConsole(
+            UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
             
-        }, additionalThreads, updateThreadCount, markDone);
+        }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
-    
-    
 }

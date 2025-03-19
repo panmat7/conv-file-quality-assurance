@@ -15,18 +15,19 @@ namespace AvaloniaDraft.ComparingMethods;
 public static class ComperingMethods
 {
     /// <summary>
-    /// Returns the difference size between two files 
+    /// Returns whether the size difference between two files exceeds expectations. 
     /// </summary>
     /// <param name="files">The two files to be compared</param>
-    /// <returns>The size difference in bytes. Null means that the size could not have been gotten.</returns>
-    public static long? GetFileSizeDifference(FilePair files)
+    /// <param name="toleranceValue">The values </param>
+    /// <returns>True/false whether the difference is too large. Null means that the size could not have been gotten.</returns>
+    public static bool? CheckFileSizeDifference(FilePair files, double toleranceValue)
     {
         try
         {
             var originalSize = new FileInfo(files.OriginalFilePath).Length;
             var newSize = new FileInfo(files.NewFilePath).Length;
         
-            return long.Abs(originalSize - newSize);
+            return (long.Abs(originalSize - newSize) > originalSize * toleranceValue);
         }
         catch { return null; }
     }
@@ -243,7 +244,10 @@ public static class ComperingMethods
 
         if(VerifyColorType(originalStandardized, newStandardized) is { } error)
             errors.Add(error);
-
+        
+        var fcErr = originalStandardized.CompareFrameCount(newStandardized);
+        if (fcErr != null) errors.Add(fcErr);
+        
         if(!originalStandardized.VerifyPhysicalUnits() ^ !newStandardized.VerifyPhysicalUnits()) //XOR
         {
             errors.Add(new Error(

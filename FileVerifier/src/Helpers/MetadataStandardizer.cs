@@ -148,6 +148,34 @@ public class StandardizedImageMetadata
     }
     
     /// <summary>
+    /// Compares that frame count between the files. 
+    /// </summary>
+    /// <param name="img2">Image to compare with</param>
+    /// <returns>En error object if something is wrong, otherwise null.</returns>
+    public Error? CompareFrameCount(StandardizedImageMetadata img2)
+    {
+        if(FrameCount == 0 && img2.FrameCount == 0) return null;
+
+        if (FrameCount != 0 && img2.FrameCount == 0)
+            return new Error(
+                "All frames lost in new file",
+                "The new file does not store any of the frames.",
+                ErrorSeverity.High,
+                ErrorType.Visual
+            );
+
+        if (FrameCount != img2.FrameCount)
+            return new Error(
+                "Frame count mismatch",
+                "The frame count does not match the original",
+                ErrorSeverity.High,
+                ErrorType.Visual
+            );
+
+        return null;
+    }
+     
+    /// <summary>
     /// Returns a list of errors regarding additional values
     /// </summary>
     /// <param name="img2">Image to compare with</param>

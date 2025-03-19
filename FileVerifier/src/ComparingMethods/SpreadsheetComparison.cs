@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Xml.Linq;
+using AvaloniaDraft.Helpers;
 using ClosedXML.Excel;
 using SkiaSharp;
 using Encoding = System.Text.Encoding;
@@ -16,38 +17,87 @@ public static class SpreadsheetComparison
     /// Checks if an excel document is wide enough to cause a page break or contains an image.
     /// </summary>
     /// <param name="path">Absolute path to the file</param>
-    /// <returns>True/False is a break is probable</returns>
-    public static bool PossibleSpreadsheetBreakExcel(string path)
+    /// <returns>List of found errors</returns>
+    public static List<Error> PossibleSpreadsheetBreakExcel(string path)
     {
         //NOTE: Considers columns with edited width even if they are empty
+        //Used to ensure only 1 message per file
+        var manual = false;
+        var image = false;
+        var table = false;
         
-        const double breakLength = 15.5; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
-        const double ppi = 96.0; //Default for excel, documents do not store
-
         using var wb = new XLWorkbook(path);
+        
+        var errors = new List<Error>();
+        
         foreach (var worksheet in wb.Worksheets)
         {
-            var widthSum = 0.0;
-            
-            if (worksheet.Pictures.Count > 0) return true; //For now automatically flag if contains image
-            
-            var lastColumn = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;
-            var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 0;
-            
-            if (lastColumn == 0 || lastRow == 0) break;
-
-            var f = worksheet.Style.Font.FontName ?? "";
-            var fSize = worksheet.Style.Font.FontSize;
-
-            var charWidth = GetFontWidth(f, (float)fSize);
-            
-            for (var i = 1; i <= lastColumn; i++)
+            if (worksheet.PageSetup.RowBreaks.Count > 0 || worksheet.PageSetup.ColumnBreaks.Count > 0 && !manual)
             {
-                var pixels = worksheet.Column(i).Width * charWidth; //Get pixel length 
-                widthSum += PixelToCm(pixels, ppi);
-                
-                if (breakLength < widthSum) return true;
+                errors.Add(new Error(
+                    "Manual page break found",
+                    "This spreadsheet contains manually sat page breaks. This might render the results of break-checks unreliable.",
+                    ErrorSeverity.Low,
+                    ErrorType.Visual
+                )); //If contains manually sat page breaks
+                manual = true;
             }
+            
+            if (worksheet.Pictures.Count > 0 && !image)
+            {
+                errors.Add(new Error(
+                    "Images found in spreadsheet",
+                    "This spreadsheet contains images. If too wide, they could create a brake.",
+                    ErrorSeverity.Medium,
+                    ErrorType.Visual
+                ));
+                image = true;
+            }
+
+            if (CheckTableBreakXlsx(worksheet) && !table)
+            {
+                errors.Add(new Error(
+                    "Table break",
+                    "The spreadsheet contains one or several tables that could break during conversion.",
+                    ErrorSeverity.High,
+                    ErrorType.Visual
+                )); //If the table is wide enough for a break
+                table = true;
+            }
+
+            if (table && manual && image) return errors; //Can stop early
+        }
+
+        return errors;
+    }
+
+    /// <summary>
+    /// Checks if a XLSX worksheet contains a table wide enough to cause a break.
+    /// </summary>
+    /// <param name="worksheet">The worksheet to be checked.</param>
+    /// <returns>True/False whether a risk exists</returns>
+    private static bool CheckTableBreakXlsx(IXLWorksheet worksheet)
+    {
+        const double breakLength = 15.7; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
+        const double ppi = 96.0; //Default for excel, documents do not store
+        var widthSum = 0.0;
+        
+        var lastColumn = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;
+        var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 0;
+            
+        if (lastColumn == 0 || lastRow == 0) return false;
+
+        var f = worksheet.Style.Font.FontName ?? "";
+        var fSize = worksheet.Style.Font.FontSize;
+
+        var charWidth = GetFontWidth(f, (float)fSize);
+            
+        for (var i = 1; i <= lastColumn; i++)
+        {
+            var pixels = worksheet.Column(i).Width * charWidth; //Get pixel length 
+            widthSum += PixelToCm(pixels, ppi);
+
+            if (breakLength < widthSum) return true;
         }
 
         return false;
@@ -57,10 +107,10 @@ public static class SpreadsheetComparison
     /// Checks if an ODS document is wide enough to cause a page break or contains an image.
     /// </summary>
     /// <param name="path">Absolute path to the file</param>
-    /// <returns>True/False is a break is probable. Null if an error occurred reading the file.</returns>
-    public static bool? PossibleSpreadsheetBreakOpenDoc(string path)
+    /// <returns>List of found errors. Null if an error occurred reading the file.</returns>
+    public static List<Error>? PossibleSpreadsheetBreakOpenDoc(string path)
     {
-        const double breakPoint = 15.5; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
+        const double breakPoint = 15.7; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
         
         using var arch = ZipFile.OpenRead(path);
         var content = arch.GetEntry("content.xml");
@@ -73,14 +123,54 @@ public static class SpreadsheetComparison
 
         try
         {
-            if (CheckObjectBreaksOds(doc, breakPoint)) return true; //If any object causes a break
+            var errors = new List<Error>();
 
-            return GetOdsTableWidths(doc).Any(n => n > breakPoint);
+            if (CheckManualBreaksOds(doc))
+                errors.Add(new Error(
+                    "Manual page break found",
+                    "This spreadsheet contains manually sat page breaks. This might render the results of break-checks unreliable.",
+                    ErrorSeverity.Low,
+                    ErrorType.Visual
+                )); //If contains manually sat page breaks
+            
+            if (CheckObjectBreaksOds(doc, breakPoint))
+                errors.Add(new Error(
+                    "Object break",
+                    "The spreadsheet contains one or several objects that could break during conversion.",
+                    ErrorSeverity.High,
+                    ErrorType.Visual
+                )); //If any object causes a break
+
+            if (GetOdsTableWidths(doc).Any(n => n > breakPoint))
+                errors.Add(new Error(
+                    "Table break",
+                    "The spreadsheet contains one or several tables that could break during conversion.",
+                    ErrorSeverity.High,
+                    ErrorType.Visual
+                )); //If the table is wide enough for a break
+            
+            return errors;
         }
         catch
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Checks if the ODS documents contain any manually set page breaks.
+    /// </summary>
+    /// <param name="doc">The document to be checked.</param>
+    /// <returns>True/False whether a manual break is set.</returns>
+    private static bool CheckManualBreaksOds(XDocument doc)
+    {
+        XNamespace styleNs = "urn:oasis:names:tc:opendocument:xmlns:style:1.0";
+        XNamespace foNs = "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0";
+
+        return doc.Descendants(styleNs + "table-column-properties")
+                   .Any(col => col.Attribute(foNs + "break-before")?.Value == "page") ||
+               doc.Descendants(styleNs + "table-row-properties")
+                   .Any(row => row.Attribute(foNs + "break-before")?.Value == "page");
     }
     
     /// <summary>
@@ -91,17 +181,15 @@ public static class SpreadsheetComparison
     /// <returns>True/False whether a break can occur.</returns>
     private static bool CheckObjectBreaksOds(XDocument doc, double breakPoint)
     {
-        //Checking if an image is embedded
         var drawNs = doc.Root.GetNamespaceOfPrefix("draw") ?? //Draw namespace
                      XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:drawing:1.0");
         var svgNs = XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0");
-    
-        //Getting images
+        
         var frameCoords = doc.Descendants(drawNs + "frame") //All frames
             .Select(f => new
             {
-                X = f.Attribute(svgNs + "x")?.Value ?? "0cm",
-                Width = f.Attribute(svgNs + "width")?.Value ?? "0cm"
+                X = f.Attribute(svgNs + "x")?.Value ?? "0cm", //X position
+                Width = f.Attribute(svgNs + "width")?.Value ?? "0cm" //Actual width
             })
             .ToList();
         
@@ -109,9 +197,11 @@ public static class SpreadsheetComparison
         {
             var x = frame.X.Replace("cm", "").Trim(); //Trimming the cm ending
             var width = frame.Width.Replace("cm", "").Trim();
-            if (double.TryParse(x, NumberStyles.Any, CultureInfo.InvariantCulture, out var xNum) //Converting to nums
-                && double.TryParse(width, NumberStyles.Any, CultureInfo.InvariantCulture, out var widthNum)
-                && xNum + widthNum > breakPoint) //Checking if the image poses a table break threat
+
+            var convertedX = ConvertToCm(x);
+            var convertedWidth = ConvertToCm(width);
+            
+            if (convertedX + convertedWidth > breakPoint) //Checking if the image poses a table break threat
             {
                 return true;
             }
@@ -144,18 +234,10 @@ public static class SpreadsheetComparison
                     var widthString = widthAttr?.Value; //Extracting string
                     
                     if (string.IsNullOrWhiteSpace(widthString)) return 0;
-                    
-                    widthString = widthString.Replace("cm", "").Trim(); //Removing cm ending and parsing the number
-                    if (double.TryParse(widthString, NumberStyles.Any, CultureInfo.InvariantCulture, out var width))
-                    {
-                        return width;
-                    }
-                    
-                    return 0;
+
+                    return ConvertToCm(widthString);
                 }
             );
-
-
         
         //Checking each column and getting its width
         var tableWidth = new Dictionary<string, double>();
@@ -183,13 +265,50 @@ public static class SpreadsheetComparison
     }
     
     /// <summary>
+    /// Converts a string containing a width value to numerical centimeters. Used for ODS.
+    /// </summary>
+    /// <param name="widthString">String containing the value.</param>
+    /// <returns>The value converted to cm as a double, or 0 if could not convert.</returns>
+    private static double ConvertToCm(string widthString)
+    {
+        var factor = 1.0;
+        
+        if (widthString.EndsWith("cm"))
+        {
+            widthString = widthString.Replace("cm", "").Trim();
+        }
+        else if (widthString.EndsWith("in"))
+        {
+            widthString = widthString.Replace("in", "").Trim();
+            factor = 2.54; // Convert inches to cm
+        }
+        else if (widthString.EndsWith("mm"))
+        {
+            widthString = widthString.Replace("mm", "").Trim();
+            factor = 0.1; // Convert mm to cm
+        }
+        else if (widthString.EndsWith("pt"))
+        {
+            widthString = widthString.Replace("pt", "").Trim();
+            factor = 0.0352778; // Convert points to cm
+        }
+        
+        if (double.TryParse(widthString, NumberStyles.Any, CultureInfo.InvariantCulture, out var width))
+        {
+            return width * factor;
+        }
+        
+        return 0;
+    }
+    
+    /// <summary>
     /// Checks if a CSV file is wide enough to cause a table break.
     /// </summary>
     /// <param name="path">Path to the file</param>
     /// <returns>True/False is a break is probable. Null if an error occurred reading the file.</returns>
     public static bool? PossibleLineBreakCsv(string path)
     {
-        const double breakLength = 15.5; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
+        const double breakLength = 15.7; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
         
         var content = File.ReadAllText(path, Encoding.UTF8);
 

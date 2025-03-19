@@ -1,6 +1,9 @@
 using System;
+using Avalonia;
+using Avalonia.Threading;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Views;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -14,7 +17,7 @@ public static class BasePipeline
     /// <param name="additionalThreads">The number of threads delegated to the pipeline.</param>
     /// <param name="updateThreadCount">Callback function used to update current thread count</param>
     /// <param name="markDone">Function marking the FilePair as done</param>
-    public static void ExecutePipeline(Action pipeline, int additionalThreads, Action<int> updateThreadCount,
+    public static void ExecutePipeline(Action pipeline, string[] files, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
         try
@@ -29,10 +32,15 @@ public static class BasePipeline
                 ErrorSeverity.Internal
             );
 
-            ConsoleService.Instance.WriteToConsole(e.FormatErrorMessage());
+            UiControlService.Instance.AppendToConsole(
+                $"Verification for {files[0]}-{files[1]} failed:\n" +
+                e.FormatErrorMessage() +
+                "\n\n"
+            );
         }
         finally
         {
+            UiControlService.Instance.MarkProgress();
             updateThreadCount(-(1 + additionalThreads));
             markDone();
         }
@@ -49,7 +57,10 @@ public static class BasePipeline
             return PngPipelines.GetPNGPipelines(pair.NewFileFormat);
         
         if(FormatCodes.PronomCodesDOCX.Contains(pair.OriginalFileFormat))
-            return DOCXPipelines.GetDocxPipeline(pair.NewFileFormat);
+            return DocxPipelines.GetDocxPipeline(pair.NewFileFormat);
+        
+        if(FormatCodes.PronomCodesJPEG.Contains(pair.OriginalFileFormat))
+            return JpgPipelines.GetJPEGPipelines(pair.NewFileFormat);
         
         return null;
     }

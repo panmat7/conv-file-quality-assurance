@@ -19,11 +19,18 @@ public partial class HomeView : UserControl
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
     private bool Working { get; set; } = false;
+    
+    //Progress bar
+    private int FileCount { get; set; } = 0;
+    private int FilesDone { get; set; } = 0;
+    private readonly object _lock = new object();
 
     public HomeView()
     {
         InitializeComponent();
-        ConsoleService.Instance.OnMessageLogged += UpdateConsole;
+        UiControlService.Instance.OnMessageLogged += AppendConsole;
+        UiControlService.Instance.OverwriteConsole += OverwriteConsole;
+        UiControlService.Instance.UpdateProgressBar += FileDone;
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
         DataContext = new SettingsViewModel();
@@ -93,7 +100,7 @@ public partial class HomeView : UserControl
         }
     }
 
-    private void Start_OnClick(object? sender, RoutedEventArgs e)
+    private async void Start_OnClick(object? sender, RoutedEventArgs e)
     {
         if (Working || GlobalVariables.FileManager == null) return;
         
@@ -102,19 +109,24 @@ public partial class HomeView : UserControl
         StartButton.IsEnabled = false;
         LoadButton.IsEnabled = false;
         
-        GlobalVariables.FileManager.StartVerification();
+        OverwriteConsole(null);
+        
+        await Task.Run(() =>
+        {
+            GlobalVariables.FileManager.StartVerification();
+        });
         
         LoadButton.IsEnabled = true;
         
         Working = false;
-        
-        //ConsoleService.Instance.WriteToConsole("Testing start button");
     }
 
     
 
     private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
     {
+        ResetProgress();
+        
         if (Working || string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
 
         var loadingWindow = new LoadingView();
@@ -164,34 +176,80 @@ public partial class HomeView : UserControl
         try
         {
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+            SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
         }
         catch (InvalidOperationException err)
         {
-            var errWindow =
-                new ErrorWindow(
-                    "Duplicate file names in the input or output folder! Ensure all files have unique names, matching their converted counterpart.");
-            errWindow.ShowDialog((this.VisualRoot as Window)!);
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow = new ErrorWindow(
+                    "Duplicate file names in the input or output folder! Ensure all files have unique names, matching their converted counterpart."
+                );
+                errWindow.ShowDialog((this.VisualRoot as Window)!);
+            });
             return;
         }
         catch
         {
-            var errWindow =
-                new ErrorWindow(
-                    "An error occured when forming file pairs.");
-            errWindow.ShowDialog((this.VisualRoot as Window)!);
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow =
+                    new ErrorWindow("An error occured when forming file pairs.");
+                errWindow.ShowDialog((this.VisualRoot as Window)!);
+            });
             return;
         }
         GlobalVariables.FileManager.GetSiegfriedFormats();
         GlobalVariables.FileManager.WritePairs();
     }
 
-    private void UpdateConsole(string message)
+    private void SetFileCount(int count)
     {
-        Console.Text = null; // This should probably be some switch statement resetting only when something something
+        lock (_lock)
+        {
+            FileCount = count;
+        }
+    }
+
+    private void ResetProgress()
+    {
+        lock (_lock)
+        {
+            FilesDone = 0;
+            Dispatcher.UIThread.Post(() =>
+            {
+                ProgressBar.Value = 0;
+            });
+        }
+    }
+    
+    private void FileDone()
+    {
+        lock (_lock)
+        {
+            FilesDone++;
+            
+            Dispatcher.UIThread.Post(() =>
+            {
+                ProgressBar.Value = (FilesDone / (double)FileCount) * 100;
+            });
+        }
+    }
+
+    private void AppendConsole(string message)
+    {
         Dispatcher.UIThread.Post(() =>
         {
             Console.Text += message + Environment.NewLine;
         });
+    }
+
+    private void OverwriteConsole(string? message)
+    {
+        Console.Text = null;
+
+        if (message != null)
+            AppendConsole(message);
     }
 }
 
