@@ -32,7 +32,7 @@ public partial class SettingsView : UserControl
         Synchronize();
     }
 
-    private static void SaveSettings(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void SaveSettings(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         GlobalVariables.Options.SaveSettings();
     }
