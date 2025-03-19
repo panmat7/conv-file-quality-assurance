@@ -104,7 +104,6 @@ public static class PngPipelines
                     e.AddRange(res);
                 }
             }
-
             if (true) //Check for point by point later
             {
                 var acceptance = 85; //Read from options later ?
@@ -130,7 +129,6 @@ public static class PngPipelines
                     ));
                 }
             }
-            
             if (true) // Check for color profile later
             {
                 var res = false;

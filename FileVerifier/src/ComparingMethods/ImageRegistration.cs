@@ -19,18 +19,19 @@ public static class ImageRegistration
         // Load images
         using Mat img1 = CvInvoke.Imread(pair.OriginalFilePath);
         using Mat img2 = CvInvoke.Imread(pair.NewFilePath);
-
+        Console.WriteLine("Loaded images");
         // Ensure both images are the same size
         if (img1.Size != img2.Size)
         {
             CvInvoke.Resize(img2, img2, img1.Size);
         }
         
+        Console.WriteLine("Calculating similarity");
         VectorOfMat channels1 = new VectorOfMat(3); 
         VectorOfMat channels2 = new VectorOfMat(3); 
         CvInvoke.Split(img1, channels1); 
         CvInvoke.Split(img2, channels2); 
-
+        Console.WriteLine("Creating histogram");
         // Create histogram variables
         using Mat hist1 = new Mat();
         using Mat hist2 = new Mat();
@@ -40,12 +41,14 @@ public static class ImageRegistration
         
         double finalScore = 0;
         int numChannels = 3;
-
+        
+        
+        Console.WriteLine("Calclulating for every channel");
         for (int i = 0; i < numChannels; i++)
         {
             // Calculate histogram for each channel (RGB)
-            CvInvoke.CalcHist(new VectorOfMat(new[] { channels1[i] }), new [] { 0 }, null, hist1, new [] { histSize }, range, false);
-            CvInvoke.CalcHist(new VectorOfMat(new[] { channels2[i] }), new [] { 0 }, null, hist2, new [] { histSize }, range, false);
+            CvInvoke.CalcHist(new VectorOfMat(channels1[i]), new [] { 0 }, null, hist1, new [] { histSize }, range, false);
+            CvInvoke.CalcHist(new VectorOfMat(channels2[i]), new [] { 0 }, null, hist2, new [] { histSize }, range, false);
             
             // Normalize histograms
             CvInvoke.Normalize(hist1, hist1, 0, 1, NormType.MinMax);
@@ -55,7 +58,7 @@ public static class ImageRegistration
             double score = CvInvoke.CompareHist(hist1, hist2, HistogramCompMethod.Correl);
             finalScore += score; 
         }
-
+        Console.WriteLine("Calculating score");
         // Average the scores from each channel
         finalScore = (finalScore / numChannels) * 100;
         Console.WriteLine($"Score: {finalScore}");
