@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using Emgu.CV;
@@ -116,13 +117,79 @@ public static class DocumentSegmentation
 
                 if (!nested) finalRects.Add(rects[i]);
             }
-
+            
+            //Sorting based on top left corner for better matching
+            finalRects.Sort((a, b) => a.Y == b.Y ? a.X.CompareTo(b.X) : a.Y.CompareTo(b.Y));
+            
             return finalRects;
         }
         catch
         {
             return null;
         }
+    }
+    
+    /// <summary>
+    /// Pairs together matching rectangles using Intersection over Union.
+    /// </summary>
+    /// <param name="rectsO">List of rectangles from the original image</param>
+    /// <param name="rectsN">List of rectangles from the new image.</param>
+    /// <returns>The paired rectangles + IoU value, and lists of unpaired rectangles.</returns>
+    public static (List<(Rectangle, Rectangle, double)>, List<Rectangle>, List<Rectangle>) PairSegments(List<Rectangle> rectsO, List<Rectangle> rectsN)
+    {
+        var paired = new List<(Rectangle, Rectangle, double)>(); //Tuple of pairs
+        var unpairedO = new List<Rectangle>(); //Unpaired from both lists
+        var unpairedN = new List<Rectangle>(rectsN);
+        var used = new HashSet<int>(); //Indexes of already paired rects
+
+        foreach (var rO in rectsO)
+        {
+            var i = -1;
+            var bestRes = 0.0;
+
+            for (var j = 0; j < rectsN.Count; j++)
+            {
+                if(used.Contains(j)) continue;
+                
+                var res = CalculateIoU(rO, rectsN[j]);
+
+                if (res > bestRes)
+                {
+                    bestRes = res;
+                    i = j;
+                }
+            }
+
+            if (i != -1 && bestRes > 0.2) //Threshold filtering out false parings 
+            {
+                paired.Add((rO, rectsN[i], bestRes));
+                used.Add(i);
+                unpairedN.Remove(rectsN[i]);
+            }
+            else
+            {
+                unpairedO.Add(rO);
+            }
+        }
+        
+        return (paired, unpairedO, unpairedN);
+    }
+    
+    /// <summary>
+    /// Calculates Intersection over Union between two rectangles.
+    /// </summary>
+    /// <returns></returns>
+    private static double CalculateIoU(Rectangle rect1, Rectangle rect2)
+    {
+        var x1 = Math.Max(rect1.Left, rect2.Left);
+        var x2 = Math.Min(rect1.Right, rect2.Right);
+        var y1 = Math.Max(rect1.Top, rect2.Top);
+        var y2 = Math.Min(rect1.Bottom, rect2.Bottom);
+        
+        var intersectionArea = Math.Max(0, x2 - x1) * Math.Max(0, y2 - y1); //Calculating the intersecting part
+        var unionArea = (rect1.Width * rect1.Height) + (rect2.Width * rect2.Height) - intersectionArea; //Area of both rects
+        
+        return unionArea == 0 ? 0 : (double)intersectionArea / unionArea;
     }
     
     /// <summary>

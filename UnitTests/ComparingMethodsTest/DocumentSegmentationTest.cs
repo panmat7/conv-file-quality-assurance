@@ -64,4 +64,37 @@ public class DocumentSegmentationTest
         
         Assert.Pass();
     }
+
+    [Test]
+    public void DistanceCalculationTests()
+    {
+        var rects1 = new List<Rectangle>
+        {
+            new Rectangle(0, 0, 1, 2),
+            new Rectangle(2, 1, 2, 2),
+            new Rectangle(0, 3, 1, 3),
+            new Rectangle(15, 15, 2, 2),
+        };
+
+        var rects2 = new List<Rectangle>
+        {
+            new Rectangle(0, 0, 1, 2),
+            new Rectangle(2, 0, 2, 2),
+            new Rectangle(0, 4, 1, 3),
+            new Rectangle(5, 5, 1, 3),
+        };
+        
+        var (pairs, pairless1, pairless2) = DocumentSegmentation.PairSegments(rects1, rects2);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(pairs[0].Item3, Is.EqualTo(1.0));
+            Assert.That(pairs[1].Item3, Is.EqualTo(0.3333).Within(0.001));
+            Assert.That(pairs[2].Item3, Is.EqualTo(0.5));
+            Assert.That(pairless1.Count, Is.EqualTo(1));
+            Assert.That(pairless2.Count, Is.EqualTo(1));
+        });
+
+        Assert.Pass();
+    }
 }
