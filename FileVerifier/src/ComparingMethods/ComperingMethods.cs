@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.FileManager;
@@ -269,6 +270,43 @@ public static class ComperingMethods
         
         errors.AddRange(originalStandardized.GetMissingAdditionalValues(newStandardized));
         
+        return errors;
+    }
+
+    /// <summary>
+    /// Preforms the visual comparison between two documents.
+    /// </summary>
+    /// <param name="pair">The documents to be compared.</param>
+    /// <returns>List of potential errors. Null meaning error during the process. Empty list meaning no errors.</returns>
+    public static List<Error>? VisualDocumentComparison(FilePair pair)
+    {
+        var errors = new List<Error>();
+        //Get the file images and paths
+
+        var rectsO = DocumentSegmentation.SegmentDocumentImage(pair.OriginalFilePath);
+        var rectsN = DocumentSegmentation.SegmentDocumentImage(pair.NewFilePath);
+        
+        if(rectsO == null || rectsN == null) return null;
+        
+        var (res, pairlessO, pairlessN) = DocumentSegmentation.PairSegments(rectsO, rectsN);
+        
+        if(pairlessO.Count > 0 || pairlessN.Count > 0)
+            errors.Add(new Error(
+                "Mismatch in detected points of interest",
+                "The original or/and new document contain points of interest that could not have been paired. " +
+                "This could be some noise was added/removed to the resulting file or that something is missing or something new as added.",
+                ErrorSeverity.High,
+                ErrorType.Visual
+            ));
+
+        if (res.Any(r => r.Item3 < 0.4))
+            errors.Add(new Error(
+                "Misaligned points of interest",
+                "Some segments of the document have been moved above the allowed value.",
+                ErrorSeverity.High,
+                ErrorType.Visual
+            ));
+
         return errors;
     }
     
