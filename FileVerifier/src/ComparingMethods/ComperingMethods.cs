@@ -6,6 +6,7 @@ using System.Text.Json;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using Emgu.CV.Aruco;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using ColorType = AvaloniaDraft.Helpers.ColorType;
@@ -277,36 +278,64 @@ public static class ComperingMethods
     /// Preforms the visual comparison between two documents.
     /// </summary>
     /// <param name="pair">The documents to be compared.</param>
+    /// <param name="pageStart">Page at which to start the comparison, null if start at the first page.</param>
+    /// <param name="pageEnd">Page at which to end the comparison, null if end at the last page.</param>
     /// <returns>List of potential errors. Null meaning error during the process. Empty list meaning no errors.</returns>
-    public static List<Error>? VisualDocumentComparison(FilePair pair)
+    public static List<Error>? VisualDocumentComparison(FilePair pair, int? pageStart = null, int? pageEnd = null)
     {
-        var errors = new List<Error>();
-        //Get the file images and paths
+        var errorPages = new List<List<int>> //Storing pages at which error occurs
+        {
+            new (),
+            new (),
+        };
+        
+        //Get page images
+        var pagesOriginal = DocumentVisualOperations.GetPdfPageImages(pair.OriginalFilePath, pageStart, pageEnd);
+        var pagesNew = DocumentVisualOperations.GetPdfPageImages(pair.NewFilePath, pageStart, pageEnd);
+        
+        //Return null if error occured or page count does not match.
+        if(pagesOriginal == null || pagesNew == null || pagesOriginal.Count != pagesNew.Count) return null;
 
-        var rectsO = DocumentSegmentation.SegmentDocumentImage(pair.OriginalFilePath);
-        var rectsN = DocumentSegmentation.SegmentDocumentImage(pair.NewFilePath);
+        for (var pageIndex = 0; pageIndex < pagesOriginal.Count; pageIndex++)
+        {
+            //Getting segments
+            var rectsO = DocumentVisualOperations.SegmentDocumentImage(pair.OriginalFilePath);
+            var rectsN = DocumentVisualOperations.SegmentDocumentImage(pair.NewFilePath);
         
-        if(rectsO == null || rectsN == null) return null;
+            if(rectsO == null || rectsN == null) return null;
+
+            var (res, pairlessO, pairlessN) = DocumentVisualOperations.PairAndGetOverlapSegments(rectsO, rectsN);
+            
+            //Mismatched number of segments
+            if(pairlessO.Count > 0 || pairlessN.Count > 0)
+                errorPages[0].Add(pageIndex + pageStart ?? 0);
+                
+            //Segments in different positions
+            if (res.Any(r => r.Item3 < 0.7))
+                errorPages[1].Add(pageIndex + pageStart ?? 0);
+        }
         
-        var (res, pairlessO, pairlessN) = DocumentSegmentation.PairSegments(rectsO, rectsN);
-        
-        if(pairlessO.Count > 0 || pairlessN.Count > 0)
+        //Writing errors
+        var errors = new List<Error>();
+        if (errorPages[0].Count > 0)
             errors.Add(new Error(
                 "Mismatch in detected points of interest",
                 "The original or/and new document contain points of interest that could not have been paired. " +
-                "This could be some noise was added/removed to the resulting file or that something is missing or something new as added.",
+                "This could be cause by added/removed noise in the resulting file or something being missing/added.",
                 ErrorSeverity.High,
-                ErrorType.Visual
+                ErrorType.Visual,
+                "Pages: " + string.Join(", ", errorPages[0])
             ));
 
-        if (res.Any(r => r.Item3 < 0.4))
+        if (errorPages[1].Count > 1)
             errors.Add(new Error(
                 "Misaligned points of interest",
                 "Some segments of the document have been moved above the allowed value.",
                 ErrorSeverity.High,
-                ErrorType.Visual
+                ErrorType.Visual,
+                "Pages: " + string.Join(", ", errorPages[0])
             ));
-
+            
         return errors;
     }
     

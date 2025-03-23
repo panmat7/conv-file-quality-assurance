@@ -1,15 +1,26 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.IO;
+using System.Linq;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using Point = System.Drawing.Point;
+using Rectangle = System.Drawing.Rectangle;
+using Size = System.Drawing.Size;
 
 namespace AvaloniaDraft.ComparingMethods;
 
-public static class DocumentSegmentation
+public static class DocumentVisualOperations
 {
+    public static List<byte[]>? GetPdfPageImages(string path, int? pageStart = null, int? pageEnd = null)
+    {
+        //TODO
+
+        return null;
+    }
+    
     /// <summary>
     /// Segments a document image into points of interest and returns them as a list of rectangles. 
     /// </summary>
@@ -100,25 +111,9 @@ public static class DocumentSegmentation
 
             rects.Sort((a, b) => (b.Width * b.Height).CompareTo(a.Width * a.Height)); //Sort by area
 
-            var finalRects = new List<Rectangle>();
-
-            //Filtering out any smaller rectangles nested inside other
-            for (var i = 0; i < rects.Count; i++)
-            {
-                var nested = false;
-                for (var j = 0; j < i; j++)
-                {
-                    if (rects[j].Contains(rects[i]))
-                    {
-                        nested = true;
-                        break;
-                    }
-                }
-
-                if (!nested) finalRects.Add(rects[i]);
-            }
+            var finalRects = FilterRectangles(rects);
             
-            //Sorting based on top left corner for better matching
+            //Sorting based on top left corner, left to right, top to bottom
             finalRects.Sort((a, b) => a.Y == b.Y ? a.X.CompareTo(b.X) : a.Y.CompareTo(b.Y));
             
             return finalRects;
@@ -128,14 +123,42 @@ public static class DocumentSegmentation
             return null;
         }
     }
+
+    /// <summary>
+    /// Filters out all rectangles fully embedded inside other rectangles.
+    /// </summary>
+    /// <param name="rects">Original list</param>
+    /// <returns>The new filtered list.</returns>
+    private static List<Rectangle> FilterRectangles(List<Rectangle> rects)
+    {
+        var filteredRects = new List<Rectangle>();
+
+        //Filtering out any smaller rectangles nested inside other
+        for (var i = 0; i < rects.Count; i++)
+        {
+            var nested = false;
+            for (var j = 0; j < i; j++)
+            {
+                if (rects[j].Contains(rects[i]))
+                {
+                    nested = true;
+                    break;
+                }
+            }
+
+            if (!nested) filteredRects.Add(rects[i]);
+        }
+        
+        return filteredRects;
+    }
     
     /// <summary>
-    /// Pairs together matching rectangles using Intersection over Union.
+    /// Pairs together matching rectangles using Intersection over Union and returns their overlap.
     /// </summary>
     /// <param name="rectsO">List of rectangles from the original image</param>
     /// <param name="rectsN">List of rectangles from the new image.</param>
     /// <returns>The paired rectangles + IoU value, and lists of unpaired rectangles.</returns>
-    public static (List<(Rectangle, Rectangle, double)>, List<Rectangle>, List<Rectangle>) PairSegments(List<Rectangle> rectsO, List<Rectangle> rectsN)
+    public static (List<(Rectangle, Rectangle, double)>, List<Rectangle>, List<Rectangle>) PairAndGetOverlapSegments(List<Rectangle> rectsO, List<Rectangle> rectsN)
     {
         var paired = new List<(Rectangle, Rectangle, double)>(); //Tuple of pairs
         var unpairedO = new List<Rectangle>(); //Unpaired from both lists

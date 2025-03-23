@@ -4,7 +4,7 @@ using AvaloniaDraft.ComparingMethods;
 namespace UnitTests.ComparingMethodsTest;
 
 [TestFixture]
-public class DocumentSegmentationTest
+public class DocumentVisualOperationsTest
 {
     private string _testFileDirectory;
     
@@ -38,12 +38,12 @@ public class DocumentSegmentationTest
         var file2 = File.ReadAllBytes(path2);
         var file3 = File.ReadAllBytes(path3);
 
-        var rects1 = DocumentSegmentation.SegmentDocumentImage(path1);
-        var rects2 = DocumentSegmentation.SegmentDocumentImage(file2);
-        var rects3 = DocumentSegmentation.SegmentDocumentImage(file3);
-        var rects4 = DocumentSegmentation.SegmentDocumentImage(path4);
-        var rects5 = DocumentSegmentation.SegmentDocumentImage("Not real");
-        var rects6 = DocumentSegmentation.SegmentDocumentImage([]);
+        var rects1 = DocumentVisualOperations.SegmentDocumentImage(path1);
+        var rects2 = DocumentVisualOperations.SegmentDocumentImage(file2);
+        var rects3 = DocumentVisualOperations.SegmentDocumentImage(file3);
+        var rects4 = DocumentVisualOperations.SegmentDocumentImage(path4);
+        var rects5 = DocumentVisualOperations.SegmentDocumentImage("Not real");
+        var rects6 = DocumentVisualOperations.SegmentDocumentImage([]);
 
         if(rects5 is not null || rects6 is not null) Assert.Fail();
         
@@ -51,10 +51,10 @@ public class DocumentSegmentationTest
         
         if(rects1!.Count != 2 || rects2!.Count != 6 || rects3!.Count != 8 || rects4!.Count != 17) Assert.Fail();
         
-        var segments1 = DocumentSegmentation.GetSegmentPictures(path1, rects1);
-        var segments2 = DocumentSegmentation.GetSegmentPictures(file2, rects2);
-        var segments3 = DocumentSegmentation.GetSegmentPictures("", rects3);
-        var segments4 = DocumentSegmentation.GetSegmentPictures(path4, []);
+        var segments1 = DocumentVisualOperations.GetSegmentPictures(path1, rects1);
+        var segments2 = DocumentVisualOperations.GetSegmentPictures(file2, rects2);
+        var segments3 = DocumentVisualOperations.GetSegmentPictures("", rects3);
+        var segments4 = DocumentVisualOperations.GetSegmentPictures(path4, []);
         
         if(segments3 is not null || segments4 is not null) Assert.Fail();
         
@@ -84,7 +84,7 @@ public class DocumentSegmentationTest
             new Rectangle(5, 5, 1, 3),
         };
         
-        var (pairs, pairless1, pairless2) = DocumentSegmentation.PairSegments(rects1, rects2);
+        var (pairs, pairless1, pairless2) = DocumentVisualOperations.PairAndGetOverlapSegments(rects1, rects2);
 
         Assert.Multiple(() =>
         {
@@ -96,5 +96,18 @@ public class DocumentSegmentationTest
         });
 
         Assert.Pass();
+    }
+
+    [Test]
+    public void GetPdfPageImagesTest()
+    {
+        var res = DocumentVisualOperations.GetPdfPageImages(
+            @"C:\Users\kaczm\Documents\bachelor\PROJECT\conv-file-quality-assurance\UnitTests\ComparingMethodsTest\TestFiles\TempSegTest\Original\0a29925ccc5e6299e132a73325956a3abef6dd26.pdf");
+
+        var i = 0;
+        foreach (var file in res)
+        {
+            File.WriteAllBytes(_testFileDirectory + "file" + (i++).ToString() + ".png", file);
+        }
     }
 }
