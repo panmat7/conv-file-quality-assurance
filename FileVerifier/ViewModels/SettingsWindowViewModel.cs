@@ -56,7 +56,7 @@ using System.Collections.Generic;
             _isFontEnabled = GlobalVariables.Options.GetMethod(Methods.Fonts.Name);
             _isPbPEnabled = GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name);
             _isPageCountEnabled = GlobalVariables.Options.GetMethod(Methods.Pages.Name);
-            _isColorEnabled = GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name);
+            _isColorEnabled = GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name);
             _isAnimationEnabled = GlobalVariables.Options.GetMethod(Methods.Animations.Name);
 
             _isIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.ignoreUnsupportedFileType;
@@ -142,7 +142,7 @@ using System.Collections.Generic;
             {
                 if (_isColorEnabled == value) return;
                 _isColorEnabled = value;
-                GlobalVariables.Options.SetMethod(Methods.ColorSpace.Name, value);
+                GlobalVariables.Options.SetMethod(Methods.ColorProfile.Name, value);
                 OnPropertyChanged(nameof(IsColorProfileEnabled));
             }
         }
