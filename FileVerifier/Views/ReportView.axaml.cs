@@ -1,7 +1,19 @@
+using Avalonia;
 using Avalonia.Controls;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.ViewModels;
+using AvaloniaDraft.Logger;
+using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
+using Emgu.CV.CvEnum;
+using System;
+using System.IO;
+using System.ComponentModel.DataAnnotations;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
+using Avalonia.Controls.Shapes;
+using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 
 namespace AvaloniaDraft.Views;
 

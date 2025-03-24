@@ -68,11 +68,31 @@ public static class DocxPipelines
                 //Visual comparison here ?
             }
 
-            if (GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
-                var res = ColorProfileComparison.DocxToPdfColorProfileComparison(pair);
-                if (!res)
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorSpace.Name, false,
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = ColorProfileComparison.DocxToPdfColorProfileComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
+                        err: new Error(
+                            "Error comparing color profiles in docx contained images",
+                            "There occurred an error while extracting and comparing " +
+                            "color profiles of the images contained in the docx.",
+                            ErrorSeverity.High,
+                            ErrorType.Metadata
+                        )
+                    );
+                }
+
+                if (!exceptionOccurred && !res)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
                         err: new Error(
                             "Mismatching color profile",
                             "The color profile in the new file does not match the original on at least one image.",
@@ -80,10 +100,46 @@ public static class DocxPipelines
                             ErrorType.Metadata
                         )
                     );
-                else
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorSpace.Name, true);
+                else if (!exceptionOccurred && res)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
+                
             }
-            
+
+            if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = TransparencyComparison.PdfToPdfTransparencyComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
+                        err: new Error(
+                            "Error comparing transparency in docx contained images",
+                            "There occurred an error while comparing transparency" +
+                            " of the images contained in the docx.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Metadata
+                        )
+                    );
+                }
+
+                if (!exceptionOccurred && !res)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
+                        err: new Error(
+                            "Difference in images contained in the docx's transparency",
+                            "The images contained in the docx and pdf files did not pass Transparency comparison.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Visual
+                        )
+                    );
+                else if(!exceptionOccurred && res)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
+            }
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }
