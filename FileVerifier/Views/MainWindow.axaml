@@ -47,6 +47,10 @@
                             Background="Transparent" Foreground="White"
                             BorderThickness="0" FontSize="16"
                             Click="SettingsButton_Click"/>
+					<Button x:Name="ReportButton" Content="Report"
+		                    Background="Transparent" Foreground="White"
+		                    BorderThickness="0" FontSize="16"
+		                    Click="ReportButton_Click"/>
                 </StackPanel>
             </Grid>
         </Border>

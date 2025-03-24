@@ -10,6 +10,19 @@ namespace AvaloniaDraft.ComparisonPipelines;
 public static class PptxPipelines
 {
     /// <summary>
+    /// Function responsible for assigning the correct pipeline for PPTX files
+    /// </summary>
+    /// <param name="outputFormat">Format of the converted file</param>
+    /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
+    public static Action<FilePair, int, Action<int>, Action>? GetPptxPipeline(string outputFormat)
+    {
+        if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
+            return PptxToPdfPipeline;
+
+        return null;
+    }
+    
+    /// <summary>
     /// Pipeline responsible for comparing Pptx to other PDF conversions
     /// </summary>
     /// <param name="pair">The pair of files to compare</param>
@@ -23,8 +36,9 @@ public static class PptxPipelines
         {
             List<Error> e = [];
             
-            if (true) //Check options for file size check later
+            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
+                
                 var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
 
                 if (res == null)
@@ -46,35 +60,17 @@ public static class PptxPipelines
                     ));
                 }
             }
-            
-            if (true) //Check options for metadata check later
-            {
-                var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
 
-                if (res is null)
-                {
-                    e.Add(new Error(
-                        "Error getting image metadata",
-                        "There occured an error while trying to get metadata from one of the files.",
-                        ErrorSeverity.High,
-                        ErrorType.Metadata
-                    ));
-                } else if (res.Count > 0)
-                {
-                    e.AddRange(res);
-                }
-            }
-
-            if (true) // Check for animation
+            if (GlobalVariables.Options.GetMethod(Methods.Animations.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;
 
                 try
                 {
-                    res = AnimationComparison.CheckXmlBasedFormatForAnimation(pair.OriginalFileFormat);
+                    res = AnimationComparison.CheckXmlBasedFormatForAnimation(pair.OriginalFilePath);
                 }
-                catch (Exception)
+                catch (Exception err)
                 {
                     exceptionOccurred = true;
                     e.Add(new Error(
@@ -95,7 +91,7 @@ public static class PptxPipelines
                 }
             }
             
-            if (true) // Check for color profile later
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;
@@ -127,7 +123,7 @@ public static class PptxPipelines
                 }
             }
             
-            if (true) // Check for transparency later
+            if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;

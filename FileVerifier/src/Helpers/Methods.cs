@@ -27,10 +27,11 @@ namespace AvaloniaDraft.Helpers
         public static Method Fonts => new Method("Fonts", "Check to ensure the documents use the same fonts.");
         public static Method Pages => new Method("Pages", "Check to ensure the documents have the same amount of pages.");
         public static Method Resolution => new Method("Resolution", "Check to ensure the resolution of the two images is the same.");
-        public static Method ColorSpace => new Method("Color space", "Check to ensure the documents use the same color profile.");
+        public static Method ColorProfile => new Method("Color profile", "Check to ensure the documents use the same color profile.");
         public static Method Animations => new Method("Animations", "Check if the presentation has animations.");
         public static Method PointByPoint => new Method("Point By Point", "Do a point by point comparison between images.");
-
+        public static Method Metadata => new Method("Metadata", "Check to ensure the documents have the same metadata.");
+        public static Method Transparency => new Method("Transparency", "Check to ensure the documents have the same transparency.");
 
         /// <summary>
         /// Get all the methods in a list
