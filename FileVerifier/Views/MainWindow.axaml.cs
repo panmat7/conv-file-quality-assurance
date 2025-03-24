@@ -59,6 +59,8 @@ public partial class MainWindow : Window
         // Reset all buttons
         HomeButton.Background = new SolidColorBrush(Colors.Transparent);
         SettingsButton.Background = new SolidColorBrush(Colors.Transparent);
+        ReportButton.Background = new SolidColorBrush(Colors.Transparent);
+
 
         // Set active button style
         button.Background = new SolidColorBrush(Color.Parse("#107F37"));
@@ -81,6 +83,16 @@ public partial class MainWindow : Window
             DataContext = _settingsViewModel
         };
         MainContent.Content = settingsView;
+        SetActiveButton((Button)sender);
+    }
+
+    private void ReportButton_Click(object sender, RoutedEventArgs e)
+    {
+        var reportView = new ReportView
+        {
+            DataContext = _settingsViewModel
+        };
+        MainContent.Content = reportView;
         SetActiveButton((Button)sender);
     }
 }
