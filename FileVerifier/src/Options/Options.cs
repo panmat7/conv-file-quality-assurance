@@ -78,6 +78,17 @@ public class Options
     }
 
 
+
+    /// <summary>
+    /// Get if a method is enabled or not
+    /// </summary>
+    /// /// <param name="method">The method</param>
+    public bool GetMethod(Method method)
+    {
+        return GetMethod(method.Name);
+    }
+
+
     /// <summary>
     /// Get if a method is enabled or not
     /// </summary>
@@ -94,6 +105,17 @@ public class Options
         }
     }
 
+
+
+    /// <summary>
+    /// Set a method to be enabled or not
+    /// </summary>
+    /// /// <param name="method">The name of the method</param>
+    /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
+    public void SetMethod(Method method, bool? setTo = null)
+    {
+        SetMethod(method.Name, setTo);
+    }
 
     /// <summary>
     /// Set a method to be enabled or not
