@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
@@ -34,28 +35,32 @@ public static class DocxPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
-            
             var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
             switch (diff)
             {
                 case null:
-                    e.Add(new Error(
-                        "Could not get page count",
-                        "There was an error trying to get the page count from at least one of the files.",
-                        ErrorSeverity.High,
-                        ErrorType.FileError
-                    ));
+                    GlobalVariables.Logger.AddTestResult(pair, "Page Count", false,
+                        err: new Error(
+                            "Could not get page count",
+                            "There was an error trying to get the page count from at least one of the files.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        )
+                    );
                     break;
                 case > 0:
-                    e.Add(new Error(
-                        "Difference in page count",
-                        "The original and new document have a different page count.",
-                        ErrorSeverity.High,
-                        ErrorType.FileError,
-                        $"{diff}"
-                    ));
+                    GlobalVariables.Logger.AddTestResult(pair, "Page Count", false,
+                        err: new Error(
+                            "Difference in page count",
+                            "The original and new document have a different page count.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError,
+                            $"{diff}"
+                        )
+                    );
                     break;
+                default:
+                    GlobalVariables.Logger.AddTestResult(pair, "Page Count", true);
             }
 
             if (true)
@@ -63,18 +68,21 @@ public static class DocxPipelines
                 //Visual comparison here ?
             }
 
-            var res = ColorProfileComparison.DocxToPdfColorProfileComparison(pair);
-            if (!res)
+            if (GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name))
             {
-                e.Add(new Error(
-                    "Mismatching color profile",
-                    "The color profile in the new file does not match the original on at least one image.",
-                    ErrorSeverity.Medium,
-                    ErrorType.Metadata
-                ));
+                var res = ColorProfileComparison.DocxToPdfColorProfileComparison(pair);
+                if (!res)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorSpace.Name, false,
+                        err: new Error(
+                            "Mismatching color profile",
+                            "The color profile in the new file does not match the original on at least one image.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Metadata
+                        )
+                    );
+                else
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorSpace.Name, true);
             }
-
-            
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
