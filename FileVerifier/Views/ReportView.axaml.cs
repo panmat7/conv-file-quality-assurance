@@ -82,6 +82,7 @@ public partial class ReportView : UserControl
 
         var totalComparisons = 0;
         var passedComparisons = 0;
+
         foreach (var result in logger.Results)
         {
             var expander = CreateComparisonResultExpander(result);
@@ -176,7 +177,8 @@ public partial class ReportView : UserControl
 
         if (result.Errors.Any()) stackPanel.Children.Add(new TextBlock()
         {
-            Text = result.Errors.ToString(),
+            Text = "", // Errors
+
             Foreground = Brushes.White,
         });
 

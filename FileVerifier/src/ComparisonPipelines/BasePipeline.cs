@@ -62,6 +62,15 @@ public static class BasePipeline
         if (FormatCodes.PronomCodesJPEG.Contains(pair.OriginalFileFormat))
             return JpgPipelines.GetJPEGPipelines(pair.NewFileFormat);
         
+        if(FormatCodes.PronomCodesPPTX.Contains(pair.OriginalFileFormat))
+            return PptxPipelines.GetPptxPipeline(pair.NewFileFormat);
+        
+        if(FormatCodes.PronomCodesPDF.Contains(pair.OriginalFileFormat))
+            return PdfPipelines.GetPdfPipelines(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesODP.Contains(pair.OriginalFileFormat))
+            return OdpPipelines.GetOdpPipeline(pair.NewFileFormat);
+        
         return null;
     }
 

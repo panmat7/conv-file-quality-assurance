@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+using AvaloniaDraft.Logger;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 
 namespace AvaloniaDraft.Helpers;

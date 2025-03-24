@@ -29,7 +29,7 @@ public class Options
 {
     public SettingsProfile Profile { get; set; }
 
-    private string? dir;
+    private string? dir; // The directory where settings are stored
 
     public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; }
     public Dictionary<string, bool> MethodsEnabled { get; set; }
@@ -120,23 +120,13 @@ public class Options
     /// <summary>
     /// Set a method to be enabled or not
     /// </summary>
-    /// /// <param name="method">The name of the method</param>
+    /// /// <param name="methodName">The name of the method</param>
     /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
-    public void SetMethod(string method, bool? setTo = null)
+    public void SetMethod(string methodName, bool? setTo = null)
     {
-        if (!MethodsEnabled.ContainsKey(method)) return;
+        if (!methodsEnabled.ContainsKey(methodName)) return;
 
-        bool value;
-        if (setTo != null)
-        {
-            value = setTo.Value;
-        }
-        else
-        {
-            value = !MethodsEnabled[method];
-        }
-
-        MethodsEnabled[method] = value;
+        methodsEnabled[methodName] = setTo ?? methodsEnabled[methodName];
     }
 
 

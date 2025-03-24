@@ -2,6 +2,7 @@
 using System;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using AvaloniaDraft.FileManager;
 
 namespace AvaloniaDraft;
 

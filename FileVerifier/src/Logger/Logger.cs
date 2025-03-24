@@ -98,6 +98,16 @@ public class Logger
 
 
     /// <summary>
+    /// Start the logger
+    /// </summary>
+    public void Start()
+    {
+        active = true;
+        stopwatch.Start();
+    }
+
+
+    /// <summary>
     /// Add a result from a test
     /// </summary>
     /// <param name="filePair">The filepair</param>

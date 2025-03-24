@@ -7,7 +7,7 @@ using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
-public static class PDFPipelines
+public static class PdfPipelines
 {
     /// <summary>
     /// Function responsible for assigning the correct pipeline for PDF files
@@ -16,6 +16,9 @@ public static class PDFPipelines
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
     public static Action<FilePair, int, Action<int>, Action>? GetPdfPipelines(string outputFormat)
     {
+        if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
+            return PdfToPdfPipeline;
+        
         return null;
     }
     
@@ -34,10 +37,8 @@ public static class PDFPipelines
             List<Error> e = [];
 
             e.AddRange(BasePipeline.CompareFonts(pair));
-
-            BasePipeline.CompareFonts(pair);
-
-            if (true) //Check options for file size check later
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
 
@@ -61,25 +62,7 @@ public static class PDFPipelines
                 }
             }
             
-            if (true) //Check options for metadata check later
-            {
-                var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
-
-                if (res is null)
-                {
-                    e.Add(new Error(
-                        "Error getting image metadata",
-                        "There occured an error while trying to get metadata from one of the files.",
-                        ErrorSeverity.High,
-                        ErrorType.Metadata
-                    ));
-                } else if (res.Count > 0)
-                {
-                    e.AddRange(res);
-                }
-            }
-            
-            if (true) // Check for color profile later
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;
@@ -111,7 +94,7 @@ public static class PDFPipelines
                 }
             }
             
-            if (true) // Check for transparency later
+            if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;

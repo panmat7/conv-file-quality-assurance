@@ -65,15 +65,68 @@ public static class DocxPipelines
                 //Visual comparison here ?
             }
 
-            var res = ColorProfileComparison.DocxToPdfColorProfileComparison(pair);
-            if (!res)
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
-                e.Add(new Error(
-                    "Mismatching color profile",
-                    "The color profile in the new file does not match the original on at least one image.",
-                    ErrorSeverity.Medium,
-                    ErrorType.Metadata
-                ));
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = ColorProfileComparison.DocxToPdfColorProfileComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    e.Add(new Error(
+                        "Error comparing color profiles in docx contained images",
+                        "There occurred an error while extracting and comparing " +
+                        "color profiles of the images contained in the docx.",
+                        ErrorSeverity.High,
+                        ErrorType.Metadata
+                    ));
+                }
+
+                if (!exceptionOccurred && !res)
+                {
+                    e.Add(new Error(
+                        "Difference in images contained in the docx's color profile",
+                        "The images contained in the docx and pdf files did not pass Color Profile comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+            }
+
+            if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = TransparencyComparison.PdfToPdfTransparencyComparison(pair);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    e.Add(new Error(
+                        "Error comparing transparency in docx contained images",
+                        "There occurred an error while comparing transparency" +
+                        " of the images contained in the docx.",
+                        ErrorSeverity.High,
+                        ErrorType.Metadata
+                    ));
+                }
+
+                if (!exceptionOccurred && !res)
+                {
+                    e.Add(new Error(
+                        "Difference in images contained in the docx's transparency",
+                        "The images contained in the docx and pdf files did not pass Transparency comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Visual
+                    ));
+                }
             }
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
