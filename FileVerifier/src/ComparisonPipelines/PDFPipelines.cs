@@ -33,7 +33,7 @@ public static class PDFPipelines
         {
             List<Error> e = [];
             
-            if (true) //Check options for file size check later
+            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
 
@@ -57,7 +57,7 @@ public static class PDFPipelines
                 }
             }
             
-            if (true) //Check options for metadata check later
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
             {
                 var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
 
@@ -75,7 +75,7 @@ public static class PDFPipelines
                 }
             }
             
-            if (true) // Check for color profile later
+            if (GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name)) // Check for color profile later
             {
                 var res = false;
                 var exceptionOccurred = false;
@@ -107,7 +107,7 @@ public static class PDFPipelines
                 }
             }
             
-            if (true) // Check for transparency later
+            if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name)) // Check for transparency later
             {
                 var res = false;
                 var exceptionOccurred = false;

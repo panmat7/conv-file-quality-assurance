@@ -23,7 +23,7 @@ public static class OdpPipelines
         {
             List<Error> e = [];
             
-            if (true) //Check options for file size check later
+            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
 
@@ -47,7 +47,7 @@ public static class OdpPipelines
                 }
             }
             
-            if (true) //Check options for metadata check later
+            if (GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name))
             {
                 var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
 
@@ -65,7 +65,7 @@ public static class OdpPipelines
                 }
             }
 
-            if (true) // Check for animation
+            if (GlobalVariables.Options.GetMethod(Methods.Animations.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;
@@ -95,7 +95,7 @@ public static class OdpPipelines
                 }
             }
             
-            if (true) // Check for color profile later
+            if (GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;
@@ -127,7 +127,7 @@ public static class OdpPipelines
                 }
             }
             
-            if (true) // Check for transparency later
+            if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;
