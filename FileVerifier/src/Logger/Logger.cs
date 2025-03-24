@@ -87,6 +87,9 @@ public class Logger
     }
 
 
+    /// <summary>
+    /// Start the logger
+    /// </summary>
     public void Start()
     {
         if (Active) return;
@@ -94,16 +97,6 @@ public class Logger
         Active = true;
         Stopwatch.Restart();
         Stopwatch.Start();
-    }
-
-
-    /// <summary>
-    /// Start the logger
-    /// </summary>
-    public void Start()
-    {
-        active = true;
-        stopwatch.Start();
     }
 
 
@@ -120,7 +113,7 @@ public class Logger
     {
         var testResult = new TestResult(pass, percentage, comments, errors);
 
-        var index = Results.FindIndex(r => r.FilePair == filePair);
+        var index = Results.FindIndex(r => r.FilePair.OriginalFilePath == filePair.OriginalFilePath && r.FilePair.NewFilePath == filePair.NewFilePath);
         if (index == -1)
         {
             var cr = new ComparisonResult(filePair);
@@ -137,7 +130,7 @@ public class Logger
 
     public string? FormatTestResult(FilePair filePair)
     {
-        var index = Results.FindIndex(r => r.FilePair == filePair);
+        var index = Results.FindIndex(r => r.FilePair.OriginalFilePath == filePair.OriginalFilePath && r.FilePair.NewFilePath == filePair.NewFilePath);
         if (index == -1) return null;
         var result = Results[index];
 

@@ -15,6 +15,7 @@ using Avalonia.Controls.Shapes;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using System.Linq;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 
 namespace AvaloniaDraft.Views;
 
@@ -166,6 +167,7 @@ public partial class ReportView : UserControl
             Foreground = Brushes.White,
         });
 
+        // Comments
         if (result.Comments != null) foreach (var comment in result.Comments)
         {
             stackPanel.Children.Add(new TextBlock()
@@ -175,9 +177,10 @@ public partial class ReportView : UserControl
             });
         }
 
+        // Errors
         if (result.Errors.Any()) stackPanel.Children.Add(new TextBlock()
         {
-            Text = "", // Errors
+            Text = "",
 
             Foreground = Brushes.White,
         });

@@ -124,9 +124,9 @@ public class Options
     /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
     public void SetMethod(string methodName, bool? setTo = null)
     {
-        if (!methodsEnabled.ContainsKey(methodName)) return;
+        if (!MethodsEnabled.ContainsKey(methodName)) return;
 
-        methodsEnabled[methodName] = setTo ?? methodsEnabled[methodName];
+        MethodsEnabled[methodName] = setTo ?? MethodsEnabled[methodName];
     }
 
 
