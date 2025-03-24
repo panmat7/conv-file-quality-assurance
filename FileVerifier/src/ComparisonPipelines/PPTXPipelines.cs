@@ -60,24 +60,6 @@ public static class PptxPipelines
                     ));
                 }
             }
-            
-            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
-            {
-                var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
-
-                if (res is null)
-                {
-                    e.Add(new Error(
-                        "Error getting image metadata",
-                        "There occured an error while trying to get metadata from one of the files.",
-                        ErrorSeverity.High,
-                        ErrorType.Metadata
-                    ));
-                } else if (res.Count > 0)
-                {
-                    e.AddRange(res);
-                }
-            }
 
             if (GlobalVariables.Options.GetMethod(Methods.Animations.Name))
             {
