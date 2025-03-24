@@ -10,6 +10,19 @@ namespace AvaloniaDraft.ComparisonPipelines;
 public static class OdpPipelines
 {
     /// <summary>
+    /// Function responsible for assigning the correct pipeline for ODP files
+    /// </summary>
+    /// <param name="outputFormat">Format of the converted file</param>
+    /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
+    public static Action<FilePair, int, Action<int>, Action>? GetOdpPipeline(string outputFormat)
+    {
+        if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
+            return OdpToPdfPipeline;
+
+        return null;
+    }
+    
+    /// <summary>
     /// Pipeline responsible for comparing Odp to other PDF conversions
     /// </summary>
     /// <param name="pair">The pair of files to compare</param>
@@ -47,7 +60,7 @@ public static class OdpPipelines
                 }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
 
@@ -95,7 +108,7 @@ public static class OdpPipelines
                 }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;

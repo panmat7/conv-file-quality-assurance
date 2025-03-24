@@ -10,6 +10,19 @@ namespace AvaloniaDraft.ComparisonPipelines;
 public static class PptxPipelines
 {
     /// <summary>
+    /// Function responsible for assigning the correct pipeline for PPTX files
+    /// </summary>
+    /// <param name="outputFormat">Format of the converted file</param>
+    /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
+    public static Action<FilePair, int, Action<int>, Action>? GetPptxPipeline(string outputFormat)
+    {
+        if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
+            return PptxToPdfPipeline;
+
+        return null;
+    }
+    
+    /// <summary>
     /// Pipeline responsible for comparing Pptx to other PDF conversions
     /// </summary>
     /// <param name="pair">The pair of files to compare</param>
@@ -96,7 +109,7 @@ public static class PptxPipelines
                 }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;
