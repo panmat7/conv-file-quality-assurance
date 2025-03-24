@@ -86,9 +86,9 @@ public static class PptxPipelines
 
                 try
                 {
-                    res = AnimationComparison.CheckXmlBasedFormatForAnimation(pair.OriginalFileFormat);
+                    res = AnimationComparison.CheckXmlBasedFormatForAnimation(pair.OriginalFilePath);
                 }
-                catch (Exception)
+                catch (Exception err)
                 {
                     exceptionOccurred = true;
                     e.Add(new Error(

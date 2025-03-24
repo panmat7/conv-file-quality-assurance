@@ -85,7 +85,7 @@ public static class OdpPipelines
 
                 try
                 {
-                    res = AnimationComparison.CheckOdpForAnimation(pair.OriginalFileFormat);
+                    res = AnimationComparison.CheckOdpForAnimation(pair.OriginalFilePath);
                 }
                 catch (Exception)
                 {
