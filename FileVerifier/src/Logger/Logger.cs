@@ -8,8 +8,9 @@ using AvaloniaDraft.FileManager;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using AvaloniaDraft.Helpers;
+using DocumentFormat.OpenXml.Wordprocessing;
 
-namespace Avalonia.Logger;
+namespace AvaloniaDraft.Logger;
 
 public class Logger
 {
@@ -67,6 +68,7 @@ public class Logger
 
 
     public bool Active { get; set; }
+    public bool Finished { get; set; }
     public Stopwatch Stopwatch { get; set; }
     public List<ComparisonResult> Results { get; set; }
 
@@ -76,12 +78,22 @@ public class Logger
     /// </summary>
     public void Initialize()
     {
-        Active = true;
+        Active = false;
+        Finished = false;
 
         Stopwatch = new Stopwatch();
-        Stopwatch.Start();
 
         Results = new List<ComparisonResult>();
+    }
+
+
+    public void Start()
+    {
+        if (Active) return;
+
+        Active = true;
+        Stopwatch.Restart();
+        Stopwatch.Start();
     }
 
 
@@ -91,12 +103,12 @@ public class Logger
     /// <param name="filePair">The filepair</param>
     /// <param name="testName">The name of the test</param>
     /// <param name="pass">If the test passed or not</param>
-    /// <param name="comments">A list of comments on the result</param>
     /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
-    /// <param name="err">Error</param>
-    public void AddTestResult(FilePair filePair, string testName, bool pass, List<string>? comments = null, double? percentage = null, List<Error> err = null)
+    /// <param name="comments">A list of comments on the result</param>
+    /// <param name="errors">Error</param>
+    public void AddTestResult(FilePair filePair, string testName, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
     {
-        var testResult = new TestResult(pass, percentage, comments, err);
+        var testResult = new TestResult(pass, percentage, comments, errors);
 
         var index = Results.FindIndex(r => r.FilePair == filePair);
         if (index == -1)
@@ -112,18 +124,26 @@ public class Logger
     }
 
 
-    /// <summary>
-    /// Add a result from a test
-    /// </summary>
-    /// <param name="filePair">The filepair</param>
-    /// <param name="testName">The name of the test</param>
-    /// <param name="pass">If the test passed or not</param>
-    /// <param name="comment">A comment on the result</param>
-    /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
-    /// <param name="err">Error</param>
-    public void AddTestResult(FilePair filePair, string testName, bool pass, string comment, double? percentage = null, Error? err = null)
+
+    public string? FormatTestResult(FilePair filePair)
     {
-        AddTestResult(filePair, testName, pass, new List<string> { comment }, percentage);
+        var index = Results.FindIndex(r => r.FilePair == filePair);
+        if (index == -1) return null;
+        var result = Results[index];
+
+        var errors = new List<Error>();
+        foreach (var t in result.Tests.Values)
+        {
+            foreach (var e in t.Errors)
+            {
+                errors.Add(e);
+            }
+        }
+
+        $"Result for {Path.GetFileName(filePair.OriginalFilePath)}-{Path.GetFileName(filePair.NewFilePath)} Comparison: \n{errors.GenerateErrorString()}\n\n";
+
+
+        return null;
     }
 
     /// <summary>
@@ -135,6 +155,7 @@ public class Logger
 
         Stopwatch.Stop();
         Active = false;
+        Finished = true;
     }
 
 

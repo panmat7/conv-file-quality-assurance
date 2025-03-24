@@ -13,7 +13,7 @@ namespace AvaloniaDraft.ComparingMethods;
 /// </summary>
 public static class ScriptCodes
 {
-    public static Dictionary<string, Dictionary<string, string>> Scripts = new Dictionary<string, Dictionary<string, string>>() {
+    public static readonly Dictionary<string, Dictionary<string, string>> Scripts = new Dictionary<string, Dictionary<string, string>>() {
             { "aa", new Dictionary<string, string> { { "", "Latn"} } },
             { "ab", new Dictionary<string, string> { { "", "Cyrl"} } },
             { "abq", new Dictionary<string, string> { { "", "Cyrl"} } },

@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using System;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 
 namespace AvaloniaDraft;
 
@@ -20,6 +21,8 @@ sealed class Program
         GlobalVariables.Options = new Options.Options();
         GlobalVariables.Options.Initialize();
 
+        GlobalVariables.Logger = new Logger.Logger();
+        GlobalVariables.Logger.Initialize();
 
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);

@@ -35,7 +35,9 @@ public static class DocxPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             List<Error> e = [];
-            
+
+            e.AddRange(BasePipeline.CompareFonts(pair));
+
             var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
             switch (diff)
             {
@@ -73,8 +75,6 @@ public static class DocxPipelines
                     ErrorType.Metadata
                 ));
             }
-
-            
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

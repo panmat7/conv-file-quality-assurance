@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -54,8 +55,11 @@ public struct FontComparisonResult
     }
 }
 
-public static class FontComparison
+public static partial class FontComparison
 {
+    [GeneratedRegex(@"rgb\(([0-9]+), ([0-9]+), ([0-9]+)\)")]
+    public static partial Regex RgbRegex();
+
     /// <summary>
     /// Compare a file pair and check if the fonts, text colors and text background colors are the same
     /// </summary>
@@ -70,38 +74,27 @@ public static class FontComparison
         // Make sure there were no issues reading the original file
         if ((oti = GetTextInfo(fp.OriginalFilePath, fp.OriginalFileFormat)) is null)
         {
-            var description = $"Failed to read original file: {Path.GetFileName(fp.OriginalFilePath)}";
-            result.Errors.Add(new Error("File error", description, ErrorSeverity.High, ErrorType.FileError));
+            result.Errors.Add(new Error(
+                "Error reading/opening file", 
+                $"Failed to read original file: {Path.GetFileName(fp.OriginalFilePath)}", 
+                ErrorSeverity.High, 
+                ErrorType.FileError
+            ));
         }
 
         // Make sure there were no issues reading the converted file
         if ((nti = GetTextInfo(fp.NewFilePath, fp.NewFileFormat)) is null)
         {
-            var description = $"Failed to read converted file: {Path.GetFileName(fp.NewFilePath)}";
-            result.Errors.Add(new Error("File error", description, ErrorSeverity.High, ErrorType.FileError));
+            result.Errors.Add(new Error(
+                "Error reading/opening file", 
+                $"Failed to read converted file: {Path.GetFileName(fp.NewFilePath)}", 
+                ErrorSeverity.High, 
+                ErrorType.FileError
+            ));
         }
 
         // Return if there were errors reading either
         if (oti is not TextInfo ot || nti is not TextInfo nt) return result;
-
-
-
-            // Alternate fonts
-            /*foreach (var altFonts in ot.altFonts)
-            {
-                var containsAtLeastOneAltFont = false;
-
-                foreach (var font in altFonts)
-                {
-                    if (nt.fonts.Contains(font))
-                    {
-                        containsAtLeastOneAltFont = true;
-                        break;
-                    }
-                }
-
-                if (!containsAtLeastOneAltFont) return false;
-            }*/
 
         // Check for fonts present in the original, but not the converted
         var fontsOnlyInOriginal = ot.Fonts.Except(nt.Fonts);
@@ -136,25 +129,37 @@ public static class FontComparison
     /// <returns>The text information</returns>
     private static TextInfo? GetTextInfo(string src, string formatCode)
     {
-        return formatCode switch
-        {
-            var code when FormatCodes.PronomCodesAllPDF.Contains(code) => PdfFontExtraction.GetTextInfoPdf(src),
+        if (FormatCodes.PronomCodesAllPDF.Contains(formatCode))
+            return PdfFontExtraction.GetTextInfoPdf(src);
 
-            var code when FormatCodes.PronomCodesDOCX.Contains(code) => WordFontExtraction.GetTextInfoWord(src),
-            var code when FormatCodes.PronomCodesPPTX.Contains(code) => PPFontExtraction.GetTextInfoPP(src),
-            var code when FormatCodes.PronomCodesXLSX.Contains(code) => ExcelFontExtraction.GetTextInfoExcel(src),
+        if (FormatCodes.PronomCodesDOCX.Contains(formatCode))
+            return WordFontExtraction.GetTextInfoWord(src);
 
-            var code when FormatCodes.PronomCodesODT.Contains(code) => ODFontExtraction.GetTextInfoODT(src),
-            var code when FormatCodes.PronomCodesODP.Contains(code) => ODFontExtraction.GetTextInfoODP(src),
-            var code when FormatCodes.PronomCodesODS.Contains(code) => ODFontExtraction.GetTextInfoODS(src),
+        if (FormatCodes.PronomCodesPPTX.Contains(formatCode))
+            return PPFontExtraction.GetTextInfoPP(src);
 
-            var code when FormatCodes.PronomCodesRTF.Contains(code) => RtfFontExtraction.GetTextInfoRTF(src),
+        if (FormatCodes.PronomCodesXLSX.Contains(formatCode))
+            return ExcelFontExtraction.GetTextInfoExcel(src);
 
-            var code when FormatCodes.PronomCodesEML.Contains(code) => HtmlBasedFontExtraction.GetTextInfoEml(src),
-            var code when FormatCodes.PronomCodesHTML.Contains(code) => HtmlBasedFontExtraction.GetTextInfoHtml(src),
+        if (FormatCodes.PronomCodesODT.Contains(formatCode))
+            return ODFontExtraction.GetTextInfoODT(src);
 
-            _ => null
-        };
+        if (FormatCodes.PronomCodesODP.Contains(formatCode))
+            return ODFontExtraction.GetTextInfoODP(src);
+
+        if (FormatCodes.PronomCodesODS.Contains(formatCode))
+            return ODFontExtraction.GetTextInfoODS(src);
+
+        if (FormatCodes.PronomCodesRTF.Contains(formatCode))
+            return RtfFontExtraction.GetTextInfoRTF(src);
+
+        if (FormatCodes.PronomCodesEML.Contains(formatCode))
+            return HtmlBasedFontExtraction.GetTextInfoEml(src);
+
+        if (FormatCodes.PronomCodesHTML.Contains(formatCode))
+            return HtmlBasedFontExtraction.GetTextInfoHtml(src);
+
+        return null;
     }
 
 

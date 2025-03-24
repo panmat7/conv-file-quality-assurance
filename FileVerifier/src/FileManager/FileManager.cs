@@ -248,7 +248,7 @@ public sealed class FileManager
     /// </summary>
     public void StartVerification()
     {
-        var maxThreads = 8; //Read from options
+        var maxThreads = GlobalVariables.Options.SpecifiedThreadCount ?? 8;
         
         //Continuing until done with all files
         while (true)
@@ -286,6 +286,8 @@ public sealed class FileManager
         }
 
         AwaitThreads(); //Awaiting all remaining threads
+
+        GlobalVariables.Logger.Finish();
         
         foreach (var file in _filePairs)
         {

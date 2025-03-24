@@ -32,7 +32,9 @@ public static class PDFPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             List<Error> e = [];
-            
+
+            BasePipeline.CompareFonts(pair);
+
             if (true) //Check options for file size check later
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later

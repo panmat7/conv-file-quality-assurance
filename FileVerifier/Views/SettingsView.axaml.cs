@@ -20,7 +20,7 @@ public partial class SettingsView : UserControl
     {
         if (SettingsProfile == null) return;
 
-        GlobalVariables.Options.profile = SettingsProfile.SelectedIndex switch
+        GlobalVariables.Options.Profile = SettingsProfile.SelectedIndex switch
         {
             0 => Options.SettingsProfile.Default,
             1 => Options.SettingsProfile.Custom1,
@@ -50,7 +50,7 @@ public partial class SettingsView : UserControl
         var viewModel = DataContext as SettingsViewModel;
         if (viewModel == null) return;
 
-        viewModel.IsIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.ignoreUnsupportedFileType;
+        viewModel.IsIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.IgnoreUnsupportedFileType;
 
         viewModel.IsPointByPointEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.PointByPoint.Name);
         viewModel.IsAnimationEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Animations.Name);

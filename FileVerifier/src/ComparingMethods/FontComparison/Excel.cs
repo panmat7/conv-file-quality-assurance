@@ -29,6 +29,8 @@ public static class ExcelFontExtraction
         var doc = new ExcelPackage(src);
         var sheets = doc.Workbook.Worksheets;
 
+        if (sheets == null) return null;
+
         // Go through each sheet
         foreach (var sheet in sheets)
         {

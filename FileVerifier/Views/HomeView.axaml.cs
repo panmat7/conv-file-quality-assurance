@@ -110,7 +110,9 @@ public partial class HomeView : UserControl
         LoadButton.IsEnabled = false;
         
         OverwriteConsole(null);
-        
+
+        GlobalVariables.Logger.Start();
+
         await Task.Run(() =>
         {
             GlobalVariables.FileManager.StartVerification();
