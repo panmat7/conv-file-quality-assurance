@@ -32,6 +32,7 @@ namespace AvaloniaDraft.Helpers
         public static Method PointByPoint => new Method("Point By Point", "Do a point by point comparison between images.");
         public static Method Metadata => new Method("Metadata", "Check to ensure the documents have the same metadata.");
         public static Method Transparency => new Method("Transparency", "Check to ensure the documents have the same transparency.");
+        public static Method VisualDocComp => new Method("Visual Document Comparison", "A visual comparison between the two documents.");
 
         /// <summary>
         /// Get all the methods in a list
