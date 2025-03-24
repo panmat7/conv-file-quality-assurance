@@ -9,9 +9,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using AvaloniaDraft.Helpers;
 
-namespace Avalonia.Logger;
+namespace AvaloniaDraft.Logger;
 
-class Logger
+public class Logger
 {
     /// <summary>
     /// A result of a single comparison test
@@ -67,6 +67,7 @@ class Logger
 
 
     public bool active { get; set; }
+    public bool finished { get; set; }
     public Stopwatch stopwatch { get; set; }
     public List<ComparisonResult> results { get; set; }
 
@@ -76,12 +77,20 @@ class Logger
     /// </summary>
     public void Initialize()
     {
-        active = true;
-
+        active = false;
+        finished = false;
         stopwatch = new Stopwatch();
-        stopwatch.Start();
-
         results = new List<ComparisonResult>();
+    }
+
+
+    /// <summary>
+    /// Start the logger
+    /// </summary>
+    public void Start()
+    {
+        active = true;
+        stopwatch.Start();
     }
 
 
@@ -135,6 +144,7 @@ class Logger
 
         stopwatch.Stop();
         active = false;
+        finished = true;
     }
 
 
