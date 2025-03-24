@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Threading;
+using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Views;
@@ -63,5 +65,20 @@ public static class BasePipeline
             return JpgPipelines.GetJPEGPipelines(pair.NewFileFormat);
         
         return null;
+    }
+
+
+    public static void CompareFonts(FilePair fp)
+    {
+        if (GlobalVariables.Options.GetMethod(Methods.Fonts))
+        {
+            var errors = new List<Error>();
+            var result = FontComparison.CompareFiles(fp);
+
+            if (result.Errors.Count > 0)
+            {
+                foreach (var e in result.Errors) errors.Add(e);
+            }
+        }
     }
 }

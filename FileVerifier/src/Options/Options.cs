@@ -27,15 +27,15 @@ public enum SettingsProfile
 /// </summary>
 public class Options
 {
-    public SettingsProfile profile { get; set; }
+    public SettingsProfile Profile { get; set; }
 
     private string? dir;
 
-    public Dictionary<string, Dictionary<string, bool>> fileFormatsEnabled { get; set; }
-    public Dictionary<string, bool> methodsEnabled { get; set; }
+    public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; }
+    public Dictionary<string, bool> MethodsEnabled { get; set; }
 
-    public int? specifiedThreadCount { get; set; }
-    public bool ignoreUnsupportedFileType { get; set; }
+    public int? SpecifiedThreadCount { get; set; }
+    public bool IgnoreUnsupportedFileType { get; set; }
 
 
     /// <summary>
@@ -44,10 +44,10 @@ public class Options
     public void Initialize()
     {
         SetDirPath();
-        profile = SettingsProfile.Default;
+        Profile = SettingsProfile.Default;
 
-        fileFormatsEnabled = new Dictionary<string, Dictionary<string, bool>>();
-        methodsEnabled = new Dictionary<string, bool>();
+        FileFormatsEnabled = new Dictionary<string, Dictionary<string, bool>>();
+        MethodsEnabled = new Dictionary<string, bool>();
 
         LoadSettings();
     }
@@ -68,10 +68,10 @@ public class Options
 
                 var type = fileFormat.FormatCodes[0].ToLower();
 
-                if (!fileFormatsEnabled.ContainsKey(type)) fileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
                 foreach (var fmt in fileFormat.PronomCodes)
                 {
-                    fileFormatsEnabled[type][fmt] = true;
+                    FileFormatsEnabled[type][fmt] = true;
                 }
             }
         }
@@ -95,9 +95,9 @@ public class Options
     /// /// <param name="method">The name of the method</param>
     public bool GetMethod(string method)
     {
-        if (methodsEnabled.ContainsKey(method))
+        if (MethodsEnabled.ContainsKey(method))
         {
-            return methodsEnabled[method];
+            return MethodsEnabled[method];
         } 
         else
         {
@@ -124,7 +124,7 @@ public class Options
     /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
     public void SetMethod(string method, bool? setTo = null)
     {
-        if (!methodsEnabled.ContainsKey(method)) return;
+        if (!MethodsEnabled.ContainsKey(method)) return;
 
         bool value;
         if (setTo != null)
@@ -133,10 +133,10 @@ public class Options
         }
         else
         {
-            value = !methodsEnabled[method];
+            value = !MethodsEnabled[method];
         }
 
-        methodsEnabled[method] = value;
+        MethodsEnabled[method] = value;
     }
 
 
@@ -146,11 +146,11 @@ public class Options
     /// /// <param name="pronomUID">The file type</param>
     public bool? GetFileFormat(string pronomUID)
     {
-        foreach (var ft in fileFormatsEnabled.Keys)
+        foreach (var ft in FileFormatsEnabled.Keys)
         {
-            if (fileFormatsEnabled[ft].ContainsKey(pronomUID))
+            if (FileFormatsEnabled[ft].ContainsKey(pronomUID))
             {
-                return fileFormatsEnabled[ft][pronomUID];
+                return FileFormatsEnabled[ft][pronomUID];
             }
         }
 
@@ -160,34 +160,15 @@ public class Options
     /// <summary>
     /// Set a file type to be enabled or not
     /// </summary>
-    /// /// <param name="pronomUID">The file type</param>
+    /// /// <param name="pronomCode">The file type</param>
     /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
-    public void SetFormat(string pronomUID, bool? setTo = null)
+    public void SetFormat(string pronomCode, bool? setTo = null)
     {
-        string? filetype = null;
-        foreach (var ft in fileFormatsEnabled.Keys)
-        {
-            if (fileFormatsEnabled[ft].ContainsKey(pronomUID))
-            {
-                filetype = ft;
-                break;
-            }
-        }
+        // Get the file type of the pronom code
+        string? fileType = FileFormatsEnabled.Keys.FirstOrDefault(k => FileFormatsEnabled[k].ContainsKey(pronomCode));
+        if (fileType == null) return;
 
-        if (filetype == null) return;
-
-        bool value;
-        if (setTo != null)
-        {
-            value = setTo.Value;
-        }
-        else
-        {
-            value = !fileFormatsEnabled[filetype][pronomUID];
-        }
-
-
-        fileFormatsEnabled[filetype][pronomUID] = value;
+        FileFormatsEnabled[fileType][pronomCode] = setTo ?? !FileFormatsEnabled[fileType][pronomCode];
     }
 
     /// <summary>
@@ -197,11 +178,11 @@ public class Options
     /// <param name="setTo">Enable or not</param>
     public void SetFiletype(string filetype, bool setTo)
     {
-        if (!fileFormatsEnabled.ContainsKey(filetype)) return;
+        if (!FileFormatsEnabled.ContainsKey(filetype)) return;
 
-        foreach (var fmt in fileFormatsEnabled[filetype].Keys)
+        foreach (var fmt in FileFormatsEnabled[filetype].Keys)
         {
-            fileFormatsEnabled[filetype][fmt] = setTo;
+            FileFormatsEnabled[filetype][fmt] = setTo;
         }
     }
 
@@ -213,13 +194,13 @@ public class Options
     {
         foreach (var m in Methods.GetList())
         {
-            methodsEnabled[m.Name] = true;
+            MethodsEnabled[m.Name] = true;
         }
 
         InitializeEnabledFormats();
 
-        specifiedThreadCount = null;
-        ignoreUnsupportedFileType = true;
+        SpecifiedThreadCount = null;
+        IgnoreUnsupportedFileType = true;
     }
 
 
@@ -266,7 +247,7 @@ public class Options
     /// <returns></returns>
     private string GetFilePath()
     {
-        return dir + "/" + profile switch
+        return dir + "/" + Profile switch
         {
             SettingsProfile.Default => "default",
             SettingsProfile.Custom1 => "custom1",
@@ -305,7 +286,7 @@ public class Options
     {
         try
         {
-            fileFormatsEnabled.Clear();
+            FileFormatsEnabled.Clear();
 
             if (File.Exists(src))
             {
@@ -320,10 +301,10 @@ public class Options
                 var o = JsonSerializer.Deserialize<Options>(jsonString, seralizerOptions);
                 if (o is Options opt)
                 {
-                    this.fileFormatsEnabled = opt.fileFormatsEnabled;
-                    this.methodsEnabled = opt.methodsEnabled;
-                    this.specifiedThreadCount = opt.specifiedThreadCount;
-                    this.ignoreUnsupportedFileType = opt.ignoreUnsupportedFileType;
+                    this.FileFormatsEnabled = opt.FileFormatsEnabled;
+                    this.MethodsEnabled = opt.MethodsEnabled;
+                    this.SpecifiedThreadCount = opt.SpecifiedThreadCount;
+                    this.IgnoreUnsupportedFileType = opt.IgnoreUnsupportedFileType;
                 }
             } 
             else

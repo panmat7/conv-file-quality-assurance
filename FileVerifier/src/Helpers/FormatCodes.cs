@@ -86,6 +86,15 @@ public static class FormatCodes
         "fmt/1756", //OpenDocument Text 1.3
     ]);
 
+    public static readonly FileFormat PronomCodesRTF = new FileFormat(["rtf"], [
+        "fmt/969", // 0
+        "fmt/45", // 1.0-1.4
+        "fmt/50", // 1.5-1.6
+        "fmt/52", // 1.7
+        "fmt/53", // 1.8
+        "fmt/355", // 1.9
+    ]);
+
     public static readonly FileFormat PronomCodesTextDocuments = new FileFormat([
         PronomCodesDOC,
         PronomCodesDOCM,
@@ -94,6 +103,7 @@ public static class FormatCodes
         PronomCodesDOTM,
         PronomCodesDOTX,
         PronomCodesODT,
+        PronomCodesRTF,
     ]);
 
     //PDFs
@@ -136,6 +146,12 @@ public static class FormatCodes
         PronomCodesPDF2A,
         PronomCodesPDF3A,
         PronomCodesPDF4A,
+    ]);
+
+
+    public static readonly FileFormat PronomCodesAllPDF = new FileFormat([
+        PronomCodesPDF,
+        PronomCodesPDFA
     ]);
 
 //PRESENTATIONS
@@ -295,5 +311,11 @@ public static class FormatCodes
 
     public static readonly FileFormat PronomCodesMails = new FileFormat([
         PronomCodesEML,
+    ]);
+
+
+    public static readonly FileFormat PronomCodesHTML = new FileFormat(["html"], [
+        "fmt/103", // 1.0
+
     ]);
 }

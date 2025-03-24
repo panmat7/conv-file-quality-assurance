@@ -59,7 +59,7 @@ using System.Collections.Generic;
             _isColorEnabled = GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name);
             _isAnimationEnabled = GlobalVariables.Options.GetMethod(Methods.Animations.Name);
 
-            _isIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.ignoreUnsupportedFileType;
+            _isIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.IgnoreUnsupportedFileType;
         }
 
 
@@ -70,7 +70,7 @@ using System.Collections.Generic;
             {
                 if (_isIgnoreUnsupportedFormatsEnabled == value) return;
                 _isIgnoreUnsupportedFormatsEnabled = value;
-                GlobalVariables.Options.ignoreUnsupportedFileType = value;
+                GlobalVariables.Options.IgnoreUnsupportedFileType = value;
                 OnPropertyChanged(nameof(IsIgnoreUnsupportedFormatsEnabled));
             }
         }

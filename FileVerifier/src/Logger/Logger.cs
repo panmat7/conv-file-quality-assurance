@@ -11,24 +11,24 @@ using AvaloniaDraft.Helpers;
 
 namespace Avalonia.Logger;
 
-class Logger
+public class Logger
 {
     /// <summary>
     /// A result of a single comparison test
     /// </summary>
     public struct TestResult
     {
-        public bool pass { get; set; }
-        public double? percentage { get; set; }
-        public List<string>? comments { get; set; }
-        public Error? error { get; set; }
+        public bool Pass { get; set; }
+        public double? Percentage { get; set; }
+        public List<string>? Comments { get; set; }
+        public List<Error> Errors { get; set; }
 
-        public TestResult(bool pass, double? percentage, List<string>? comments, Error? error)
+        public TestResult(bool pass, double? percentage, List<string>? comments, List<Error> errors)
         {
-            this.pass = pass;
-            this.percentage = percentage;
-            this.comments = comments;
-            this.error = error;
+            this.Pass = pass;
+            this.Percentage = percentage;
+            this.Comments = comments;
+            this.Errors = errors;
         }
     }
 
@@ -37,17 +37,17 @@ class Logger
     /// </summary>
     public struct ComparisonResult
     {
-        public FilePair filePair { get; set; }
-        public Dictionary<string, TestResult> tests { get; set; }
+        public FilePair FilePair { get; set; }
+        public Dictionary<string, TestResult> Tests { get; set; }
 
-        public bool pass { get; set; }
+        public bool Pass { get; set; }
 
         public ComparisonResult(FilePair filePair)
         {
-            tests = new Dictionary<string, TestResult>();
+            Tests = new Dictionary<string, TestResult>();
 
-            pass = true;
-            this.filePair = filePair;
+            Pass = true;
+            this.FilePair = filePair;
         }
 
         /// <summary>
@@ -57,18 +57,18 @@ class Logger
         /// <param name="testName">Name of the test/method</param>
         public void AddTestResult(TestResult testResult, string testName)
         {
-            tests[testName] = testResult;
-            if (!testResult.pass)
+            Tests[testName] = testResult;
+            if (!testResult.Pass)
             {
-                pass = false;
+                Pass = false;
             }
         }
     }
 
 
-    public bool active { get; set; }
-    public Stopwatch stopwatch { get; set; }
-    public List<ComparisonResult> results { get; set; }
+    public bool Active { get; set; }
+    public Stopwatch Stopwatch { get; set; }
+    public List<ComparisonResult> Results { get; set; }
 
 
     /// <summary>
@@ -76,12 +76,12 @@ class Logger
     /// </summary>
     public void Initialize()
     {
-        active = true;
+        Active = true;
 
-        stopwatch = new Stopwatch();
-        stopwatch.Start();
+        Stopwatch = new Stopwatch();
+        Stopwatch.Start();
 
-        results = new List<ComparisonResult>();
+        Results = new List<ComparisonResult>();
     }
 
 
@@ -94,20 +94,20 @@ class Logger
     /// <param name="comments">A list of comments on the result</param>
     /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
     /// <param name="err">Error</param>
-    public void AddTestResult(FilePair filePair, string testName, bool pass, List<string>? comments = null, double? percentage = null, Error? err = null)
+    public void AddTestResult(FilePair filePair, string testName, bool pass, List<string>? comments = null, double? percentage = null, List<Error> err = null)
     {
         var testResult = new TestResult(pass, percentage, comments, err);
 
-        var index = results.FindIndex(r => r.filePair == filePair);
+        var index = Results.FindIndex(r => r.FilePair == filePair);
         if (index == -1)
         {
             var cr = new ComparisonResult(filePair);
             cr.AddTestResult(testResult, testName);
-            results.Add(cr);
+            Results.Add(cr);
         }
         else
         {
-            results[index].AddTestResult(testResult, testName);
+            Results[index].AddTestResult(testResult, testName);
         }
     }
 
@@ -131,10 +131,10 @@ class Logger
     /// </summary>
     public void Finish()
     {
-        if (!active) return;
+        if (!Active) return;
 
-        stopwatch.Stop();
-        active = false;
+        Stopwatch.Stop();
+        Active = false;
     }
 
 
@@ -144,7 +144,7 @@ class Logger
     /// <param name="dir">The directory where the JSON file is to be exported</param>
     public void ExportJSON(string path)
     {
-        if (active) return;
+        if (Active) return;
 
         try
         {
@@ -178,8 +178,8 @@ class Logger
             var l = JsonSerializer.Deserialize<Logger>(jsonString, seralizerOptions);
             if (l is Logger logger)
             {
-                this.results = logger.results;
-                this.stopwatch = logger.stopwatch;
+                this.Results = logger.Results;
+                this.Stopwatch = logger.Stopwatch;
             }
         }
         catch (Exception ex)
