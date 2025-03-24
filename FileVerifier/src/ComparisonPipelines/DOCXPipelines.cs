@@ -61,6 +61,7 @@ public static class DocxPipelines
                     break;
                 default:
                     GlobalVariables.Logger.AddTestResult(pair, "Page Count", true);
+                    break;
             }
 
             if (true)

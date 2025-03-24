@@ -26,7 +26,7 @@ public static class PngPipelines
     }
 
     /// <summary>
-    /// Pipeline responsible for comparing PNG to TIFF conversions
+    /// Pipeline responsible for comparing PNG to other image formats conversions
     /// </summary>
     /// <param name="pair">The pair of files to compare</param>
     /// <param name="additionalThreads">Number of threads available for usage</param>
@@ -143,7 +143,7 @@ public static class PngPipelines
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, true);
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.ColorSpace.Name)) // Check for color profile later
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name)) // Check for color profile later
             {
                 var res = false;
                 var exceptionOccurred = false;
@@ -155,7 +155,7 @@ public static class PngPipelines
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorSpace.Name, false,
+                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorProfile.Name, false,
                         err: new Error(
                             "Error comparing color profiles",
                             "There occurred an error while extracting and comparing color profiles.",
@@ -166,7 +166,7 @@ public static class PngPipelines
                 }
 
                 if (!exceptionOccurred && !res)
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorSpace.Name, false,
+                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorProfile.Name, false,
                         err: new Error(
                             "Difference in both images color profile",
                             "The images did not pass Color Profile comparison.",
@@ -175,7 +175,7 @@ public static class PngPipelines
                         )
                     );
                 else
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorSpace.Name, true);
+                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorProfile.Name, true);
             }
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

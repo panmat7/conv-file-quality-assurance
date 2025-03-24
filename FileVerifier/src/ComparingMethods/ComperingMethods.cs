@@ -281,7 +281,7 @@ public static class ComperingMethods
     /// <param name="pageStart">Page at which to start the comparison, null if start at the first page.</param>
     /// <param name="pageEnd">Page at which to end the comparison, null if end at the last page.</param>
     /// <returns>List of potential errors. Null meaning error during the process. Empty list meaning no errors.</returns>
-    public static List<Error>? VisualDocumentComparison(FilePair pair, int? pageStart = null, int? pageEnd = null)
+    public static List<Error>? VisualDocumentComparison(FilePair pair, int pageStart = 0, int pageEnd = 0)
     {
         var errorPages = new List<List<int>> //Storing pages at which error occurs
         {
@@ -290,13 +290,13 @@ public static class ComperingMethods
         };
         
         //Get page images
-        var pagesOriginal = DocumentVisualOperations.GetPdfPageImages(pair.OriginalFilePath, pageStart, pageEnd);
-        var pagesNew = DocumentVisualOperations.GetPdfPageImages(pair.NewFilePath, pageStart, pageEnd);
+        var pagesOriginal = TakePicturePdf.ConvertPdfToImagesToBytes(pair.OriginalFilePath, pageStart, pageEnd);
+        var pagesNew = TakePicturePdf.ConvertPdfToImagesToBytes(pair.NewFileFormat, pageStart, pageEnd);
         
         //Return null if error occured or page count does not match.
         if(pagesOriginal == null || pagesNew == null || pagesOriginal.Count != pagesNew.Count) return null;
 
-        for (var pageIndex = 0; pageIndex < pagesOriginal.Count; pageIndex++)
+        for (var pageIndex = 0; pageIndex < 1; pageIndex++)
         {
             //Getting segments
             var rectsO = DocumentVisualOperations.SegmentDocumentImage(pair.OriginalFilePath);
@@ -308,11 +308,11 @@ public static class ComperingMethods
             
             //Mismatched number of segments
             if(pairlessO.Count > 0 || pairlessN.Count > 0)
-                errorPages[0].Add(pageIndex + pageStart ?? 0);
+                errorPages[0].Add(pageIndex + pageStart);
                 
             //Segments in different positions
             if (res.Any(r => r.Item3 < 0.7))
-                errorPages[1].Add(pageIndex + pageStart ?? 0);
+                errorPages[1].Add(pageIndex + pageStart);
         }
         
         //Writing errors
