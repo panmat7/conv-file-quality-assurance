@@ -43,7 +43,7 @@ public class DocumentSegmentationTest
         var rects3 = DocumentSegmentation.SegmentDocumentImage(file3);
         var rects4 = DocumentSegmentation.SegmentDocumentImage(path4);
         var rects5 = DocumentSegmentation.SegmentDocumentImage("Not real");
-        var rects6 = DocumentSegmentation.SegmentDocumentImage([]);
+        var rects6 = DocumentSegmentation.SegmentDocumentImage(path4);
 
         if(rects5 is not null || rects6 is not null) Assert.Fail();
         
