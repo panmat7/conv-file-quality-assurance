@@ -34,7 +34,9 @@ public static class OdsPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            BasePipeline.CompareFonts(pair);
+            List<Error> e = [];
+
+            e.AddRange(BasePipeline.CompareFonts(pair));
 
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

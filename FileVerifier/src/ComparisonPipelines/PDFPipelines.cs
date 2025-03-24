@@ -33,6 +33,8 @@ public static class PDFPipelines
         {
             List<Error> e = [];
 
+            e.AddRange(BasePipeline.CompareFonts(pair));
+
             BasePipeline.CompareFonts(pair);
 
             if (true) //Check options for file size check later

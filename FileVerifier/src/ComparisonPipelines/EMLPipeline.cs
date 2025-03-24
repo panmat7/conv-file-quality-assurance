@@ -35,6 +35,7 @@ public static class EmlPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             List<Error> e = [];
+
             e.AddRange(BasePipeline.CompareFonts(pair));
 
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);

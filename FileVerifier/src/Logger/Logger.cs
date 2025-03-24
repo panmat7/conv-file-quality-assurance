@@ -140,10 +140,8 @@ public class Logger
             }
         }
 
-        $"Result for {Path.GetFileName(filePair.OriginalFilePath)}-{Path.GetFileName(filePair.NewFilePath)} Comparison: \n{errors.GenerateErrorString()}\n\n";
-
-
-        return null;
+        return $"Result for {Path.GetFileName(filePair.OriginalFilePath)}-{Path.GetFileName(filePair.NewFilePath)} " +
+            $"Comparison: \n{errors.GenerateErrorString()}\n\n";
     }
 
     /// <summary>
