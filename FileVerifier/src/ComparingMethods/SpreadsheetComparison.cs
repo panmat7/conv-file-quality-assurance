@@ -78,7 +78,7 @@ public static class SpreadsheetComparison
     /// <returns>True/False whether a risk exists</returns>
     private static bool CheckTableBreakXlsx(IXLWorksheet worksheet)
     {
-        const double breakLength = 15.7; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
+        const double breakLength = 15.6; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
         const double ppi = 96.0; //Default for excel, documents do not store
         var widthSum = 0.0;
         
@@ -110,7 +110,7 @@ public static class SpreadsheetComparison
     /// <returns>List of found errors. Null if an error occurred reading the file.</returns>
     public static List<Error>? PossibleSpreadsheetBreakOpenDoc(string path)
     {
-        const double breakPoint = 15.7; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
+        const double breakPoint = 15.6; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
         
         using var arch = ZipFile.OpenRead(path);
         var content = arch.GetEntry("content.xml");
@@ -308,7 +308,7 @@ public static class SpreadsheetComparison
     /// <returns>True/False is a break is probable. Null if an error occurred reading the file.</returns>
     public static bool? PossibleLineBreakCsv(string path)
     {
-        const double breakLength = 15.7; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
+        const double breakLength = 15.6; //Depends on file's margin, on normal it is around 15.92 cm, so a bit bellow here.
         
         var content = File.ReadAllText(path, Encoding.UTF8);
 

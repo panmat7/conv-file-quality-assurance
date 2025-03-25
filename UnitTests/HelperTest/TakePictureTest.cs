@@ -25,17 +25,11 @@ namespace UnitTests.PdfToImageConversion
             var outputDir = Path.Combine("/home/snorre/bachelor/tmp/", "");
 
             // Act: Call the ConvertPdfToImages method to convert the PDF to images
-            TakePicturePdf.ConvertPdfToImages(pdfFilePath, outputDir);
+            TakePicturePdf.ConvertPdfToImagesToDisk(pdfFilePath, outputDir);
 
             // Assert: Ensure images were saved in the output directory
             var outputFiles = Directory.GetFiles(outputDir, "*.png");
             Assert.That(outputFiles.Length, Is.GreaterThan(0), "No images were generated from the PDF.");
         }
-
-        
-
-        
-
-        
     }
 }
