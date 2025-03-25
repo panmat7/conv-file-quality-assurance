@@ -1,4 +1,5 @@
 using System.IO.Abstractions;
+using System.Threading;
 using AvaloniaDraft.Logger;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 
@@ -11,6 +12,7 @@ public static class GlobalVariables
     public static readonly ExifTool ExifTool;
     public static Options.Options Options { get; set; }
     public static Logger.Logger Logger { get; set; }
+    public static object ImageExtractionLock { get; } = new object();
 
     static GlobalVariables()
     {
