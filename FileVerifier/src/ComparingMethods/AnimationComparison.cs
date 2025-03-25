@@ -13,38 +13,6 @@ namespace AvaloniaDraft.ComparingMethods;
 public static class AnimationComparison
 {
     /// <summary>
-    /// Checks if the original file is of PowerPoint format and if it contains animations
-    /// </summary>
-    /// <param name="files"> Takes in the two files used during comparison </param>
-    /// <returns> Returns whether it passed the test </returns>
-    public static bool FileAnimationComparison(FilePair files)
-    {
-        
-        // Does not conduct the test if the original file is not of PowerPoint format or
-        // if both original and new files are of PowerPoint format
-        if (!FormatCodes.PronomCodesPresentationDocuments.Contains(files.OriginalFileFormat) ||
-            FormatCodes.PronomCodesPresentationDocuments.Contains(files.OriginalFileFormat) &&
-            FormatCodes.PronomCodesPresentationDocuments.Contains(files.NewFileFormat)) return true;
-        
-        // Check for animations in the PowerPoint file
-        try
-        {
-            // Handle check based on PowerPoint file format
-            return files.OriginalFileFormat switch
-            {
-                _ when FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(files.OriginalFileFormat)
-                    => CheckXmlBasedFormatForAnimation(files.OriginalFilePath),
-                _ => false,
-            };
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine($"Error while checking for animations: {e.Message}");
-            return false; // If checking for animations fails it automatically fails the test
-        }
-    }
-    
-    /// <summary>
     /// Checks if the pptx file contains animations
     /// </summary>
     /// <param name="filePath"> File path to file </param>
@@ -83,20 +51,23 @@ public static class AnimationComparison
     public static bool CheckOdpForAnimation(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
-        // Gather all slides
-        var contentEntry = zip.Entries.FirstOrDefault(e => 
-            e.Name.Equals("content.xml", StringComparison.OrdinalIgnoreCase));
-            
-        if (contentEntry == null) return false;
-        
+        var contentEntry = zip.Entries.FirstOrDefault(e => e.Name.Equals("content.xml", StringComparison.OrdinalIgnoreCase));
+
+        if (contentEntry == null)
+            return false; // content.xml not found, assume no animation
+
         using var stream = contentEntry.Open();
-        var contentXml = XDocument.Load(stream);
-        
-        // Define the animation namespace URI
+        var xmlDoc = XDocument.Load(stream);
+
         XNamespace animNs = "urn:oasis:names:tc:opendocument:xmlns:animation:1.0";
-    
-        // Check for ANY element in the animation namespace
-        return contentXml.Descendants()
-            .Any(e => e.Name.Namespace == animNs);
+        XNamespace smilNs = "urn:oasis:names:tc:opendocument:xmlns:smil-compatible:1.0";
+
+        // Check for animation elements within the correct hierarchy
+        var hasAnimation = xmlDoc.Descendants(animNs + "par").Any() ||
+                           xmlDoc.Descendants(animNs + "seq").Any() ||
+                           xmlDoc.Descendants(animNs + "animate").Any() ||
+                           xmlDoc.Descendants(smilNs + "animate").Any();
+
+        return hasAnimation;
     }
 }
