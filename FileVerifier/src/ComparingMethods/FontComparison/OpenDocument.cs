@@ -8,9 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
-using AODL;
-using AODL.Document.TextDocuments;
-using AODL.Document.Content.Text;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -29,8 +26,6 @@ public static class ODFontExtraction
         var altFonts = new HashSet<HashSet<string>>();
         var textColors = new HashSet<string>();
         var bgColors = new HashSet<string>();
-
-        WordprocessingDocument doc = WordprocessingDocument.Open(src, false);
 
         // Zip to extract xml files
         var zip = ZipFile.OpenRead(src);
