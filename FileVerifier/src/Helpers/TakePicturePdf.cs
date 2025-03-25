@@ -15,87 +15,111 @@ namespace AvaloniaDraft.Helpers;
 
 public static class TakePicturePdf
 {
-    public static void ConvertPdfToImagesToDisk(string path, string output, int? pageStart = null, int? pageEnd = null)
+    public static string? ConvertPdfToImagesToDisk(string path, string output, int? pageStart = null, int? pageEnd = null)
     {
-        // Open the PDF document using Docnet
-        using (var library = DocLib.Instance)
-        using (var docReader = library.GetDocReader(File.ReadAllBytes(path), new PageDimensions(512, 1920)))
+        try
         {
-            var pageCount = docReader.GetPageCount();
-
-            if (pageEnd > pageCount || pageEnd == null)
+            lock (GlobalVariables.ImageExtractionLock)
             {
-                pageEnd = pageCount;
-            }
-
-            var outputFiles = Path.GetFileNameWithoutExtension(path);
-            
-            // Loop through all pages of the PDF
-            for (var i = pageStart ?? 0; i < pageEnd; i++)
-            {
-                using var pageReader = docReader.GetPageReader(i);
-                // Get the width and height of the page
-                var width = pageReader.GetPageWidth();
-                var height = pageReader.GetPageHeight();
-
-                // Get the raw image data of the page (BGRA format)
-                var rawImage = pageReader.GetImage(new NaiveTransparencyRemover());
-
-                // Construct the output image file path
-                var outputPath = Path.Combine(output, $"{outputFiles}{i + 1}.png");
-
-                // Convert raw image byte data to ImageSharp image
-                using (var image = Image.LoadPixelData<Bgra32>(rawImage, width, height))
+                // Open the PDF document using Docnet
+                using (var library = DocLib.Instance)
+                using (var docReader = library.GetDocReader(File.ReadAllBytes(path), new PageDimensions(512, 1920)))
                 {
-                    // Save the image to a file (PNG format)
-                    image.Save(outputPath);
-                }
+                    var pageCount = docReader.GetPageCount();
 
-                Console.WriteLine($"Saved PDF page {i + 1} as {outputPath}");
+                    if (pageEnd > pageCount || pageEnd == null)
+                    {
+                        pageEnd = pageCount;
+                    }
+
+                    var outputFile = Path.GetFileNameWithoutExtension(path);
+                    var outputFileExtension = Path.GetExtension(path).TrimStart('.').ToUpper();
+
+                    // Loop through all pages of the PDF
+                    for (var i = pageStart ?? 0; i < pageEnd; i++)
+                    {
+                        using var pageReader = docReader.GetPageReader(i);
+                        // Get the width and height of the page
+                        var width = pageReader.GetPageWidth();
+                        var height = pageReader.GetPageHeight();
+
+                        // Get the raw image data of the page (BGRA format)
+                        var rawImage = pageReader.GetImage(new NaiveTransparencyRemover());
+
+                        // Construct the output image file path
+                        var outputPath = Path.Combine(output, $"{outputFile}_{outputFileExtension}{i + 1}.png");
+
+                        // Convert raw image byte data to ImageSharp image
+                        using var image = Image.LoadPixelData<Bgra32>(rawImage, width, height);
+                        // Save the image to a file (PNG format)
+                        image.Save(outputPath);
+                    }
+                }
+                
+                return output;
             }
+        }
+        catch
+        {
+            return null;
         }
     }
     
+    /// <summary>
+    /// Converts pages on from a specified PDF document to images.
+    /// </summary>
+    /// <param name="path">Absolute to the document.</param>
+    /// <param name="pageStart">At which page the page to image conversion is to start. Document start if unspecified or null.</param>
+    /// <param name="pageEnd">At which page the page to image conversion is to end. Document start if unspecified or null.</param>
+    /// <returns>List of PNG encoded images as bytes, null if an error occured.</returns>
     public static List<byte[]>? ConvertPdfToImagesToBytes(string path, int? pageStart = null, int? pageEnd = null)
     {
         try
         {
-            var imgBytes = new List<byte[]>();
-
-            // Open the PDF document using Docnet
-            using (var library = DocLib.Instance)
-            using (var docReader = library.GetDocReader(File.ReadAllBytes(path), new PageDimensions(512, 1920)))
+            lock (GlobalVariables.ImageExtractionLock)
             {
-                var pageCount = docReader.GetPageCount();
+                var imgBytes = new List<byte[]>();
 
-                if (pageEnd > pageCount || pageEnd == null)
+                // Open the PDF document using Docnet
+                using (var library = DocLib.Instance)
+                using (var docReader = library.GetDocReader(path, new PageDimensions(512, 1920)))
                 {
-                    pageEnd = pageCount;
-                }
-
-                // Loop through all pages of the PDF
-                for (var i = pageStart ?? 0; i < pageEnd; i++)
-                {
-                    using var pageReader = docReader.GetPageReader(i);
-                    // Get the width and height of the page
-                    var width = pageReader.GetPageWidth();
-                    var height = pageReader.GetPageHeight();
-
-                    // Get the raw image data of the page (BGRA format)
-                    var rawImage = pageReader.GetImage(new NaiveTransparencyRemover());
-
-                    // Convert raw image byte data to ImageSharp image
-                    using (var image = Image.LoadPixelData<Bgra32>(rawImage, width, height))
-                    using (var ms = new MemoryStream())
+                    Console.WriteLine($"Opened {Path.GetFileName(path)} PDF file");
+                    var pageCount = docReader.GetPageCount();
+    
+                    if (pageEnd > pageCount || pageEnd == null)
                     {
-                        // Save the image to a file (PNG format)
-                        image.Save(ms, new PngEncoder());
-                        imgBytes.Add(ms.ToArray());
+                        pageEnd = pageCount;
+                    }
+                    
+                    // Loop through all pages of the PDF
+                    for (var i = pageStart ?? 0; i < pageEnd; i++)
+                    {
+                        Console.WriteLine($"Reading page {i + 1} of {pageCount}");
+                        using var pageReader = docReader.GetPageReader(i);
+                        
+                        if(pageReader == null) continue;
+                        
+                        // Get the width and height of the page
+                        var width = pageReader.GetPageWidth();
+                        var height = pageReader.GetPageHeight();
+    
+                        // Get the raw image data of the page (BGRA format)
+                        var rawImage = pageReader.GetImage(new NaiveTransparencyRemover());
+    
+                        // Convert raw image byte data to ImageSharp image
+                        using (var image = Image.LoadPixelData<Bgra32>(rawImage, width, height))
+                        using (var ms = new MemoryStream())
+                        {
+                            // Save the image to a file (PNG format)
+                            image.Save(ms, new PngEncoder());
+                            imgBytes.Add(ms.ToArray());
+                        }
                     }
                 }
-            }
 
-            return imgBytes;
+                return imgBytes;
+            }
         }
         catch
         {
