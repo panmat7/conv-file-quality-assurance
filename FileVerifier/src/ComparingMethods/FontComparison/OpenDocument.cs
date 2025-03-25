@@ -22,7 +22,7 @@ public static class ODFontExtraction
     /// </summary>
     /// <param name="src">The file path</param>
     /// <returns></returns>
-    /*public static TextInfo? GetTextInfoODT(string src)
+    public static TextInfo? GetTextInfoODT(string src)
     {
         var foreignWriting = false;
         var fonts = new HashSet<string>();
@@ -92,30 +92,6 @@ public static class ODFontExtraction
                 foreignWriting = true;
                 break;
             }
-        }
-
-
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
-        return textInfo;
-    }*/
-
-
-
-
-    public static TextInfo? GetTextInfoODT(string src)
-    {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
-
-        var doc = new TextDocument();
-        doc.Load(src);
-
-        foreach (var c in doc.Content)
-        {
-            if (c is not Paragraph) continue;
         }
 
 
