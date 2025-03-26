@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.IO;
 using System.Text.Json.Serialization;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
+using AvaloniaDraft.FileManager;
 
 namespace AvaloniaDraft.Options;
 
@@ -159,6 +160,18 @@ public class Options
         if (fileType == null) return;
 
         FileFormatsEnabled[fileType][pronomCode] = setTo ?? !FileFormatsEnabled[fileType][pronomCode];
+    }
+
+
+    /// <summary>
+    /// Check if the file formats of a file pair are both enabled
+    /// </summary>
+    /// <param name="fp"></param>
+    /// <returns></returns>
+    public bool? FormatsAreEnabled(FilePair fp)
+    {
+        if ((GetFileFormat(fp.OriginalFileFormat), GetFileFormat(fp.NewFileFormat)) is not (bool oEnabled, bool nEnabled)) return null;
+        return (oEnabled && nEnabled);
     }
 
     /// <summary>
