@@ -1,9 +1,14 @@
-﻿using AvaloniaDraft.Helpers;
+﻿using AvaloniaDraft.FileManager;
+using AvaloniaDraft.Helpers;
+using Org.BouncyCastle.Bcpg.OpenPgp;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -11,110 +16,109 @@ namespace AvaloniaDraft.ComparingMethods;
 
 public struct TextInfo
 {
-    public bool foreignWriting;
-    public HashSet<string> fonts;
-    public HashSet<HashSet<string>> altFonts;
-    public HashSet<string> textColors;
-    public HashSet<string> bgColors;
+    public bool ForeignWriting { get; set; }
+    public HashSet<string> Fonts { get; set; }
+    public HashSet<HashSet<string>> AltFonts { get; set; }
+    public HashSet<string> TextColors { get; set; }
+    public HashSet<string> BgColors { get; set; }
 
     public TextInfo(HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, HashSet<HashSet<string>> altFonts, bool foreignWriting = false)
     {
-        this.fonts = fonts;
-        this.textColors = textColors;
-        this.bgColors = bgColors;
-        this.altFonts = altFonts;
-        this.foreignWriting = foreignWriting;
-    }
-
-
-    public void Print()
-    {
-        Console.WriteLine("Fonts:");
-        foreach (var font in fonts)
-        {
-            Console.WriteLine(font);
-        }
-
-        var listedAltFonts = new List<string>();
-        foreach (var fontChoices in altFonts)
-        {
-            foreach (var f in fontChoices)
-            {
-                if (!listedAltFonts.Contains(f))
-                {
-                    //Console.WriteLine(f);
-                    listedAltFonts.Add(f);
-                }
-            }
-
-            //PrintList(fontChoices);
-        }
-
-        Console.WriteLine("\nText colors:");
-        foreach (var c in textColors)
-        {
-            Console.WriteLine(c);
-        }
-
-        Console.WriteLine("\nText background colors:");
-        foreach (var c in bgColors)
-        {
-            Console.WriteLine(c);
-        }
+        this.Fonts = fonts;
+        this.TextColors = textColors;
+        this.BgColors = bgColors;
+        this.AltFonts = altFonts;
+        this.ForeignWriting = foreignWriting;
     }
 }
 
 
 public struct FontComparisonResult
 {
-    public bool pass;
-    public bool containsForeignCharacters;
-    public Error? err;
+    public bool Pass { get; set; }
+    public List<Error> Errors { get; set; }
 
-    public FontComparisonResult(bool pass, bool containsForeignCharacters, Error? err = null)
+    public bool ContainsForeignCharacters { get; set; }
+    
+    public bool BgColorsNotConverted { get; set; }
+    public bool TextColorsNotConverted { get; set; }
+
+    public List<string> FontsOnlyInOriginal { get; set; }
+    public List<string> FontsOnlyInConverted { get; set; }
+
+    public FontComparisonResult()
     {
-        this.pass = pass;
-        this.containsForeignCharacters = containsForeignCharacters;
-        this.err = err;
+        Errors = new List<Error>();
+
+        FontsOnlyInOriginal = new List<string>();
+        FontsOnlyInConverted = new List<string>();
     }
 }
 
-public static class FontComparison
+public static partial class FontComparison
 {
+    [GeneratedRegex(@"rgb\(([0-9]+), ([0-9]+), ([0-9]+)\)")]
+    public static partial Regex RgbRegex();
+
     /// <summary>
     /// Compare a file pair and check if the fonts, text colors and text background colors are the same
     /// </summary>
-    /// <param name="src1"></param>
-    /// <param name="src2"></param>
-    public static bool? CompareFiles(string src1, string src2)
+    /// <param name="fp">The file pair to compare</param>
+    public static FontComparisonResult CompareFiles(FilePair fp)
     {
-        if (GetTextInfo(src1) is not TextInfo t1) return null;
-        if (GetTextInfo(src2) is not TextInfo t2) return null;
+        var result = new FontComparisonResult();
 
-        // Alternate fonts
-        foreach (var altFonts in t1.altFonts)
+        TextInfo? oti;
+        TextInfo? nti;
+
+        // Make sure there were no issues reading the original file
+        if ((oti = GetTextInfo(fp.OriginalFilePath, fp.OriginalFileFormat)) is null)
         {
-            var containsAtLeastOneAltFont = false;
-
-            foreach (var font in altFonts)
-            {
-                if (t2.fonts.Contains(font))
-                {
-                    containsAtLeastOneAltFont = true;
-                    break;
-                }
-            }
-
-            if (!containsAtLeastOneAltFont) return false;
+            result.Errors.Add(new Error(
+                "Error reading/opening file", 
+                $"Failed to read original file: {Path.GetFileName(fp.OriginalFilePath)}", 
+                ErrorSeverity.High, 
+                ErrorType.FileError
+            ));
         }
 
-        var differentFonts = t1.fonts.Except(t2.fonts);
-        if (differentFonts.Any()) return false;
+        // Make sure there were no issues reading the converted file
+        if ((nti = GetTextInfo(fp.NewFilePath, fp.NewFileFormat)) is null)
+        {
+            result.Errors.Add(new Error(
+                "Error reading/opening file", 
+                $"Failed to read converted file: {Path.GetFileName(fp.NewFilePath)}", 
+                ErrorSeverity.High, 
+                ErrorType.FileError
+            ));
+        }
 
-        if (!CompareColors(t1.textColors, t2.textColors)) return false;
-        if (!CompareColors(t1.bgColors, t2.bgColors)) return false;
+        // Return if there were errors reading either
+        if (oti is not TextInfo ot || nti is not TextInfo nt) return result;
 
-        return true;
+        // Check for fonts present in the original, but not the converted
+        var fontsOnlyInOriginal = ot.Fonts.Except(nt.Fonts);
+        if (fontsOnlyInOriginal.Any()) foreach (var font in fontsOnlyInOriginal) result.FontsOnlyInOriginal.Add(font);
+
+        // Check for fonts present in the converted, but not the original
+        var fontsOnlyInConverted = nt.Fonts.Except(ot.Fonts);
+        if (fontsOnlyInOriginal.Any()) foreach (var font in fontsOnlyInConverted) result.FontsOnlyInConverted.Add(font);
+
+        // Foreign characters
+        result.ContainsForeignCharacters = (ot.ForeignWriting || nt.ForeignWriting);
+
+
+        // Check if colors are the same
+        if (!CompareColors(ot.TextColors, nt.TextColors))
+        {
+            result.TextColorsNotConverted = true;
+        }
+        if (!CompareColors(ot.BgColors, nt.BgColors))
+        {
+            result.BgColorsNotConverted = true;
+        }
+
+        return result;
     }
 
 
@@ -123,31 +127,34 @@ public static class FontComparison
     /// </summary>
     /// <param name="src">The file</param>
     /// <returns>The text information</returns>
-    private static TextInfo? GetTextInfo(string src)
+    private static TextInfo? GetTextInfo(string src, string formatCode)
     {
-        /// TODO: Change from file extensions to PRONOM codes
-        var ext = System.IO.Path.GetExtension(src);
-        return ext switch
-        {
-            ".pdf" => PdfFontExtraction.GetTextInfoPdf(src),
-            
-            ".docx" => WordFontExtraction.GetTextInfoWord(src),
-            ".pptx" => PPFontExtraction.GetTextInfoPP(src),
-            ".xlsx" => ExcelFontExtraction.GetTextInfoExcel(src),
+        if (FormatCodes.PronomCodesAllPDF.Contains(formatCode))
+            return PdfFontExtraction.GetTextInfoPdf(src);
 
-            ".odt" => ODFontExtraction.GetTextInfoODT(src),
-            ".odp" => ODFontExtraction.GetTextInfoODP(src),
-            ".ods" => ODFontExtraction.GetTextInfoODS(src),
+        if (FormatCodes.PronomCodesDOCX.Contains(formatCode))
+            return WordFontExtraction.GetTextInfoWord(src);
 
-            ".rtf" => RtfFontExtraction.GetTextInfoRTF(src),
+        if (FormatCodes.PronomCodesPPTX.Contains(formatCode))
+            return PPFontExtraction.GetTextInfoPP(src);
 
-            ".eml" => HtmlBasedFontExtraction.GetTextInfoEml(src),
-            ".html" => HtmlBasedFontExtraction.GetTextInfoHtml(src),
+        if (FormatCodes.PronomCodesXLSX.Contains(formatCode))
+            return ExcelFontExtraction.GetTextInfoExcel(src);
 
-            _ => null
-        };
+        if (FormatCodes.PronomCodesODF.Contains(formatCode))
+            return ODFontExtraction.GetTextInfoODF(src);
+
+        if (FormatCodes.PronomCodesRTF.Contains(formatCode))
+            return RtfFontExtraction.GetTextInfoRTF(src);
+
+        if (FormatCodes.PronomCodesEML.Contains(formatCode))
+            return HtmlBasedFontExtraction.GetTextInfoEml(src);
+
+        if (FormatCodes.PronomCodesHTML.Contains(formatCode))
+            return HtmlBasedFontExtraction.GetTextInfoHtml(src);
+
+        return null;
     }
-
 
 
     /// <summary>

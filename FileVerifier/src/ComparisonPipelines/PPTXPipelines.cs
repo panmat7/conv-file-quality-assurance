@@ -35,6 +35,8 @@ public static class PptxPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             List<Error> e = [];
+
+            e.AddRange(BasePipeline.CompareFonts(pair));
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {

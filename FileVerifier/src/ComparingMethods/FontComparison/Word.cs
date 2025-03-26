@@ -329,7 +329,7 @@ public static class WordFontExtraction
     /// <param name="langIsZH">Whether or not the language is 'zh'</param>
     /// <param name="fontIsBig5orGB2312">Whether or not the font is 'Big5' or 'GB2312'</param>
     /// <returns></returns>
-    private static (List<string> classifications, bool foreignWriting) GetFontClassifications(string txt, bool csRef, bool eaHint, bool langIsZH, bool fontIsBig5orGB2312)
+    private static (HashSet<string> classifications, bool foreignWriting) GetFontClassifications(string txt, bool csRef, bool eaHint, bool langIsZH, bool fontIsBig5orGB2312)
     {
         if (string.IsNullOrWhiteSpace(txt)) return (null, false);
 
@@ -400,7 +400,7 @@ public static class WordFontExtraction
         };
 
 
-        var classifications = new List<string>();
+        var classifications = new HashSet<string>();
         foreach (var c in txt)
         {
             if (FontComparison.IsForeign(c)) foreignChars = true;

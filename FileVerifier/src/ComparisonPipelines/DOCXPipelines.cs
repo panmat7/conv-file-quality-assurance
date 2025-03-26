@@ -40,23 +40,23 @@ public static class DocxPipelines
             {
                 case null:
                     GlobalVariables.Logger.AddTestResult(pair, "Page Count", false,
-                        err: new Error(
+                        errors: [new Error(
                             "Could not get page count",
                             "There was an error trying to get the page count from at least one of the files.",
                             ErrorSeverity.High,
                             ErrorType.FileError
-                        )
+                        )]
                     );
                     break;
                 case > 0:
                     GlobalVariables.Logger.AddTestResult(pair, "Page Count", false,
-                        err: new Error(
+                        errors: [new Error(
                             "Difference in page count",
                             "The original and new document have a different page count.",
                             ErrorSeverity.High,
                             ErrorType.FileError,
                             $"{diff}"
-                        )
+                        )]
                     );
                     break;
                 default:
@@ -82,24 +82,24 @@ public static class DocxPipelines
                 {
                     exceptionOccurred = true;
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
-                        err: new Error(
+                        errors: [new Error(
                             "Error comparing color profiles in docx contained images",
                             "There occurred an error while extracting and comparing " +
                             "color profiles of the images contained in the docx.",
                             ErrorSeverity.High,
                             ErrorType.Metadata
-                        )
+                        )]
                     );
                 }
 
                 if (!exceptionOccurred && !res)
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
-                        err: new Error(
+                        errors: [new Error(
                             "Mismatching color profile",
                             "The color profile in the new file does not match the original on at least one image.",
                             ErrorSeverity.Medium,
                             ErrorType.Metadata
-                        )
+                        )]
                     );
                 else if (!exceptionOccurred && res)
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
@@ -119,24 +119,24 @@ public static class DocxPipelines
                 {
                     exceptionOccurred = true;
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
-                        err: new Error(
+                        errors: [new Error(
                             "Error comparing transparency in docx contained images",
                             "There occurred an error while comparing transparency" +
                             " of the images contained in the docx.",
                             ErrorSeverity.Medium,
                             ErrorType.Metadata
-                        )
+                        )]
                     );
                 }
 
                 if (!exceptionOccurred && !res)
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
-                        err: new Error(
+                        errors: [new Error(
                             "Difference in images contained in the docx's transparency",
                             "The images contained in the docx and pdf files did not pass Transparency comparison.",
                             ErrorSeverity.Medium,
                             ErrorType.Visual
-                        )
+                        )]
                     );
                 else if(!exceptionOccurred && res)
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);

@@ -147,7 +147,7 @@ public static class HtmlBasedFontExtraction
             return rgbString.Substring(1);
         }
 
-        var match = Regex.Match(rgbString, @"rgb\(([0-9]+), ([0-9]+), ([0-9]+)\)");
+        var match = FontComparison.RgbRegex().Match(rgbString);
         if (!match.Success) return null;
 
         var r = int.Parse(match.Groups[1].Value);
