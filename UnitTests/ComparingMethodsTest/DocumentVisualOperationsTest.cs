@@ -97,17 +97,4 @@ public class DocumentVisualOperationsTest
 
         Assert.Pass();
     }
-
-    [Test]
-    public void GetPdfPageImagesTest()
-    {
-        var res = DocumentVisualOperations.GetPdfPageImages(
-            @"C:\Users\kaczm\Documents\bachelor\PROJECT\conv-file-quality-assurance\UnitTests\ComparingMethodsTest\TestFiles\TempSegTest\Original\0a29925ccc5e6299e132a73325956a3abef6dd26.pdf");
-
-        var i = 0;
-        foreach (var file in res)
-        {
-            File.WriteAllBytes(_testFileDirectory + "file" + (i++).ToString() + ".png", file);
-        }
-    }
 }

@@ -14,20 +14,12 @@ namespace AvaloniaDraft.ComparingMethods;
 
 public static class DocumentVisualOperations
 {
-    public static List<byte[]>? GetPdfPageImages(string path, int? pageStart = null, int? pageEnd = null)
-    {
-        //TODO
-
-        return null;
-    }
-    
     /// <summary>
     /// Segments a document image into points of interest and returns them as a list of rectangles. 
     /// </summary>
     /// <param name="imageFilePath">Path to the image.</param>
-    /// <param name="darkBackground">Whether the document has a white or black background.</param>
     /// <returns>List of rectangles representing each segment. Null if an error occured.</returns>
-    public static List<Rectangle>? SegmentDocumentImage(string imageFilePath, bool darkBackground = false)
+    public static List<Rectangle>? SegmentDocumentImage(string imageFilePath)
     {
         try
         {
@@ -35,7 +27,7 @@ public static class DocumentVisualOperations
 
             if (img is null) return null;
 
-            return GetRects(img, darkBackground);
+            return GetRects(img);
         }
         catch
         {
@@ -47,9 +39,8 @@ public static class DocumentVisualOperations
     /// Segments a document image into points of interest and returns them as a list of rectangles. 
     /// </summary>
     /// <param name="imageBytes">The image as a byte array.</param>
-    /// <param name="darkBackground">Whether the document has a white or black background.</param>
     /// <returns>List of rectangles representing each segment. Null if an error occured.</returns>
-    public static List<Rectangle>? SegmentDocumentImage(byte[] imageBytes, bool darkBackground = false)
+    public static List<Rectangle>? SegmentDocumentImage(byte[] imageBytes)
     {
         try
         {
@@ -57,7 +48,7 @@ public static class DocumentVisualOperations
 
             CvInvoke.Imdecode(imageBytes, ImreadModes.Unchanged, img); //Reading the image
 
-            return GetRects(img, darkBackground);
+            return GetRects(img);
         }
         catch
         {
@@ -69,17 +60,18 @@ public static class DocumentVisualOperations
     /// Preforms the entire image segmentation on the inputted image.
     /// </summary>
     /// <param name="img">The image as Emgu.Cv.Mat.</param>
-    /// <param name="darkBackground">Whether the document has a white or black background.</param>
     /// <param name="presentation">Whether the document is a presentation, if yes will apply additional iteration for
     /// morphing resulting is better grouping for lager objects.</param>
     /// <returns>List of segments ad rectangles. Null if an error occured.</returns>
-    private static List<Rectangle>? GetRects(Mat img, bool darkBackground = false, bool presentation = false)
+    private static List<Rectangle>? GetRects(Mat img, bool presentation = false)
     {
         try
         {
             //Converting image to grayscale
             var grayscale = new Mat();
             CvInvoke.CvtColor(img, grayscale, ColorConversion.Bgr2Gray);
+            
+            var darkBackground = HasDarkBackground(CvInvoke.Mean(grayscale).V0);
 
             var threshold = new Mat();
             //Finding best threshold using Otsu
@@ -87,7 +79,7 @@ public static class DocumentVisualOperations
             
             //Thresholding
             CvInvoke.Threshold(grayscale, threshold, thresholdValue, 255,
-                !darkBackground ? ThresholdType.BinaryInv : ThresholdType.Binary); //Using BinaryInv for light and Binary for dark backgrounds
+                !darkBackground ? ThresholdType.Binary : ThresholdType.BinaryInv); //Using BinaryInv for light and Binary for dark backgrounds
 
             //Morphing to connect parts together
             var kernel = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(5, 5), new Point(-1, -1));
@@ -281,5 +273,15 @@ public static class DocumentVisualOperations
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Determines whether the image should be considered having a dark background. 
+    /// </summary>
+    /// <param name="pixelIntensity">Average pixel intensity of the grayscale image.</param>
+    /// <returns>True/False</returns>
+    private static bool HasDarkBackground(double pixelIntensity)
+    {
+        return pixelIntensity > 130;
     }
 }
