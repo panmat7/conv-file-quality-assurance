@@ -126,6 +126,29 @@ public static class PdfPipelines
                 }
             }
             
+            if (GlobalVariables.Options.GetMethod(Methods.VisualDocComp.Name))
+            {
+                var res = ComperingMethods.VisualDocumentComparison(pair);
+                
+                if (res == null)
+                   GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                       err: new Error(
+                           "Error while preforming the visual comparison",
+                           "Could not preform the visual comparison due to an error while getting the page " +
+                           "images or while segmenting the image.",
+                           ErrorSeverity.Medium,
+                           ErrorType.Visual
+                       ));
+                else if (res.Count > 0)
+                {
+                    Console.WriteLine("ERRORS DURING VISUAL COMPARISON");
+                    //TODO: Log errors
+                }
+                else
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, true);
+            }
+            
+            
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");

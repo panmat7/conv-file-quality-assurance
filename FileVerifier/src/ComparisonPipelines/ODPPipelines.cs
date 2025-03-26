@@ -81,7 +81,7 @@ public static class OdpPipelines
                         ErrorType.Metadata
                     ));
                 }
-                if (!exceptionOccurred && !res)
+                if (!exceptionOccurred && res)
                 {
                     e.Add(new Error(
                         "The original odp file contains animations",
