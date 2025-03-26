@@ -141,14 +141,8 @@ public static partial class FontComparison
         if (FormatCodes.PronomCodesXLSX.Contains(formatCode))
             return ExcelFontExtraction.GetTextInfoExcel(src);
 
-        if (FormatCodes.PronomCodesODT.Contains(formatCode))
-            return ODFontExtraction.GetTextInfoODT(src);
-
-        if (FormatCodes.PronomCodesODP.Contains(formatCode))
-            return ODFontExtraction.GetTextInfoODP(src);
-
-        if (FormatCodes.PronomCodesODS.Contains(formatCode))
-            return ODFontExtraction.GetTextInfoODS(src);
+        if (FormatCodes.PronomCodesODF.Contains(formatCode))
+            return ODFontExtraction.GetTextInfoODF(src);
 
         if (FormatCodes.PronomCodesRTF.Contains(formatCode))
             return RtfFontExtraction.GetTextInfoRTF(src);

@@ -81,9 +81,10 @@ public static class FormatCodes
     ]);
 
     public static readonly FileFormat PronomCodesODT = new FileFormat(["odt"], [
-        "fmt/290", //OpenDocument Text 1.1
-        "fmt/291", //OpenDocument Text 1.2
-        "fmt/1756", //OpenDocument Text 1.3
+        "fmt/136", // OpenDocument Text 1.0
+        "fmt/290", // OpenDocument Text 1.1
+        "fmt/291", // OpenDocument Text 1.2
+        "fmt/1756", // OpenDocument Text 1.3
     ]);
 
     public static readonly FileFormat PronomCodesRTF = new FileFormat(["rtf"], [
@@ -243,6 +244,13 @@ public static class FormatCodes
         "fmt/294", //OpenDocument Spreadsheet 1.1
         "fmt/295", //OpenDocument Spreadsheet 1.2
         "fmt/1755" //OpenDocument Spreadsheet 1.3
+    ]);
+
+
+    public static readonly FileFormat PronomCodesODF = new FileFormat([
+        PronomCodesODT,
+        PronomCodesODP,
+        PronomCodesODS,
     ]);
 
     public static readonly FileFormat PronomCodesCSV = new FileFormat(["csv"], [

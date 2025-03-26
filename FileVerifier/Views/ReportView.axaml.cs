@@ -137,11 +137,9 @@ public partial class ReportView : UserControl
         expander.Content = stackPanel;
 
         var oFile = System.IO.Path.GetFileName(result.FilePair.OriginalFilePath);
-        var oFormat = result.FilePair.OriginalFileFormat;
         var nFile = System.IO.Path.GetFileName(result.FilePair.NewFilePath);
-        var nFormat = result.FilePair.NewFileFormat;
 
-        var headerText = $"{(pass ? "PASS" : "FAIL")} - {oFile} ({oFormat}) -> {nFile} ({nFormat})";
+        var headerText = $"{(pass ? "PASS" : "FAIL")} - {oFile}  -> {nFile}";
         expander.Header = new TextBlock { Text = headerText };
 
         return expander;
