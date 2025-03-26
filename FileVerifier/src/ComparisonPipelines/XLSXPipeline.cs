@@ -32,6 +32,9 @@ public static class XlsxPipeline
     private static void XlsxToPdfPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
+        List<Error> e = [];
+        Error error;
+        
         BasePipeline.ExecutePipeline(() =>
         {
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
@@ -40,23 +43,24 @@ public static class XlsxPipeline
 
                 if (res == null)
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false,
-                        err: new Error(
-                            "Could not get file size difference",
-                            "The tool was unable to get the file size difference for at least one file.",
-                            ErrorSeverity.High,
-                            ErrorType.FileError
-                        ));
+                    error = new Error(
+                        "Could not get file size difference",
+                        "The tool was unable to get the file size difference for at least one file.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    e.Add(error);
                 } else if ((bool)res)
                 {
-                    //For now only printing to console
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false,
-                        err: new Error(
+                    error =  new Error(
                             "File Size Difference",
                             "The difference in size for the two files exceeds expected values.",
                             ErrorSeverity.Medium,
                             ErrorType.FileError
-                        ));
+                        );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    e.Add(error);
                 }
                 else
                 {
@@ -76,28 +80,28 @@ public static class XlsxPipeline
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
-                        err: new Error(
+                    error = new Error(
                             "Error comparing color profiles in xlsx contained images",
                             "There occurred an error while extracting and comparing " +
                             "color profiles of the images contained in the xlsx.",
                             ErrorSeverity.High,
                             ErrorType.Metadata
-                        )
-                    );
+                        );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
                 {
                     case false when !res:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
-                            err: new Error(
-                                "Mismatching color profile",
-                                "The color profile in the new file does not match the original on at least one image.",
-                                ErrorSeverity.Medium,
-                                ErrorType.Metadata
-                            )
+                        error = new Error(
+                            "Mismatching color profile",
+                            "The color profile in the new file does not match the original on at least one image.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Metadata
                         );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
@@ -117,28 +121,28 @@ public static class XlsxPipeline
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
-                        err: new Error(
-                            "Error comparing transparency in xlsx contained images",
-                            "There occurred an error while comparing transparency" +
-                            " of the images contained in the xlsx.",
-                            ErrorSeverity.Medium,
-                            ErrorType.Metadata
-                        )
+                    error = new Error(
+                        "Error comparing transparency in xlsx contained images",
+                        "There occurred an error while comparing transparency" +
+                        " of the images contained in the xlsx.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
                     );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, err: error);
+                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
                 {
                     case false when !res:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
-                            err: new Error(
-                                "Difference of transparency detected in images contained in the xlsx",
-                                "The images contained in the xlsx and pdf files did not pass Transparency comparison.",
-                                ErrorSeverity.Medium,
-                                ErrorType.Visual
-                            )
+                        error = new Error(
+                            "Difference of transparency detected in images contained in the xlsx",
+                            "The images contained in the xlsx and pdf files did not pass Transparency comparison.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Visual
                         );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
@@ -147,6 +151,10 @@ public static class XlsxPipeline
             }
             
             // TODO: Add table break check
+            
+            UiControlService.Instance.AppendToConsole(
+                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
+                e.GenerateErrorString() + "\n\n");
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

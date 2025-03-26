@@ -34,6 +34,9 @@ public static class EmlPipeline
     {
         BasePipeline.ExecutePipeline(() =>
         {
+            List<Error> e = [];
+            Error error;
+            
             if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = false;
@@ -46,34 +49,38 @@ public static class EmlPipeline
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
-                        err: new Error(
-                            "Error comparing color profiles in eml contained images",
-                            "There occurred an error while extracting and comparing " +
-                            "color profiles of the images contained in the eml.",
-                            ErrorSeverity.High,
-                            ErrorType.Metadata
-                        )
+                    error = new Error(
+                        "Error comparing color profiles in eml contained images",
+                        "There occurred an error while extracting and comparing " +
+                        "color profiles of the images contained in the eml.",
+                        ErrorSeverity.High,
+                        ErrorType.Metadata
                     );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
                 {
                     case false when !res:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
-                            err: new Error(
-                                "Mismatching color profile",
-                                "The color profile in the new file does not match the original on at least one image.",
-                                ErrorSeverity.Medium,
-                                ErrorType.Metadata
-                            )
+                        error = new Error(
+                            "Mismatching color profile",
+                            "The color profile in the new file does not match the original on at least one image.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Metadata
                         );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
                         break;
                 }
             }
+            
+            UiControlService.Instance.AppendToConsole(
+                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
+                e.GenerateErrorString() + "\n\n");
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }
