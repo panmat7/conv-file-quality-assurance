@@ -56,20 +56,32 @@ public static class BasePipeline
         if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
             return PngPipelines.GetPNGPipelines(pair.NewFileFormat);
         
-        if(FormatCodes.PronomCodesDOCX.Contains(pair.OriginalFileFormat))
+        if (FormatCodes.PronomCodesDOCX.Contains(pair.OriginalFileFormat))
             return DocxPipelines.GetDocxPipeline(pair.NewFileFormat);
         
-        if(FormatCodes.PronomCodesJPEG.Contains(pair.OriginalFileFormat))
+        if (FormatCodes.PronomCodesJPEG.Contains(pair.OriginalFileFormat))
             return JpgPipelines.GetJPEGPipelines(pair.NewFileFormat);
         
-        if(FormatCodes.PronomCodesPPTX.Contains(pair.OriginalFileFormat))
+        if (FormatCodes.PronomCodesPPTX.Contains(pair.OriginalFileFormat))
             return PptxPipelines.GetPptxPipeline(pair.NewFileFormat);
         
-        if(FormatCodes.PronomCodesPDF.Contains(pair.OriginalFileFormat))
+        if (FormatCodes.PronomCodesPDF.Contains(pair.OriginalFileFormat))
             return PdfPipelines.GetPdfPipelines(pair.NewFileFormat);
 
         if (FormatCodes.PronomCodesODP.Contains(pair.OriginalFileFormat))
             return OdpPipelines.GetOdpPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesEML.Contains(pair.OriginalFileFormat))
+            return EmlPipeline.GetEmlPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesODT.Contains(pair.OriginalFileFormat))
+            return OdtPipeline.GetOdtPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesODS.Contains(pair.OriginalFileFormat))
+            return OdsPipeline.GetOdsPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesXLSX.Contains(pair.OriginalFileFormat))
+            return XlsxPipeline.GetXlsxPipeline(pair.NewFileFormat);
         
         return null;
     }

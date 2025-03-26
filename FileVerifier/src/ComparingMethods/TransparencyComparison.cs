@@ -10,32 +10,6 @@ namespace AvaloniaDraft.ComparingMethods;
 public static class TransparencyComparison
 {
     /// <summary>
-    /// Compares transparency between two image formats
-    /// </summary>
-    /// <param name="files"></param>
-    /// <returns></returns>
-    public static bool ImageToImageTransparencyComparison(FilePair files)
-    {
-        var oImage = new MagickImage(files.OriginalFilePath);
-        var nImage = new MagickImage(files.NewFilePath);
-
-        return CheckNonPdfImageTransparency(oImage) == CheckNonPdfImageTransparency(nImage);
-    }
-    
-    /// <summary>
-    /// Compares transparency between an image and pdf
-    /// </summary>
-    /// <param name="files"></param>
-    /// <returns></returns>
-    public static bool ImageToPdfTransparencyComparison(FilePair files)
-    {
-        var oImage = new MagickImage(files.OriginalFilePath);
-        var nImage = ImageExtraction.GetNonDuplicatePdfImages(files.NewFilePath)[0];
-
-        return CheckNonPdfImageTransparency(oImage) == CheckPdfImageTransparency(nImage);
-    }
-
-    /// <summary>
     /// Compares transparency between images in docx and pdf
     /// </summary>
     /// <param name="files"></param>

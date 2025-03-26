@@ -34,29 +34,33 @@ public static class OdpPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
-            
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
 
                 if (res == null)
                 {
-                    e.Add(new Error(
-                        "Could not get file size difference",
-                        "The tool was unable to get the file size difference for at least one file.",
-                        ErrorSeverity.High,
-                        ErrorType.FileError
-                    ));
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false,
+                        err: new Error(
+                            "Could not get file size difference",
+                            "The tool was unable to get the file size difference for at least one file.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        ));
                 } else if ((bool)res)
                 {
                     //For now only printing to console
-                    e.Add(new Error(
-                        "File Size Difference",
-                        "The difference in size for the two files exceeds expected values.",
-                        ErrorSeverity.Medium,
-                        ErrorType.FileError
-                    ));
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false,
+                        err: new Error(
+                            "File Size Difference",
+                            "The difference in size for the two files exceeds expected values.",
+                            ErrorSeverity.Medium,
+                            ErrorType.FileError
+                        ));
+                }
+                else
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
                 }
             }
 
@@ -72,7 +76,8 @@ public static class OdpPipelines
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    e.Add(new Error(
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false,
+                        err: new Error(
                         "Error while checking for animation usage in original odp file.",
                         "There occurred an error while trying to find animation usage of the odp file",
                         ErrorSeverity.High,
@@ -81,12 +86,17 @@ public static class OdpPipelines
                 }
                 if (!exceptionOccurred && res)
                 {
-                    e.Add(new Error(
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false,
+                        err: new Error(
                         "The original odp file contains animations",
                         "Context from original odp file may be lost due to use of animations.",
                         ErrorSeverity.Medium,
                         ErrorType.Visual
                     ));
+                }
+                else
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, true);
                 }
             }
             
@@ -102,23 +112,32 @@ public static class OdpPipelines
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    e.Add(new Error(
-                        "Error comparing color profiles in odp and pdf contained images",
-                        "There occurred an error while extracting and comparing " +
-                        "color profiles of the images contained in the odp and pdf.",
-                        ErrorSeverity.High,
-                        ErrorType.Metadata
-                    ));
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
+                        err: new Error(
+                            "Error comparing color profiles in odp contained images",
+                            "There occurred an error while extracting and comparing " +
+                            "color profiles of the images contained in the odp.",
+                            ErrorSeverity.High,
+                            ErrorType.Metadata
+                        )
+                    );
                 }
 
-                if (!exceptionOccurred && !res)
+                switch (exceptionOccurred)
                 {
-                    e.Add(new Error(
-                        "Difference in images contained in the odp and pdf color profile",
-                        "The images contained in the odp and pdf did not pass Color Profile comparison.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Metadata
-                    ));
+                    case false when !res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
+                            err: new Error(
+                                "Mismatching color profile",
+                                "The color profile in the new file does not match the original on at least one image.",
+                                ErrorSeverity.Medium,
+                                ErrorType.Metadata
+                            )
+                        );
+                        break;
+                    case false when res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
+                        break;
                 }
             }
             
@@ -129,34 +148,39 @@ public static class OdpPipelines
 
                 try
                 {
-                    res = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.OdtAndOdpToPdfTransparencyComparison(pair);
                 }
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    e.Add(new Error(
-                        "Error comparing transparency in odp contained images",
-                        "There occurred an error while comparing transparency" +
-                        " of the images contained in the odp and pdf.",
-                        ErrorSeverity.High,
-                        ErrorType.Metadata
-                    ));
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
+                        err: new Error(
+                            "Error comparing transparency in odp contained images",
+                            "There occurred an error while comparing transparency" +
+                            " of the images contained in the odp.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Metadata
+                        )
+                    );
                 }
 
-                if (!exceptionOccurred && !res)
+                switch (exceptionOccurred)
                 {
-                    e.Add(new Error(
-                        "Difference in images contained in the odp and pdf in transparency",
-                        "The images contained in the odp and pdf did not pass Transparency comparison.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Visual
-                    ));
+                    case false when !res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
+                            err: new Error(
+                                "Difference of transparency detected in images contained in the odp",
+                                "The images contained in the odp and pdf files did not pass Transparency comparison.",
+                                ErrorSeverity.Medium,
+                                ErrorType.Visual
+                            )
+                        );
+                        break;
+                    case false when res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
+                        break;
                 }
             }
-            
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

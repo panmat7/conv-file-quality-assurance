@@ -73,11 +73,6 @@ public static class ColorProfileComparison
     {
         var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(files.OriginalFilePath);
         var nImages = ImageExtraction.ExtractImagesFromPdf(files.NewFilePath);
-
-        // Print number of images
-
-        Console.WriteLine(oImages.Count);
-        Console.WriteLine(nImages.Count);
         
         // If there are no images no test is done and we return true
         if (oImages.Count < 1) return true;
@@ -154,11 +149,6 @@ public static class ColorProfileComparison
         
         var oProfile = oImage.GetColorProfile();
         var nProfile = nImage.GetColorProfile();
-        
-        Console.WriteLine("--------------------");
-        Console.WriteLine(oProfile?.Description);
-        Console.WriteLine(nProfile?.Description);
-        Console.WriteLine("--------------------");
 
         return oProfile switch
         {

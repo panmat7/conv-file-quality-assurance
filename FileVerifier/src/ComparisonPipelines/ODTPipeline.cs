@@ -7,30 +7,29 @@ using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
-public static class DocxPipelines
+public static class OdtPipeline
 {
     /// <summary>
-    /// Function responsible for assigning the correct pipeline for DOCX files
+    /// Function responsible for assigning the correct pipeline for ODT files
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetDocxPipeline(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetOdtPipeline(string outputFormat)
     {
         if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
-            return DocxToPdfPipeline;
-        
+            return OdtToPdfPipeline;
 
         return null;
     }
-    
+
     /// <summary>
-    /// Pipeline responsible for comparing DOCX to PDF conversions
+    /// Pipeline responsible for comparing Odt to other PDF conversions
     /// </summary>
     /// <param name="pair">The pair of files to compare</param>
     /// <param name="additionalThreads">Number of threads available for usage</param>
     /// <param name="updateThreadCount">Callback function used to update current thread count</param>
     /// <param name="markDone">Function marking the FilePair as done</param>
-    private static void DocxToPdfPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+    private static void OdtToPdfPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
         BasePipeline.ExecutePipeline(() =>
@@ -109,16 +108,16 @@ public static class DocxPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.DocxToPdfColorProfileComparison(pair);
+                    res = ColorProfileComparison.OdtAndOdpToPdfColorProfileComparison(pair);
                 }
                 catch (Exception)
                 {
                     exceptionOccurred = true;
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false,
                         err: new Error(
-                            "Error comparing color profiles in docx contained images",
+                            "Error comparing color profiles in odt contained images",
                             "There occurred an error while extracting and comparing " +
-                            "color profiles of the images contained in the docx.",
+                            "color profiles of the images contained in the odt.",
                             ErrorSeverity.High,
                             ErrorType.Metadata
                         )
@@ -151,16 +150,16 @@ public static class DocxPipelines
 
                 try
                 {
-                    res = TransparencyComparison.DocxToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.OdtAndOdpToPdfTransparencyComparison(pair);
                 }
                 catch (Exception)
                 {
                     exceptionOccurred = true;
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
                         err: new Error(
-                            "Error comparing transparency in docx contained images",
+                            "Error comparing transparency in odt contained images",
                             "There occurred an error while comparing transparency" +
-                            " of the images contained in the docx.",
+                            " of the images contained in the odt.",
                             ErrorSeverity.Medium,
                             ErrorType.Metadata
                         )
@@ -172,7 +171,7 @@ public static class DocxPipelines
                     case false when !res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false,
                             err: new Error(
-                                "Difference of transparency detected in images contained in the docx",
+                                "Difference of transparency detected in images contained in the odt",
                                 "The images contained in the docx and pdf files did not pass Transparency comparison.",
                                 ErrorSeverity.Medium,
                                 ErrorType.Visual
