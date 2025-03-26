@@ -126,27 +126,6 @@ public class Logger
         }
     }
 
-
-
-    public string? FormatTestResult(FilePair filePair)
-    {
-        var index = Results.FindIndex(r => r.FilePair.OriginalFilePath == filePair.OriginalFilePath && r.FilePair.NewFilePath == filePair.NewFilePath);
-        if (index == -1) return null;
-        var result = Results[index];
-
-        var errors = new List<Error>();
-        foreach (var t in result.Tests.Values)
-        {
-            foreach (var e in t.Errors)
-            {
-                errors.Add(e);
-            }
-        }
-
-        return $"Result for {Path.GetFileName(filePair.OriginalFilePath)}-{Path.GetFileName(filePair.NewFilePath)} " +
-            $"Comparison: \n{errors.GenerateErrorString()}\n\n";
-    }
-
     /// <summary>
     /// Finish logging. Must be called before ExportJSON can be called
     /// </summary>

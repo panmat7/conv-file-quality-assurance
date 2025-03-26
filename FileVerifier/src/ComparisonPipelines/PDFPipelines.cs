@@ -132,13 +132,13 @@ public static class PdfPipelines
                 
                 if (res == null)
                    GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
-                       err: new Error(
+                       errors: [new Error(
                            "Error while preforming the visual comparison",
                            "Could not preform the visual comparison due to an error while getting the page " +
                            "images or while segmenting the image.",
                            ErrorSeverity.Medium,
                            ErrorType.Visual
-                       ));
+                       )]);
                 else if (res.Count > 0)
                 {
                     Console.WriteLine("ERRORS DURING VISUAL COMPARISON");
