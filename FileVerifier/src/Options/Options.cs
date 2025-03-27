@@ -205,6 +205,9 @@ public class Options
 
         InitializeEnabledFormats();
 
+        SizeComparisonThreshold = 0.0;
+        PbpComparisonThreshold = 0.0;
+
         SpecifiedThreadCount = null;
         IgnoreUnsupportedFileType = true;
     }
