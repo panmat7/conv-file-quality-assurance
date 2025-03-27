@@ -53,14 +53,8 @@ public static class BasePipeline
     /// <returns>The selected pipeline function, or null if none fitting the formats were found.</returns>
     public static Action<FilePair, int, Action<int>, Action>? SelectPipeline(FilePair pair)
     {
-        if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
-            return PngPipelines.GetPNGPipelines(pair.NewFileFormat);
-        
-        if(FormatCodes.PronomCodesDOCX.Contains(pair.OriginalFileFormat))
-            return DocxPipelines.GetDocxPipeline(pair.NewFileFormat);
-        
-        if(FormatCodes.PronomCodesJPEG.Contains(pair.OriginalFileFormat))
-            return JpgPipelines.GetJPEGPipelines(pair.NewFileFormat);
+        if (FormatCodes.PronomCodesImages.Contains(pair.OriginalFileFormat))
+            return ImagePipelines.GetImagePipelines(pair.NewFileFormat);
         
         if(FormatCodes.PronomCodesPPTX.Contains(pair.OriginalFileFormat))
             return PptxPipelines.GetPptxPipeline(pair.NewFileFormat);

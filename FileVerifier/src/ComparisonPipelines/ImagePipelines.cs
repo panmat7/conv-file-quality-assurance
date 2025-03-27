@@ -7,32 +7,32 @@ using ClosedXML;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
-public static class PngPipelines
+public static class ImagePipelines
 {
     /// <summary>
     /// Function responsible for assigning the correct pipeline for PNG files
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetPNGPipelines(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetImagePipelines(string outputFormat)
     {
-        if (!FormatCodes.PronomCodesPNG.Contains(outputFormat) && FormatCodes.PronomCodesImages.Contains(outputFormat))
-            return PNGToImagePipeline;
+        if (FormatCodes.PronomCodesImages.Contains(outputFormat))
+            return ImageToImagePipeline;
         
         if(FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
-            return PNGToPDFPipeline;
+            return ImageToPDFPipeline;
 
         return null;
     }
 
     /// <summary>
-    /// Pipeline responsible for comparing PNG to other image formats conversions
+    /// Pipeline responsible for comparing images to other image formats conversions
     /// </summary>
     /// <param name="pair">The pair of files to compare</param>
     /// <param name="additionalThreads">Number of threads available for usage</param>
     /// <param name="updateThreadCount">Callback function used to update current thread count</param>
     /// <param name="markDone">Function marking the FilePair as done</param>
-    private static void PNGToImagePipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount, Action markDone)
+    private static void ImageToImagePipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount, Action markDone)
     {
         BasePipeline.ExecutePipeline(() =>
         {
@@ -180,7 +180,7 @@ public static class PngPipelines
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
     
-    private static void PNGToPDFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+    private static void ImageToPDFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
         
