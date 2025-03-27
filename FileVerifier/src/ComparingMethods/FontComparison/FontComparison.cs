@@ -129,18 +129,18 @@ public static partial class FontComparison
         // Foreign characters
         result.ContainsForeignCharacters = (ot.ForeignWriting || nt.ForeignWriting);
 
-
-        // Check if colors are the same
+        // Check if text colors are the same
         var textColorsOnlyInOriginal = CompareColors(ot.TextColors, nt.TextColors);
-        if (!textColorsOnlyInOriginal.Any())
+        if (textColorsOnlyInOriginal.Any())
         {
             result.TextColorsNotConverted = true;
             result.TextColorsOnlyInOriginal = textColorsOnlyInOriginal;
             result.Pass = false;
         }
 
+        // Check if background colors are the same
         var bgColorsOnlyInOriginal = CompareColors(ot.BgColors, nt.BgColors);
-        if (!bgColorsOnlyInOriginal.Any())
+        if (bgColorsOnlyInOriginal.Any())
         {
             result.BgColorsNotConverted = true;
             result.BgColorsOnlyInOriginal = bgColorsOnlyInOriginal;
@@ -300,18 +300,14 @@ public static partial class FontComparison
     /// </summary>
     /// <param name="cols1">The first list of colors</param>
     /// <param name="cols2">The second list of colors</param>
-    /// <returns></returns>
+    /// <returns>A list of colors from cols1 that did not match any colors form cols2</returns>
     private static List<string> CompareColors(HashSet<string> cols1, HashSet<string> cols2)
     {
         var nonMatchingColors = new List<string>();
         foreach (var col1 in cols1)
         {
-            foreach (var col2 in cols2)
-            {
-                if (!ColorsEqual(col1, col2)) nonMatchingColors.Add(col1);
-            }
+            if (!cols2.Any(col2 => ColorsEqual(col1, col2))) nonMatchingColors.Add(col1);
         }
-
         return nonMatchingColors;
     }
 

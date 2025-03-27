@@ -82,11 +82,11 @@ public class FontComparisonTest
             var testName = Path.GetFileNameWithoutExtension(fp.OriginalFilePath);
 
             (bool pass, bool foreignChars) expectedResult;
-            if (testName.Contains('p')) // 'p' for pass
+            if (testName.Contains("_p")) // 'p' for pass
             {
                 expectedResult.pass = true;
             } 
-            else if ((testName.Contains('f'))) // 'f' for fail
+            else if ((testName.Contains("_f"))) // 'f' for fail
             {
                 expectedResult.pass = false;
             } 
@@ -104,35 +104,40 @@ public class FontComparisonTest
             {
                 Assert.That(result, Is.EqualTo(expectedResult), $"Test failed: ({testName})");
             }
-            catch (Exception ex)
+            catch
             {
-                /*Console.WriteLine($"{ex.Message}:");
+                Console.WriteLine($"{testName}:");
 
-                Console.WriteLine("Fonts only in original:");
-                foreach (var f in comparisonResult.FontsOnlyInOriginal)
+                if (comparisonResult.Errors.Count > 0)
                 {
-                    Console.WriteLine(f);
+                    Console.WriteLine("Errors:", comparisonResult.Errors);
+                    foreach (var e in comparisonResult.Errors)
+                    {
+                        Console.WriteLine(e.Description);
+                    }
                 }
 
-                Console.WriteLine("Fonts only in converted:");
-                foreach (var f in comparisonResult.FontsOnlyInConverted)
-                {
-                    Console.WriteLine(f);
-                }
 
-                Console.WriteLine("Text colors only in original:");
-                foreach (var c in comparisonResult.TextColorsOnlyInOriginal)
-                {
-                    Console.WriteLine(c);
-                }
-
-                Console.WriteLine("Background colors only in original:");
-                foreach (var c in comparisonResult.BgColorsOnlyInOriginal)
-                {
-                    Console.WriteLine(c);
-                }*/
+                PrintList("Fonts only in original:", comparisonResult.FontsOnlyInOriginal);
+                PrintList("Fonts only in converted:", comparisonResult.FontsOnlyInConverted);
+                PrintList("Text colors only in original:", comparisonResult.TextColorsOnlyInOriginal);
+                PrintList("Background colors only in original:", comparisonResult.BgColorsOnlyInOriginal);
+                Console.WriteLine();
             }
             
         }
+    }
+
+
+    private static void PrintList(string title, List<string> list)
+    {
+        if (list.Count == 0) return;
+
+        Console.WriteLine(title);
+        foreach (var item in list)
+        {
+            Console.WriteLine(item);
+        }
+        Console.WriteLine();
     }
 }
