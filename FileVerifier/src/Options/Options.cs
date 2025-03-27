@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.IO;
 using System.Text.Json.Serialization;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
+using AvaloniaDraft.FileManager;
 
 namespace AvaloniaDraft.Options;
 
@@ -30,6 +31,9 @@ public class Options
     public SettingsProfile Profile { get; set; }
 
     private string? dir; // The directory where settings are stored
+
+    public double SizeComparisonThreshold { get; set; }
+    public double PbpComparisonThreshold { get; set; }
 
     public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; }
     public Dictionary<string, bool> MethodsEnabled { get; set; }
@@ -159,6 +163,18 @@ public class Options
         if (fileType == null) return;
 
         FileFormatsEnabled[fileType][pronomCode] = setTo ?? !FileFormatsEnabled[fileType][pronomCode];
+    }
+
+
+    /// <summary>
+    /// Check if the file formats of a file pair are both enabled
+    /// </summary>
+    /// <param name="fp"></param>
+    /// <returns></returns>
+    public bool? FormatsAreEnabled(FilePair fp)
+    {
+        if ((GetFileFormat(fp.OriginalFileFormat), GetFileFormat(fp.NewFileFormat)) is not (bool oEnabled, bool nEnabled)) return null;
+        return (oEnabled && nEnabled);
     }
 
     /// <summary>
@@ -295,6 +311,8 @@ public class Options
                     this.MethodsEnabled = opt.MethodsEnabled;
                     this.SpecifiedThreadCount = opt.SpecifiedThreadCount;
                     this.IgnoreUnsupportedFileType = opt.IgnoreUnsupportedFileType;
+                    this.SizeComparisonThreshold = opt.SizeComparisonThreshold;
+                    this.PbpComparisonThreshold = opt.PbpComparisonThreshold;
                 }
             } 
             else
