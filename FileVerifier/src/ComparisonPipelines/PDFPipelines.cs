@@ -54,7 +54,7 @@ public static class PdfPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, err: error);
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
                         e.Add(error);
                         break;
                     case > 0:
@@ -65,7 +65,7 @@ public static class PdfPipelines
                             ErrorType.FileError,
                             $"{diff}"
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, err: error);
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
                         e.Add(error);
                         break;
                     default:
@@ -86,7 +86,7 @@ public static class PdfPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
                     e.Add(error);
                 } else if ((bool)res)
                 {
@@ -96,7 +96,7 @@ public static class PdfPipelines
                             ErrorSeverity.Medium,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else
@@ -124,7 +124,7 @@ public static class PdfPipelines
                         ErrorSeverity.High,
                         ErrorType.Metadata
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
                     e.Add(error);
                 }
 
@@ -137,7 +137,7 @@ public static class PdfPipelines
                             ErrorSeverity.Medium,
                             ErrorType.Metadata
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
                         e.Add(error);
                         break;
                     case false when res:
@@ -166,7 +166,7 @@ public static class PdfPipelines
                         ErrorSeverity.Medium,
                         ErrorType.Metadata
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
                     e.Add(error);
                 }
 
@@ -179,7 +179,7 @@ public static class PdfPipelines
                             ErrorSeverity.Medium,
                             ErrorType.Visual
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, err: error);
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
                         e.Add(error);
                         break;
                     case false when res:
@@ -201,7 +201,7 @@ public static class PdfPipelines
                         ErrorSeverity.Medium,
                         ErrorType.Visual
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 

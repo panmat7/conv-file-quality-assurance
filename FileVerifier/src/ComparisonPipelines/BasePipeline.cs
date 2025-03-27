@@ -75,16 +75,16 @@ public static class BasePipeline
             return OdpPipelines.GetOdpPipeline(pair.NewFileFormat);
 
         if (FormatCodes.PronomCodesEML.Contains(pair.OriginalFileFormat))
-            return EmlPipeline.GetEmlPipeline(pair.NewFileFormat);
+            return EmlPipelines.GetEmlPipeline(pair.NewFileFormat);
 
         if (FormatCodes.PronomCodesODT.Contains(pair.OriginalFileFormat))
-            return OdtPipeline.GetOdtPipeline(pair.NewFileFormat);
+            return ODTPipelines.GetOdtPipeline(pair.NewFileFormat);
 
         if (FormatCodes.PronomCodesODS.Contains(pair.OriginalFileFormat))
-            return OdsPipeline.GetOdsPipeline(pair.NewFileFormat);
+            return ODSPipelines.GetOdsPipeline(pair.NewFileFormat);
 
         if (FormatCodes.PronomCodesXLSX.Contains(pair.OriginalFileFormat))
-            return XlsxPipeline.GetXlsxPipeline(pair.NewFileFormat);
+            return XLSXPipelines.GetXlsxPipeline(pair.NewFileFormat);
         
         return null;
     }

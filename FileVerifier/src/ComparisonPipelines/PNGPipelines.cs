@@ -58,7 +58,7 @@ public static class PngPipelines
                         ErrorType.FileError
                     );
                       
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else if ((bool)res)
@@ -70,7 +70,7 @@ public static class PngPipelines
                         ErrorType.FileError
                     );
                       
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else
@@ -91,7 +91,7 @@ public static class PngPipelines
                         ErrorType.FileError
                     );
 
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else if (res.Item1 > 0 || res.Item2 > 0)
@@ -103,7 +103,7 @@ public static class PngPipelines
                         ErrorType.FileError
                     );
 
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else
@@ -123,7 +123,7 @@ public static class PngPipelines
                         ErrorType.FileError
                     );
 
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else if (res.Count > 0)
@@ -148,7 +148,7 @@ public static class PngPipelines
                         ErrorSeverity.High,
                         ErrorType.Visual
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, errors: [error]);
                     e.Add(error);
                 } else if (res < acceptance)
                 {
@@ -159,7 +159,7 @@ public static class PngPipelines
                             ErrorType.Visual,
                             res.ToString("0.##")
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else
@@ -184,7 +184,7 @@ public static class PngPipelines
                         ErrorSeverity.Medium,
                         ErrorType.Metadata
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
                     e.Add(error);
                 }
 
@@ -196,7 +196,7 @@ public static class PngPipelines
                         ErrorSeverity.Medium,
                         ErrorType.Metadata
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else

@@ -30,7 +30,7 @@ public static class EmlPipelines
     /// <param name="additionalThreads">Number of threads available for usage</param>
     /// <param name="updateThreadCount">Callback function used to update current thread count</param>
     /// <param name="markDone">Function marking the FilePair as done</param>
-    private static void EmlToPDFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+    private static void EmlToPdfPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
         BasePipeline.ExecutePipeline(() =>
@@ -60,7 +60,7 @@ public static class EmlPipelines
                         ErrorSeverity.High,
                         ErrorType.Metadata
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
                     e.Add(error);
                 }
 
@@ -73,7 +73,7 @@ public static class EmlPipelines
                             ErrorSeverity.Medium,
                             ErrorType.Metadata
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
                         e.Add(error);
                         break;
                     case false when res:

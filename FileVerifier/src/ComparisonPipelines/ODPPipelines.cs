@@ -54,7 +54,7 @@ public static class OdpPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
                     e.Add(error);
                 } else if ((bool)res)
                 {
@@ -64,7 +64,7 @@ public static class OdpPipelines
                             ErrorSeverity.Medium,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else
@@ -91,7 +91,7 @@ public static class OdpPipelines
                         ErrorSeverity.High,
                         ErrorType.Metadata
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 if (!exceptionOccurred && res)
@@ -102,7 +102,7 @@ public static class OdpPipelines
                         ErrorSeverity.Medium,
                         ErrorType.Visual
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false, errors: [error]);
                     e.Add(error);
                 }
                 else
@@ -130,7 +130,7 @@ public static class OdpPipelines
                         ErrorSeverity.High,
                         ErrorType.Metadata
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
                     e.Add(error);
                 }
 
@@ -143,7 +143,7 @@ public static class OdpPipelines
                             ErrorSeverity.Medium,
                             ErrorType.Metadata
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
                         e.Add(error);
                         break;
                     case false when res:
@@ -171,7 +171,7 @@ public static class OdpPipelines
                         ErrorSeverity.Medium,
                         ErrorType.Metadata
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, err: error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
                     e.Add(error);
                 }
 
@@ -184,7 +184,7 @@ public static class OdpPipelines
                             ErrorSeverity.Medium,
                             ErrorType.Visual
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, err: error);
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
                         e.Add(error);
                         break;
                     case false when res:
