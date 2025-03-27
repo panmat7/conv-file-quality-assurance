@@ -39,6 +39,8 @@ public static class OdpPipelines
 
             var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+
+            e.AddRange(BasePipeline.CompareFonts(pair));
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
@@ -56,7 +58,6 @@ public static class OdpPipelines
                     e.Add(error);
                 } else if ((bool)res)
                 {
-                    //For now only printing to console
                     error = new Error(
                             "File Size Difference",
                             "The difference in size for the two files exceeds expected values.",

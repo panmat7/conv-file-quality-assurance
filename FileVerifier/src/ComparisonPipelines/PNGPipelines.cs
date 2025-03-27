@@ -57,6 +57,7 @@ public static class PngPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
+                      
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
                     e.Add(error);
                 }
@@ -68,6 +69,7 @@ public static class PngPipelines
                         ErrorSeverity.Medium,
                         ErrorType.FileError
                     );
+                      
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, err: error);
                     e.Add(error);
                 }
@@ -88,6 +90,7 @@ public static class PngPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
+
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, err: error);
                     e.Add(error);
                 }
@@ -99,6 +102,7 @@ public static class PngPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
+
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, err: error);
                     e.Add(error);
                 }
@@ -118,6 +122,7 @@ public static class PngPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
+
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, err: error);
                     e.Add(error);
                 }
@@ -148,11 +153,11 @@ public static class PngPipelines
                 } else if (res < acceptance)
                 {
                     error = new Error(
-                        "Difference in image's visual appearance",
-                        "The images did not pass Pixel by Pixel comparison.",
-                        ErrorSeverity.High,
-                        ErrorType.Visual,
-                        res.ToString("0.##")
+                            "Difference in image's visual appearance",
+                            "The images did not pass Pixel by Pixel comparison.",
+                            ErrorSeverity.High,
+                            ErrorType.Visual,
+                            res.ToString("0.##")
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, err: error);
                     e.Add(error);
@@ -161,7 +166,7 @@ public static class PngPipelines
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, true);
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name)) // Check for color profile later
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;

@@ -39,6 +39,8 @@ public static class PptxPipelines
 
             var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+
+            e.AddRange(BasePipeline.CompareFonts(pair));
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {

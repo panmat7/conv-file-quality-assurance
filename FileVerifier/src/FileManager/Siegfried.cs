@@ -85,7 +85,7 @@ public static class Siegfried
         var output = process.StandardOutput.ReadToEnd();
         var error = process.StandardError.ReadToEnd();
 
-        if (!string.IsNullOrEmpty(error)) throw new Exception(error);
+        if (!string.IsNullOrEmpty(error)) throw new Exception(windowsArguments);
 
         // Use a regular expression to split the JSON objects correctly
         var regex = new Regex(@"(?<=\})\s*(?=\{)");

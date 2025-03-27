@@ -1,4 +1,5 @@
 ﻿using AvaloniaDraft.ComparingMethods;
+using AvaloniaDraft.FileManager;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,11 +65,13 @@ public class FontComparisonTest
                 throw new Exception($"Test {testName} not formatted correctly");
             }
 
-            var result = FontComparison.CompareFiles(originalFile, convertedFile);
+            var fp = new FilePair(originalFile, convertedFile);
+
+            var result = FontComparison.CompareFiles(fp);
 
             try
             {
-                Assert.That(result, Is.EqualTo(expectedResult), $"Test failed: (Original: {testName})");
+                Assert.That(result.Pass, Is.EqualTo(expectedResult), $"Test failed: (Original: {testName})");
             }
             catch (Exception ex)
             {

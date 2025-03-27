@@ -161,7 +161,7 @@ public static class JpgPipelines
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, true);
             }
 
-            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name)) // Check for color profile later
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;

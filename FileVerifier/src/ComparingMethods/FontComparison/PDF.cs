@@ -9,7 +9,7 @@ namespace AvaloniaDraft.ComparingMethods;
 public static class PdfFontExtraction
 {
     /// <summary>
-    /// Get the font information of a ODT file
+    /// Get the font information of a PDF file
     /// </summary>
     /// <param name="src">The file path</param>
     /// <returns></returns>
