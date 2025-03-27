@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using ClosedXML;
+using ImageMagick;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -36,29 +38,41 @@ public static class PngPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
+            List<Error> e = [];
+            Error error;
+
+            using var oImage = new MagickImage(pair.OriginalFilePath);
+            using var nImage = new MagickImage(pair.NewFilePath);
+            
             //Check options if this check is enabled.
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
 
                 if (res == null)
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Size.Name, false,
-                        errors: [new Error(
-                            "Could not get file size difference",
-                            "The tool was unable to get the file size difference for at least one file.",
-                            ErrorSeverity.High,
-                            ErrorType.FileError
-                        )]
+                {
+                    error = new Error(
+                        "Could not get file size difference",
+                        "The tool was unable to get the file size difference for at least one file.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
                     );
+                      
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    e.Add(error);
+                }
                 else if ((bool)res)
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Size.Name, false,
-                        errors: [new Error(
-                            "File Size Difference",
-                            "The difference in size for the two files exceeds expected values.",
-                            ErrorSeverity.Medium,
-                            ErrorType.FileError
-                        )]
+                {
+                    error = new Error(
+                        "File Size Difference",
+                        "The difference in size for the two files exceeds expected values.",
+                        ErrorSeverity.Medium,
+                        ErrorType.FileError
                     );
+                      
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    e.Add(error);
+                }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Size.Name, true);
                 
@@ -69,23 +83,29 @@ public static class PngPipelines
                 var res = ComperingMethods.GetImageResolutionDifference(pair);
 
                 if (res is null)
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Resolution.Name, false,
-                        errors: [new Error(
-                            "Error getting image resolution difference",
-                            "There occured an error while trying to get the difference in image resolution.",
-                            ErrorSeverity.High,
-                            ErrorType.FileError
-                        )]
+                {
+                    error = new Error(
+                        "Error getting image resolution difference",
+                        "There occured an error while trying to get the difference in image resolution.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
                     );
+
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, errors: [error]);
+                    e.Add(error);
+                }
                 else if (res.Item1 > 0 || res.Item2 > 0)
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Resolution.Name, false,
-                        errors: [new Error(
-                            "Image resolution difference",
-                            "Mismatched resolution between images.",
-                            ErrorSeverity.High,
-                            ErrorType.FileError
-                        )]
+                {
+                    error = new Error(
+                        "Image resolution difference",
+                        "Mismatched resolution between images.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
                     );
+
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, errors: [error]);
+                    e.Add(error);
+                }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Resolution.Name, true);
             }
@@ -95,14 +115,17 @@ public static class PngPipelines
                 var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
                 
                 if (res is null)
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Metadata.Name, false,
-                        errors: [new Error(
-                            "Image resolution difference",
-                            "Mismatched resolution between images.",
-                            ErrorSeverity.High,
-                            ErrorType.FileError
-                        )]
+                {
+                    error = new Error(
+                        "Image resolution difference",
+                        "Mismatched resolution between images.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
                     );
+
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: [error]);
+                    e.Add(error);
+                }
                 else if (res.Count > 0)
                 {
                     //TODO: Log list of errors
@@ -119,64 +142,71 @@ public static class PngPipelines
 
                 if (res < 0)
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, false,
-                            errors: [new Error(
-                                "Error calculating image similarity",
-                                "There occured an error while calculating the image similarity during Pixel by Pixel comparison.",
-                                ErrorSeverity.High,
-                                ErrorType.Visual
-                            )]
-                        );
+                    error = new Error(
+                        "Error calculating image similarity",
+                        "There occured an error while calculating the image similarity during Pixel by Pixel comparison.",
+                        ErrorSeverity.High,
+                        ErrorType.Visual
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, errors: [error]);
+                    e.Add(error);
                 } else if (res < acceptance)
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, false,
-                        errors: [new Error(
+                    error = new Error(
                             "Difference in image's visual appearance",
                             "The images did not pass Pixel by Pixel comparison.",
                             ErrorSeverity.High,
                             ErrorType.Visual,
                             res.ToString("0.##")
-                        )]
                     );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, errors: [error]);
+                    e.Add(error);
                 }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, true);
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name)) // Check for color profile later
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = false;
                 var exceptionOccurred = false;
 
                 try
                 {
-                    res = ColorProfileComparison.ImageToImageColorProfileComparison(pair);
+                    res = ColorProfileComparison.ImageToImageColorProfileComparison(oImage, nImage);
                 }
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorProfile.Name, false,
-                        errors: [new Error(
-                            "Error comparing color profiles",
-                            "There occurred an error while extracting and comparing color profiles.",
-                            ErrorSeverity.Medium,
-                            ErrorType.Metadata
-                        )]
+                    error = new Error(
+                        "Error comparing color profiles",
+                        "There occurred an error while extracting and comparing color profiles.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
                     );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    e.Add(error);
                 }
 
                 if (!exceptionOccurred && !res)
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorProfile.Name, false,
-                        errors: [new Error(
-                            "Difference in both images color profile",
-                            "The images did not pass Color Profile comparison.",
-                            ErrorSeverity.Medium,
-                            ErrorType.Metadata
-                        )]
+                {
+                    error = new Error(
+                        "Difference in both images color profile",
+                        "The images did not pass Color Profile comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
                     );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    e.Add(error);
+                }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorProfile.Name, true);
             }
+            
+            UiControlService.Instance.AppendToConsole(
+                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
+                e.GenerateErrorString() + "\n\n");
+            
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
     

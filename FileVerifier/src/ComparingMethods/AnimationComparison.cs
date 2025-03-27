@@ -35,12 +35,12 @@ public static class AnimationComparison
             // Check if the slide's xml contents contains animations
             if (slideXml.Descendants().Any(e => e.Name.LocalName is "anim" or "animEffect" or "timing"))
             {
-                // Fails the test
-                return false;
+                // Animation found
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     /// <summary>

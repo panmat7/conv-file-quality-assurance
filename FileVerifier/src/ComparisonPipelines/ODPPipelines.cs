@@ -35,6 +35,10 @@ public static class OdpPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             List<Error> e = [];
+            Error error;
+
+            var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(pair.OriginalFilePath);
+            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
 
             e.AddRange(BasePipeline.CompareFonts(pair));
             
@@ -44,21 +48,28 @@ public static class OdpPipelines
 
                 if (res == null)
                 {
-                    e.Add(new Error(
-                        "Could not get file size difference",
-                        "The tool was unable to get the file size difference for at least one file.",
-                        ErrorSeverity.High,
-                        ErrorType.FileError
-                    ));
+                    error = new Error(
+                            "Could not get file size difference",
+                            "The tool was unable to get the file size difference for at least one file.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    e.Add(error);
                 } else if ((bool)res)
                 {
-                    //For now only printing to console
-                    e.Add(new Error(
-                        "File Size Difference",
-                        "The difference in size for the two files exceeds expected values.",
-                        ErrorSeverity.Medium,
-                        ErrorType.FileError
-                    ));
+                    error = new Error(
+                            "File Size Difference",
+                            "The difference in size for the two files exceeds expected values.",
+                            ErrorSeverity.Medium,
+                            ErrorType.FileError
+                        );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    e.Add(error);
+                }
+                else
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
                 }
             }
 
@@ -74,21 +85,29 @@ public static class OdpPipelines
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    e.Add(new Error(
+                    error = new Error(
                         "Error while checking for animation usage in original odp file.",
                         "There occurred an error while trying to find animation usage of the odp file",
                         ErrorSeverity.High,
                         ErrorType.Metadata
-                    ));
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false, errors: [error]);
+                    e.Add(error);
                 }
                 if (!exceptionOccurred && res)
                 {
-                    e.Add(new Error(
+                    error = new Error(
                         "The original odp file contains animations",
                         "Context from original odp file may be lost due to use of animations.",
                         ErrorSeverity.Medium,
                         ErrorType.Visual
-                    ));
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false, errors: [error]);
+                    e.Add(error);
+                }
+                else
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, true);
                 }
             }
             
@@ -99,28 +118,37 @@ public static class OdpPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(pair);
+                    res = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    e.Add(new Error(
-                        "Error comparing color profiles in odp and pdf contained images",
+                    error = new Error(
+                        "Error comparing color profiles in odp contained images",
                         "There occurred an error while extracting and comparing " +
-                        "color profiles of the images contained in the odp and pdf.",
+                        "color profiles of the images contained in the odp.",
                         ErrorSeverity.High,
                         ErrorType.Metadata
-                    ));
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                    e.Add(error);
                 }
 
-                if (!exceptionOccurred && !res)
+                switch (exceptionOccurred)
                 {
-                    e.Add(new Error(
-                        "Difference in images contained in the odp and pdf color profile",
-                        "The images contained in the odp and pdf did not pass Color Profile comparison.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Metadata
-                    ));
+                    case false when !res:
+                        error = new Error(
+                            "Mismatching color profile",
+                            "The color profile in the new file does not match the original on at least one image.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Metadata
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                        e.Add(error);
+                        break;
+                    case false when res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
+                        break;
                 }
             }
             
@@ -131,34 +159,45 @@ public static class OdpPipelines
 
                 try
                 {
-                    res = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    e.Add(new Error(
+                    error = new Error(
                         "Error comparing transparency in odp contained images",
                         "There occurred an error while comparing transparency" +
-                        " of the images contained in the odp and pdf.",
-                        ErrorSeverity.High,
+                        " of the images contained in the odp.",
+                        ErrorSeverity.Medium,
                         ErrorType.Metadata
-                    ));
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    e.Add(error);
                 }
 
-                if (!exceptionOccurred && !res)
+                switch (exceptionOccurred)
                 {
-                    e.Add(new Error(
-                        "Difference in images contained in the odp and pdf in transparency",
-                        "The images contained in the odp and pdf did not pass Transparency comparison.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Visual
-                    ));
+                    case false when !res:
+                        error = new Error(
+                            "Difference of transparency detected in images contained in the odp",
+                            "The images contained in the odp and pdf files did not pass Transparency comparison.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Visual
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                        e.Add(error);
+                        break;
+                    case false when res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
+                        break;
                 }
             }
             
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
+            
+            ImageExtraction.DisposeMagickImages(oImages);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

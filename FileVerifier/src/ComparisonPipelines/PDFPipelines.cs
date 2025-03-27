@@ -35,8 +35,44 @@ public static class PdfPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             List<Error> e = [];
+            Error error;
 
+            var oImages = ImageExtraction.GetNonDuplicatePdfImages(pair.OriginalFilePath);
+            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+          
             e.AddRange(BasePipeline.CompareFonts(pair));
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
+            {
+                var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
+                switch (diff)
+                {
+                    case null:
+                        error = new Error(
+                            "Could not get page count",
+                            "There was an error trying to get the page count from at least one of the files.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        e.Add(error);
+                        break;
+                    case > 0:
+                        error = new Error(
+                            "Difference in page count",
+                            "The original and new document have a different page count.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError,
+                            $"{diff}"
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        e.Add(error);
+                        break;
+                    default:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
+                        break;
+                }
+            }
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
@@ -44,21 +80,28 @@ public static class PdfPipelines
 
                 if (res == null)
                 {
-                    e.Add(new Error(
-                        "Could not get file size difference",
-                        "The tool was unable to get the file size difference for at least one file.",
-                        ErrorSeverity.High,
-                        ErrorType.FileError
-                    ));
+                    error = new Error(
+                            "Could not get file size difference",
+                            "The tool was unable to get the file size difference for at least one file.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    e.Add(error);
                 } else if ((bool)res)
                 {
-                    //For now only printing to console
-                    e.Add(new Error(
-                        "File Size Difference",
-                        "The difference in size for the two files exceeds expected values.",
-                        ErrorSeverity.Medium,
-                        ErrorType.FileError
-                    ));
+                    error = new Error(
+                            "File Size Difference",
+                            "The difference in size for the two files exceeds expected values.",
+                            ErrorSeverity.Medium,
+                            ErrorType.FileError
+                        );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    e.Add(error);
+                }
+                else
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, "Size", true);
                 }
             }
             
@@ -69,29 +112,39 @@ public static class PdfPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.PdfToPdfColorProfileComparison(pair);
+                    res = ColorProfileComparison.PdfToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    e.Add(new Error(
+                    error = new Error(
                         "Error comparing color profiles in pdf contained images",
                         "There occurred an error while extracting and comparing " +
                         "color profiles of the images contained in the pdf.",
                         ErrorSeverity.High,
                         ErrorType.Metadata
-                    ));
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                    e.Add(error);
                 }
 
-                if (!exceptionOccurred && !res)
+                switch (exceptionOccurred)
                 {
-                    e.Add(new Error(
-                        "Difference in images contained in the pdf's color profile",
-                        "The images contained in the two pdf files did not pass Color Profile comparison.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Metadata
-                    ));
+                    case false when !res:
+                        error = new Error(
+                            "Mismatching color profile",
+                            "The color profile in the new file does not match the original on at least one image.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Metadata
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                        e.Add(error);
+                        break;
+                    case false when res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
+                        break;
                 }
+                
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
@@ -101,44 +154,57 @@ public static class PdfPipelines
 
                 try
                 {
-                    res = TransparencyComparison.PdfToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.PdfToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
                     exceptionOccurred = true;
-                    e.Add(new Error(
+                    error = new Error(
                         "Error comparing transparency in pdf contained images",
                         "There occurred an error while comparing transparency" +
                         " of the images contained in the pdf.",
-                        ErrorSeverity.High,
+                        ErrorSeverity.Medium,
                         ErrorType.Metadata
-                    ));
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    e.Add(error);
                 }
 
-                if (!exceptionOccurred && !res)
+                switch (exceptionOccurred)
                 {
-                    e.Add(new Error(
-                        "Difference in images contained in the pdf's transparency",
-                        "The images contained in the two pdfs did not pass Transparency comparison.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Visual
-                    ));
+                    case false when !res:
+                        error = new Error(
+                            "Difference of transparency detected in images contained in the pdf",
+                            "The images contained in the pdf and pdf files did not pass Transparency comparison.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Visual
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                        e.Add(error);
+                        break;
+                    case false when res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
+                        break;
                 }
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.VisualDocComp.Name))
             {
                 var res = ComperingMethods.VisualDocumentComparison(pair);
-                
+
                 if (res == null)
-                   GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
-                       errors: [new Error(
-                           "Error while preforming the visual comparison",
-                           "Could not preform the visual comparison due to an error while getting the page " +
-                           "images or while segmenting the image.",
-                           ErrorSeverity.Medium,
-                           ErrorType.Visual
-                       )]);
+                {
+                    error = new Error(
+                        "Error while preforming the visual comparison",
+                        "Could not preform the visual comparison due to an error while getting the page " +
+                        "images or while segmenting the image.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Visual
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false, errors: [error]);
+                    e.Add(error);
+                }
+                
                 else if (res.Count > 0)
                 {
                     Console.WriteLine("ERRORS DURING VISUAL COMPARISON");
@@ -147,7 +213,6 @@ public static class PdfPipelines
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, true);
             }
-            
             
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
