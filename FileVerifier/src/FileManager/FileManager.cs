@@ -5,6 +5,7 @@ using System.IO.Abstractions;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
+using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.ComparisonPipelines;
 using AvaloniaDraft.Helpers;
 
@@ -278,7 +279,8 @@ public sealed class FileManager
                     }
                     else
                     {
-                        //TODO: Log error, not supported conversion
+                        UiControlService.Instance.AppendToConsole(
+                            $"Convertion between {pair.OriginalFileFormat} and {pair.NewFileFormat} not supported.");
                     }
                     
                 }
@@ -337,7 +339,25 @@ public sealed class FileManager
     /// <returns>The recommended number of additional threads</returns>
     private static int GetAdditionalThreadCount(FilePair filePair)
     {
-        //TODO: The actual calculation
+        // //Visual comparison may receive additional threads
+        // if ((FormatCodes.PronomCodesPDF.Contains(filePair.OriginalFileFormat) ||
+        //      FormatCodes.PronomCodesPDFA.Contains(filePair.OriginalFileFormat))
+        //     && (FormatCodes.PronomCodesPDF.Contains(filePair.NewFileFormat) ||
+        //         FormatCodes.PronomCodesPDFA.Contains(filePair.NewFileFormat)))
+        // {
+        //     var pageCount = ComperingMethods.GetPageCountExif(filePair.OriginalFilePath, filePair.OriginalFileFormat);
+        //
+        //     switch (pageCount)
+        //     {
+        //         case > 500:
+        //             return 4;
+        //         case > 250:
+        //             return 3;
+        //         case > 100:
+        //             return 2;
+        //     }
+        // }
+        
         return 0;
     }
 

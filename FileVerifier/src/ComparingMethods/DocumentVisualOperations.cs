@@ -284,4 +284,24 @@ public static class DocumentVisualOperations
     {
         return pixelIntensity > 130;
     }
+
+    /// <summary>
+    /// Returns indexes for page checks at a specified interval, up to the page count.
+    /// </summary>
+    /// <param name="pageCount">Number of pages in the document.</param>
+    /// <param name="atATime">Number of page to be handled at a time.</param>
+    /// <returns>List of tuples, containing the starting and ending index of the check interval.</returns>
+    public static List<(int, int)> GetPageCheckIndexes(int pageCount, int atATime)
+    {
+        var result = new List<(int, int)>();
+        var start = 0;
+        while (start < pageCount)
+        {
+            var end = Math.Min(start + (atATime - 1), pageCount - 1);
+            result.Add((start, end));
+            start += atATime;
+        }
+        
+        return result;
+    }
 }
