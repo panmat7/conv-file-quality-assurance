@@ -1,5 +1,6 @@
 ﻿using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
+using AvaloniaDraft.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,12 @@ namespace UnitTests.ComparingMethodsTest;
 
 public class FontComparisonTest
 {
-    private string[] originalFilePaths;
-    private string[] convertedFilePaths;
+    private List<FilePair> filePairs;
 
     [SetUp]
     public void Setup()
     {
+        filePairs = [];
         var curDir = Directory.GetCurrentDirectory();
 
         while (!string.IsNullOrEmpty(curDir))
@@ -26,8 +27,22 @@ public class FontComparisonTest
                 var originalFilesDir = testDir + "/Original";
                 var convertedFilesDir = testDir + "/Converted";
 
-                originalFilePaths = Directory.GetFiles(originalFilesDir);
-                convertedFilePaths = Directory.GetFiles(convertedFilesDir);
+                var originalFilePaths = Directory.GetFiles(originalFilesDir);
+                var convertedFilePaths = Directory.GetFiles(convertedFilesDir);
+
+                foreach (var oFile in originalFilePaths)
+                {
+                    var nFile = convertedFilePaths.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f) == 
+                                                                    Path.GetFileNameWithoutExtension(oFile));
+                    if (nFile == null) throw new Exception("Failed to pair files");
+
+
+                    var oFmt = GetFormatCode(oFile);
+                    var nFmt = GetFormatCode(nFile);
+                    if (oFmt == null || nFmt == null) throw new Exception("Failed to assign format codes");
+                    filePairs.Add(new FilePair(oFile, oFmt, nFile, nFmt));
+                }
+                
 
                 return;
             }
@@ -38,44 +53,84 @@ public class FontComparisonTest
         throw new Exception("Failed to find project directory \"conv-file-quality-assurance\"");
     }
 
+    private string? GetFormatCode(string src)
+    {
+        var ext = Path.GetExtension(src).ToUpper();
+            return ext switch
+            {
+                ".PDF" => FormatCodes.PronomCodesPDF.PronomCodes[0],
+                ".DOCX" => FormatCodes.PronomCodesDOCX.PronomCodes[0],
+                ".PPTX" => FormatCodes.PronomCodesPPTX.PronomCodes[0],
+                ".XLSX"=> FormatCodes.PronomCodesXLSX.PronomCodes[0],
+                ".ODT" => FormatCodes.PronomCodesODT.PronomCodes[0],
+                ".ODS" => FormatCodes.PronomCodesODS.PronomCodes[0],
+                ".ODP" => FormatCodes.PronomCodesODP.PronomCodes[0],
+                ".RTF" => FormatCodes.PronomCodesRTF.PronomCodes[0],
+                ".EML" => FormatCodes.PronomCodesEML.PronomCodes[0],
+                ".HTML" => FormatCodes.PronomCodesHTML.PronomCodes[0],
+                _ => null,
+            };
+    }
+
 
     [Test]
     public void Test()
     {
         // Compare every test file pair
-        foreach (var originalFile in originalFilePaths)
+        foreach (var fp in filePairs)
         {
-            var testName = Path.GetFileNameWithoutExtension(originalFile);
+            var testName = Path.GetFileNameWithoutExtension(fp.OriginalFilePath);
 
-            var convertedFile = convertedFilePaths.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f) == testName);
-            if (convertedFile == null) throw new Exception("Could not find a matching file pair for " + testName);
-
-
-            bool expectedResult;
-            if (testName.Contains('s')) // 's' for success (pass)
+            (bool pass, bool foreignChars) expectedResult;
+            if (testName.Contains('p')) // 'p' for pass
             {
-                expectedResult = true;
+                expectedResult.pass = true;
             } 
             else if ((testName.Contains('f'))) // 'f' for fail
             {
-                expectedResult = false;
+                expectedResult.pass = false;
             } 
             else
             {
                 throw new Exception($"Test {testName} not formatted correctly");
             }
+            expectedResult.foreignChars = testName.Contains("fc");
 
-            var fp = new FilePair(originalFile, convertedFile);
+            var comparisonResult = FontComparison.CompareFiles(fp);
+            (bool pass, bool foreignChars) result = (comparisonResult.Pass, comparisonResult.ContainsForeignCharacters);
 
-            var result = FontComparison.CompareFiles(fp);
 
             try
             {
-                Assert.That(result.Pass, Is.EqualTo(expectedResult), $"Test failed: (Original: {testName})");
+                Assert.That(result, Is.EqualTo(expectedResult), $"Test failed: ({testName})");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Assertion failed: {ex.Message}");
+                /*Console.WriteLine($"{ex.Message}:");
+
+                Console.WriteLine("Fonts only in original:");
+                foreach (var f in comparisonResult.FontsOnlyInOriginal)
+                {
+                    Console.WriteLine(f);
+                }
+
+                Console.WriteLine("Fonts only in converted:");
+                foreach (var f in comparisonResult.FontsOnlyInConverted)
+                {
+                    Console.WriteLine(f);
+                }
+
+                Console.WriteLine("Text colors only in original:");
+                foreach (var c in comparisonResult.TextColorsOnlyInOriginal)
+                {
+                    Console.WriteLine(c);
+                }
+
+                Console.WriteLine("Background colors only in original:");
+                foreach (var c in comparisonResult.BgColorsOnlyInOriginal)
+                {
+                    Console.WriteLine(c);
+                }*/
             }
             
         }
