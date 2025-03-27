@@ -8,6 +8,7 @@ using AvaloniaDraft.FileManager;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using AvaloniaDraft.Helpers;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace AvaloniaDraft.Logger;
 
@@ -18,17 +19,17 @@ public class Logger
     /// </summary>
     public struct TestResult
     {
-        public bool pass { get; set; }
-        public double? percentage { get; set; }
-        public List<string>? comments { get; set; }
-        public Error? error { get; set; }
+        public bool Pass { get; set; }
+        public double? Percentage { get; set; }
+        public List<string>? Comments { get; set; }
+        public List<Error> Errors { get; set; }
 
-        public TestResult(bool pass, double? percentage, List<string>? comments, Error? error)
+        public TestResult(bool pass, double? percentage, List<string>? comments, List<Error> errors)
         {
-            this.pass = pass;
-            this.percentage = percentage;
-            this.comments = comments;
-            this.error = error;
+            this.Pass = pass;
+            this.Percentage = percentage;
+            this.Comments = comments;
+            this.Errors = errors;
         }
     }
 
@@ -37,17 +38,17 @@ public class Logger
     /// </summary>
     public struct ComparisonResult
     {
-        public FilePair filePair { get; set; }
-        public Dictionary<string, TestResult> tests { get; set; }
+        public FilePair FilePair { get; set; }
+        public Dictionary<string, TestResult> Tests { get; set; }
 
-        public bool pass { get; set; }
+        public bool Pass { get; set; }
 
         public ComparisonResult(FilePair filePair)
         {
-            tests = new Dictionary<string, TestResult>();
+            Tests = new Dictionary<string, TestResult>();
 
-            pass = true;
-            this.filePair = filePair;
+            Pass = true;
+            this.FilePair = filePair;
         }
 
         /// <summary>
@@ -57,19 +58,19 @@ public class Logger
         /// <param name="testName">Name of the test/method</param>
         public void AddTestResult(TestResult testResult, string testName)
         {
-            tests[testName] = testResult;
-            if (!testResult.pass)
+            Tests[testName] = testResult;
+            if (!testResult.Pass)
             {
-                pass = false;
+                Pass = false;
             }
         }
     }
 
 
-    public bool active { get; set; }
-    public bool finished { get; set; }
-    public Stopwatch stopwatch { get; set; }
-    public List<ComparisonResult> results { get; set; }
+    public bool Active { get; set; }
+    public bool Finished { get; set; }
+    public Stopwatch Stopwatch { get; set; }
+    public List<ComparisonResult> Results { get; set; }
 
 
     /// <summary>
@@ -77,10 +78,12 @@ public class Logger
     /// </summary>
     public void Initialize()
     {
-        active = false;
-        finished = false;
-        stopwatch = new Stopwatch();
-        results = new List<ComparisonResult>();
+        Active = false;
+        Finished = false;
+
+        Stopwatch = new Stopwatch();
+
+        Results = new List<ComparisonResult>();
     }
 
 
@@ -89,8 +92,11 @@ public class Logger
     /// </summary>
     public void Start()
     {
-        active = true;
-        stopwatch.Start();
+        if (Active) return;
+
+        Active = true;
+        Stopwatch.Restart();
+        Stopwatch.Start();
     }
 
 
@@ -100,39 +106,24 @@ public class Logger
     /// <param name="filePair">The filepair</param>
     /// <param name="testName">The name of the test</param>
     /// <param name="pass">If the test passed or not</param>
-    /// <param name="comments">A list of comments on the result</param>
     /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
-    /// <param name="err">Error</param>
-    public void AddTestResult(FilePair filePair, string testName, bool pass, List<string>? comments = null, double? percentage = null, Error? err = null)
+    /// <param name="comments">A list of comments on the result</param>
+    /// <param name="errors">Error</param>
+    public void AddTestResult(FilePair filePair, string testName, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
     {
-        var testResult = new TestResult(pass, percentage, comments, err);
+        var testResult = new TestResult(pass, percentage, comments, errors);
 
-        var index = results.FindIndex(r => r.filePair == filePair);
+        var index = Results.FindIndex(r => r.FilePair.OriginalFilePath == filePair.OriginalFilePath && r.FilePair.NewFilePath == filePair.NewFilePath);
         if (index == -1)
         {
             var cr = new ComparisonResult(filePair);
             cr.AddTestResult(testResult, testName);
-            results.Add(cr);
+            Results.Add(cr);
         }
         else
         {
-            results[index].AddTestResult(testResult, testName);
+            Results[index].AddTestResult(testResult, testName);
         }
-    }
-
-
-    /// <summary>
-    /// Add a result from a test
-    /// </summary>
-    /// <param name="filePair">The filepair</param>
-    /// <param name="testName">The name of the test</param>
-    /// <param name="pass">If the test passed or not</param>
-    /// <param name="comment">A comment on the result</param>
-    /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
-    /// <param name="err">Error</param>
-    public void AddTestResult(FilePair filePair, string testName, bool pass, string comment, double? percentage = null, Error? err = null)
-    {
-        AddTestResult(filePair, testName, pass, new List<string> { comment }, percentage);
     }
 
     /// <summary>
@@ -140,11 +131,11 @@ public class Logger
     /// </summary>
     public void Finish()
     {
-        if (!active) return;
+        if (!Active) return;
 
-        stopwatch.Stop();
-        active = false;
-        finished = true;
+        Stopwatch.Stop();
+        Active = false;
+        Finished = true;
     }
 
 
@@ -154,7 +145,7 @@ public class Logger
     /// <param name="dir">The directory where the JSON file is to be exported</param>
     public void ExportJSON(string path)
     {
-        if (active) return;
+        if (Active) return;
 
         try
         {
@@ -188,8 +179,8 @@ public class Logger
             var l = JsonSerializer.Deserialize<Logger>(jsonString, seralizerOptions);
             if (l is Logger logger)
             {
-                this.results = logger.results;
-                this.stopwatch = logger.stopwatch;
+                this.Results = logger.Results;
+                this.Stopwatch = logger.Stopwatch;
             }
         }
         catch (Exception ex)

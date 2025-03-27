@@ -14,6 +14,8 @@ using Avalonia.Media;
 using Avalonia.Controls.Shapes;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using System.Linq;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 
 namespace AvaloniaDraft.Views;
 
@@ -27,7 +29,7 @@ public partial class ReportView : UserControl
         InitializeComponent();
         currentRow = 0;
 
-        if (GlobalVariables.Logger.finished)
+        if (GlobalVariables.Logger.Finished)
         {
             logger = GlobalVariables.Logger;
             DisplayReport();
@@ -81,13 +83,14 @@ public partial class ReportView : UserControl
 
         var totalComparisons = 0;
         var passedComparisons = 0;
-        foreach (var result in logger.results)
+
+        foreach (var result in logger.Results)
         {
             var expander = CreateComparisonResultExpander(result);
             ReportGrid.Children.Add(expander);
 
             totalComparisons++;
-            if (result.pass) passedComparisons++;
+            if (result.Pass) passedComparisons++;
         }
         ReportSummary.Text = $"{passedComparisons}/{totalComparisons} comparisons successful.";
     }
@@ -115,13 +118,13 @@ public partial class ReportView : UserControl
         stackPanel.Children.Add(testSummary);
 
 
-        foreach (var test in result.tests)
+        foreach (var test in result.Tests)
         {
             totalTests++;
-            if (test.Value.pass) passedTests++;
+            if (test.Value.Pass) passedTests++;
 
             var testExpander = CreateTestResultExpander(test.Value);
-            testExpander.Header = new TextBlock { Text = $"{(test.Value.pass ? "PASS" : "FAIL")} - {test.Key}" };
+            testExpander.Header = new TextBlock { Text = $"{(test.Value.Pass ? "PASS" : "FAIL")} - {test.Key}" };
 
             stackPanel.Children.Add(testExpander);
         }
@@ -133,12 +136,10 @@ public partial class ReportView : UserControl
         testSummary.Text = $"Tests ({passedTests}/{totalTests} passed) :";
         expander.Content = stackPanel;
 
-        var oFile = System.IO.Path.GetFileName(result.filePair.OriginalFilePath);
-        var oFormat = result.filePair.OriginalFileFormat;
-        var nFile = System.IO.Path.GetFileName(result.filePair.NewFilePath);
-        var nFormat = result.filePair.NewFileFormat;
+        var oFile = System.IO.Path.GetFileName(result.FilePair.OriginalFilePath);
+        var nFile = System.IO.Path.GetFileName(result.FilePair.NewFilePath);
 
-        var headerText = $"{(pass ? "PASS" : "FAIL")} - {oFile} ({oFormat}) -> {nFile} ({nFormat})";
+        var headerText = $"{(pass ? "PASS" : "FAIL")} - {oFile}  -> {nFile}";
         expander.Header = new TextBlock { Text = headerText };
 
         return expander;
@@ -154,17 +155,18 @@ public partial class ReportView : UserControl
 
         stackPanel.Children.Add(new TextBlock()
         {
-            Text = "Passed: " + (result.pass ? "Yes" : "No"),
+            Text = "Passed: " + (result.Pass ? "Yes" : "No"),
             Foreground = Brushes.White,
         });
 
-        if (result.percentage != null) stackPanel.Children.Add(new TextBlock()
+        if (result.Percentage != null) stackPanel.Children.Add(new TextBlock()
         {
-            Text = $"Similarity percentage: {result.percentage}%",
+            Text = $"Similarity percentage: {result.Percentage}%",
             Foreground = Brushes.White,
         });
 
-        if (result.comments != null) foreach (var comment in result.comments)
+        // Comments
+        if (result.Comments != null) foreach (var comment in result.Comments)
         {
             stackPanel.Children.Add(new TextBlock()
             {
@@ -173,9 +175,11 @@ public partial class ReportView : UserControl
             });
         }
 
-        if (result.error != null) stackPanel.Children.Add(new TextBlock()
+        // Errors
+        if (result.Errors.Any()) stackPanel.Children.Add(new TextBlock()
         {
-            Text = result.error.ToString(),
+            Text = "",
+
             Foreground = Brushes.White,
         });
 

@@ -9,7 +9,7 @@ namespace AvaloniaDraft.ComparingMethods;
 public static class PdfFontExtraction
 {
     /// <summary>
-    /// Get the font information of a ODT file
+    /// Get the font information of a PDF file
     /// </summary>
     /// <param name="src">The file path</param>
     /// <returns></returns>
@@ -20,7 +20,6 @@ public static class PdfFontExtraction
         var altFonts = new HashSet<HashSet<string>>();
         var textColors = new HashSet<string>();
         var bgColors = new HashSet<string>();
-
 
         var doc = UglyToad.PdfPig.PdfDocument.Open(src);
         var pages = doc.GetPages();
@@ -70,7 +69,6 @@ public static class PdfFontExtraction
                 if (hex != null) textColors.Add(hex);
             }
         }
-
         var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }

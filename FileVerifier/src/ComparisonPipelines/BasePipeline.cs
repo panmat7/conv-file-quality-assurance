@@ -56,6 +56,9 @@ public static class BasePipeline
         if (FormatCodes.PronomCodesImages.Contains(pair.OriginalFileFormat))
             return ImagePipelines.GetImagePipelines(pair.NewFileFormat);
         
+        if (FormatCodes.PronomCodesDOCX.Contains(pair.OriginalFileFormat))
+            return DocxPipelines.GetDocxPipeline(pair.NewFileFormat);
+        
         if(FormatCodes.PronomCodesPPTX.Contains(pair.OriginalFileFormat))
             return PptxPipelines.GetPptxPipeline(pair.NewFileFormat);
         
@@ -64,7 +67,95 @@ public static class BasePipeline
 
         if (FormatCodes.PronomCodesODP.Contains(pair.OriginalFileFormat))
             return OdpPipelines.GetOdpPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesEML.Contains(pair.OriginalFileFormat))
+            return EmlPipelines.GetEmlPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesODT.Contains(pair.OriginalFileFormat))
+            return ODTPipelines.GetOdtPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesODS.Contains(pair.OriginalFileFormat))
+            return ODSPipelines.GetOdsPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesXLSX.Contains(pair.OriginalFileFormat))
+            return XLSXPipelines.GetXlsxPipeline(pair.NewFileFormat);
         
         return null;
     }
+
+
+    /// <summary>
+    /// Compare the fonts of two files
+    /// </summary>
+    /// <param name="fp"></param>
+    public static List<Error> CompareFonts(FilePair fp)
+    {
+        if (!GlobalVariables.Options.GetMethod(Methods.Fonts)) return [];
+        
+        var comments = new List<string>();
+        var errors = new List<Error>();
+
+        var result = FontComparison.CompareFiles(fp);
+
+        if (result.Errors.Count > 0)
+        {
+            foreach (var e in result.Errors) errors.Add(e);
+        }
+
+        if (result.ContainsForeignCharacters) comments.Add("Contains foreign characters");
+
+
+        if (result.FontsOnlyInOriginal.Count > 0 || result.FontsOnlyInConverted.Count > 0)
+        {
+            errors.Add(new Error(
+                "Font difference", 
+                "Different fonts were detected in the two files.",
+                ErrorSeverity.Medium,
+                ErrorType.Visual)
+            );
+
+            if (result.FontsOnlyInOriginal.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Fonts only in original:");
+                foreach (var f in result.FontsOnlyInOriginal) bld.Append($"\n{f}");
+                comments.Add(bld.ToString());
+            }
+
+            if (result.FontsOnlyInConverted.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Fonts only in converted:");
+                foreach (var f in result.FontsOnlyInConverted) bld.Append($"\n{f}");
+                comments.Add(bld.ToString());
+            }
+        }
+
+
+        if (result.BgColorsNotConverted)
+        {
+            errors.Add(new Error(
+                "Background color difference",
+                "Different background colors were detected in the two files.",
+                ErrorSeverity.Medium,
+                ErrorType.Visual
+            ));
+        }
+
+
+        if (result.TextColorsNotConverted)
+        {
+            errors.Add(new Error(
+                "Text color difference",
+                "Different text colors were detected in the two files.",
+                ErrorSeverity.Medium,
+                ErrorType.Visual
+            ));
+        }
+
+        GlobalVariables.Logger.AddTestResult(fp, Methods.Fonts.Name, result.Pass, null, comments, errors);
+
+        return errors;
+    }
+    
 }

@@ -8,18 +8,75 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
+using System.Collections.Immutable;
+using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace AvaloniaDraft.ComparingMethods;
 
 public static class ODFontExtraction
 {
+    private static List<(int start, int end)> CjkRanges =
+    [
+            (0x4E00, 0x9FFF),  // CJK Unified Ideographs
+            (0x3400, 0x4DBF),  // CJK Unified Ideographs Extension A
+            (0x20000, 0x2A6DF),  // CJK Unified Ideographs Extension B
+            (0x2A700, 0x2B73F),  // CJK Unified Ideographs Extension C
+            (0x2B740, 0x2B81F),  // CJK Unified Ideographs Extension D
+            (0x2B820, 0x2CEAF),  // CJK Unified Ideographs Extension E
+            (0x2CEB0, 0x2EBEF),  // CJK Unified Ideographs Extension F
+            (0x30000, 0x3134F),  // CJK Unified Ideographs Extension G
+            (0x31350, 0x323AF),  // CJK Unified Ideographs Extension H
+            (0x2EBF0, 0x2EE5F),  // CJK Unified Ideographs Extension I
+            (0x2E80, 0x2EFF),  // CJK Radicals Supplement
+            (0x2F00, 0x2FDF),  // Kangxi Radicals
+            (0x2FF0, 0x2FFF),  // Ideographic Description Characters
+            (0x3000, 0x303F),  // CJK Symbols and Punctuation
+            (0x31C0, 0x31EF),  // CJK Strokes
+            (0x3200, 0x32FF),  // Enclosed CJK Letters and Months
+            (0x3300, 0x33FF),  // CJK Compatibility
+            (0xF900, 0xFAFF),  // CJK Compatibility Ideographs
+            (0xFE30, 0xFE4F),  // CJK Compatibility Forms
+            (0x1F200, 0x1F2FF),  // Enclosed Ideographic Supplement
+            (0x2F800, 0x2FA1F)  // CJK Compatibility Ideographs Supplement
+    ];
+
+
+    private static readonly List<(int start, int end)> CtlRanges =
+    [
+        (0x0600, 0x06FF),  // Arabic
+        (0x0750, 0x077F),  // Arabic Supplement
+        (0x08A0, 0x08FF),  // Arabic Extended-A
+        (0xFB50, 0xFDFF),  // Arabic Presentation Forms-A
+        (0xFE70, 0xFEFF),  // Arabic Presentation Forms-B
+        (0x0900, 0x097F),  // Devanagari
+        (0x0980, 0x09FF),  // Bengali
+        (0x0A00, 0x0A7F),  // Gurmukhi
+        (0x0A80, 0x0AFF),  // Gujarati
+        (0x0B00, 0x0B7F),  // Oriya
+        (0x0B80, 0x0BFF),  // Tamil
+        (0x0C00, 0x0C7F),  // Telugu
+        (0x0C80, 0x0CFF),  // Kannada
+        (0x0D00, 0x0D7F),  // Malayalam
+        (0x0D80, 0x0DFF),  // Sinhala
+        (0x1CD0, 0x1CFF),  // Vedic Extensions
+        (0x0E00, 0x0E7F),  // Thai
+        (0x0E80, 0x0EFF),  // Lao
+        (0x1000, 0x109F),  // Myanmar
+        (0x1780, 0x17FF),  // Khmer
+        (0x0F00, 0x0FFF),  // Tibetan
+        (0xA800, 0xA82F),  // Syloti Nagri
+        (0xABC0, 0xABFF),  // Meetei Mayek
+    ];
+
+
 
     /// <summary>
-    /// Get the text info of a ODT file
+    /// Get the font information of a ODF file (ODT, ODP or ODS)
     /// </summary>
-    /// <param name="src">The file path</param>
+    /// <param name="src"></param>
     /// <returns></returns>
-    public static TextInfo? GetTextInfoODT(string src)
+    public static TextInfo? GetTextInfoODF(string src)
     {
         var foreignWriting = false;
         var fonts = new HashSet<string>();
@@ -27,252 +84,138 @@ public static class ODFontExtraction
         var textColors = new HashSet<string>();
         var bgColors = new HashSet<string>();
 
-        WordprocessingDocument doc = WordprocessingDocument.Open(src, false);
-
-        // Zip to extract xml files
-        var zip = ZipFile.OpenRead(src);
-        var content = zip.Entries.FirstOrDefault(e => e.Name == "content.xml");
-        if (content == null) return null;
-
-        // Get styles.xml
-        var styles = zip.Entries.FirstOrDefault(e => e.Name == "styles.xml");
-        if (styles == null) return null;
-        var stylesReader = new StreamReader(styles.Open());
-        var xmlStyles = stylesReader.ReadToEnd();
-        var stylesDoc = XDocument.Parse(xmlStyles);
-
-        var styleNamespace = stylesDoc?.Root?.GetNamespaceOfPrefix("style");
-        if (styleNamespace == null) return null;
+        if (ExtractDocuments(src) is not (XDocument contentDoc, XDocument stylesDoc)) return null;
 
         // Get the default paragraph style
         var defaultParagraphStyle = stylesDoc?.Descendants().FirstOrDefault(e => e.Name.LocalName == "default-style" &&
-                                                e.Attribute(styleNamespace + "family")?.Value == "paragraph");
-        if (defaultParagraphStyle == null) return null;
+                                                XmlHelpers.GetAttributeByLocalName(e, "family") == "paragraph");
 
-        // Get the default font
-        var defaultTextProperties = defaultParagraphStyle.Descendants().FirstOrDefault(e => e.Name.LocalName == "text-properties");
-        var dFont = defaultTextProperties?.Attributes().FirstOrDefault(e => e.Name.LocalName == "font-name")?.Value;
-        if (dFont is not string defaultFont) return null;
-        defaultFont = FontComparison.NormalizeFontName(defaultFont);
+        // Get the default cell style
+        var defaultCellStyle = stylesDoc?.Descendants().FirstOrDefault(e => e.Name.LocalName == "style" &&
+                                                XmlHelpers.GetAttributeByLocalName(e, "name") == "Default" &&
+                                                XmlHelpers.GetAttributeByLocalName(e, "family") == "table-cell");
+
+        // Get the default properties
+        var defaultParagraphTextProperties = defaultParagraphStyle?.Descendants().FirstOrDefault(e => e.Name.LocalName == "text-properties");
+        var defaultParagraphProperties = defaultParagraphStyle?.Descendants().FirstOrDefault(e => e.Name.LocalName == "paragraph-properties");
+        var defaultCellProperties = defaultCellStyle?.Descendants().FirstOrDefault(e => e.Name.LocalName == "table-cell-properties");
+        var defaultCellTextProperties = defaultCellStyle?.Descendants().FirstOrDefault(e => e.Name.LocalName == "text-properties");
 
 
-        var contentReader = new StreamReader(content.Open());
-        var xmlContent = contentReader.ReadToEnd();
-        XDocument contentDoc = XDocument.Parse(xmlContent);
+        var contentRoot = contentDoc.Root;
+        if (contentRoot == null) return null;
 
-        // Check each style
-        var contentStyles = contentDoc.Descendants().Where(e => e.Name.LocalName == "style");
-        foreach (var style in contentStyles)
+        var contentStyles = XmlHelpers.GetFirsElementByLocalName(contentRoot, "automatic-styles");
+        if (contentStyles == null) return null;
+
+
+        // Check every paragraph
+        var paragraphs = contentDoc.Descendants().Where(e => e.Name.LocalName == "p");
+        foreach (var p in paragraphs)
         {
+            var style = GetStyle(p, contentStyles);
+            if (style == null) continue;
+
             // Check paragraph properties
-            var stylePropParagraph = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "paragraph-properties");
-            if (stylePropParagraph != null)
-            {
-                ODReadStyleProperties(stylePropParagraph, defaultFont, null, textColors, bgColors);
-            }
+            var pStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "paragraph-properties");
+            ReadStyleProperties(pStyleProperties, defaultParagraphProperties, null, null, null, bgColors);
 
-            // Check text properties
-            var stylePropText = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-            if (stylePropText != null)
-            {
-                ODReadStyleProperties(stylePropText, defaultFont, fonts, textColors, bgColors);
-            }
+            
+            var txt = p.Value;
+            if (string.IsNullOrEmpty(txt)) continue;
+
+            // Check paragraph text properties
+            var pTextStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
+            ReadStyleProperties(pTextStyleProperties, defaultParagraphTextProperties, txt, fonts, textColors, bgColors);
+
+            if (!foreignWriting && FontComparison.IsForeign(txt)) foreignWriting = true;
         }
 
 
-        // Check for foreign characters
-        var texts = contentDoc.Descendants().Where(d => d.Name.LocalName == "p" || d.Name.LocalName == "span");
-        foreach (var t in texts)
-        {
-            if (FontComparison.IsForeign(t.Value))
-            {
-                foreignWriting = true;
-                break;
-            }
-        }
-
-
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
-        return textInfo;
-    }
-
-
-
-    /// <summary>
-    /// Get text information from an ODS file
-    /// </summary>
-    /// <param name="src">The file path</param>
-    /// <returns></returns>
-    public static TextInfo? GetTextInfoODS(string src)
-    {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
-
-        // Zip to extract xml files
-        var zip = ZipFile.OpenRead(src);
-        var content = zip.Entries.FirstOrDefault(e => e.Name == "content.xml");
-        if (content == null) return null;
-
-        // Get styles.xml
-        var styles = zip.Entries.FirstOrDefault(e => e.Name == "styles.xml");
-        if (styles == null) return null;
-        var stylesReader = new StreamReader(styles.Open());
-        var xmlStyles = stylesReader.ReadToEnd();
-        var stylesDoc = XDocument.Parse(xmlStyles);
-
-        // Get namespaces
-        var styleNamespace = stylesDoc?.Root?.GetNamespaceOfPrefix("style");
-        if (styleNamespace == null) return null;
-        var tableNamespace = stylesDoc?.Root?.GetNamespaceOfPrefix("table");
-        if (tableNamespace == null) return null;
-
-        // Get the default text style properties
-        var defaultTextProperties = stylesDoc?.Descendants().FirstOrDefault(e => e.Name.LocalName == "text-properties");
-        if (defaultTextProperties == null) return null;
-
-        // Get the default font
-        var dFont = defaultTextProperties?.Attributes().FirstOrDefault(e => e.Name.LocalName == "font-name")?.Value;
-        if (dFont is not string defaultFont) return null;
-        defaultFont = FontComparison.NormalizeFontName(defaultFont);
-
-        var contentReader = new StreamReader(content.Open());
-        var xmlContent = contentReader.ReadToEnd();
-        XDocument contentDoc = XDocument.Parse(xmlContent);
+        // Check every cell
         var cells = contentDoc.Descendants().Where(e => e.Name.LocalName == "table-cell");
-        var contentStyles = contentDoc.Descendants().Where(e => e.Name.LocalName == "style");
-
-        // Check each cell's text properties, only if they have text
         foreach (var cell in cells)
         {
-            var text = cell.Descendants().FirstOrDefault(e => e.Name.LocalName == "p");
+            var style = GetStyle(cell, contentStyles);
+            if (style == null) continue;
 
-            var styleName = cell.Attribute(tableNamespace + "style-name")?.Value;
-            if (styleName is null) continue;
-
-            var style = contentStyles.FirstOrDefault(e => e.Attribute(styleNamespace + "name")?.Value == styleName);
-            var stylePropText = style?.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-
-            // If there is text, but no text style properties, add default font
-            if (text != null && stylePropText == null)
-            {
-                fonts.Add(defaultFont);
-            }
-        }
-
-        // Check text style
-        foreach (var style in contentStyles)
-        {
             // Check cell properties
-            var stylePropCell = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "table-cell-properties");
-            if (stylePropCell != null)
-            {
-                ODReadStyleProperties(stylePropCell, defaultFont, fonts, textColors, bgColors);
-            }
+            var cStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "table-cell-properties");
+            ReadStyleProperties(cStyleProperties, defaultCellProperties, null, null, null, bgColors);
 
-            // Check text properties
-            if (style.Attribute(styleNamespace + "family")?.Value != "text") continue;
-            var stylePropText = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-            if (stylePropText != null)
-            {
-                ODReadStyleProperties(stylePropText, defaultFont, fonts, textColors, bgColors);
-            }
+            var txt = cell.Value;
+            if (string.IsNullOrEmpty(txt)) continue;
+
+            // Check cell text properties
+            var cTextStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
+            ReadStyleProperties(cTextStyleProperties, defaultCellTextProperties, txt, fonts, textColors, bgColors);
+
+            if (!foreignWriting && FontComparison.IsForeign(txt)) foreignWriting = true;
         }
 
 
-        // Check for foreign characters
-        var texts = contentDoc.Descendants().Where(d => d.Name.LocalName == "p" || d.Name.LocalName == "span");
-        foreach (var t in texts)
+        // Check every list item
+        var listItems = contentDoc.Descendants().Where(i => i.Name.LocalName == "list-item" &&
+            i.Elements().Any(e => e.Name.LocalName != "list"));
+        foreach (var item in listItems)
         {
-            if (FontComparison.IsForeign(t.Value))
-            {
-                foreignWriting = true;
-                break;
-            }
+            var level = item.Ancestors().Count(e => e.Name.LocalName == "list");
+            var list = item.Parent;
+            if (list == null || list.Name.LocalName != "list") continue;
+
+            var listStyle = GetStyle(list, contentStyles);
+            if (listStyle == null) continue;
+
+            var itemStyle = listStyle.Elements().FirstOrDefault(e => XmlHelpers.GetAttributeByLocalName(e, "level") == level.ToString());
+            if (itemStyle == null) continue;
+
+            var textProperties = itemStyle.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
+            ReadStyleProperties(textProperties, null, null, fonts, textColors, bgColors, true);
+        }
+
+
+        // Check every span
+        var textSpans = contentDoc.Descendants().Where(e => e.Name.LocalName == "span");
+        foreach (var span in textSpans)
+        {
+            var txt = span.Value;
+            if (string.IsNullOrEmpty(txt)) continue;
+
+            if (!foreignWriting && FontComparison.IsForeign(txt)) foreignWriting = true;
+
+            var style = GetStyle(span, contentStyles);
+            if (style == null) continue;
+
+            // Check text properties of the span
+            var sStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
+            ReadStyleProperties(sStyleProperties, defaultParagraphTextProperties, txt, fonts, textColors, bgColors);
         }
 
         var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
-
-
-    /// <summary>
-    /// Get the text information from an ODP file
-    /// </summary>
-    /// <param name="src">The file path</param>
-    /// <returns></returns>
-    public static TextInfo? GetTextInfoODP(string src)
-    {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
-
-        // Zip to extract xml files
-        var zip = ZipFile.OpenRead(src);
-        var content = zip.Entries.FirstOrDefault(e => e.Name == "content.xml");
-        if (content == null) return null;
-
-        var contentReader = new StreamReader(content.Open());
-        var xmlContent = contentReader.ReadToEnd();
-        XDocument contentDoc = XDocument.Parse(xmlContent);
-
-        // Check each style
-        var contentStyles = contentDoc.Descendants().Where(e => e.Name.LocalName == "style");
-        foreach (var style in contentStyles)
-        {
-            // Check paragraph properties
-            var stylePropParagraph = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "paragraph-properties");
-            if (stylePropParagraph != null)
-            {
-                ODReadStyleProperties(stylePropParagraph, null, null, textColors, bgColors);
-            }
-
-            // Check text properties
-            var stylePropText = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-            if (stylePropText != null)
-            {
-                ODReadStyleProperties(stylePropText, null, fonts, textColors, bgColors);
-            }
-        }
-
-
-        // Check for foreign characters
-        var texts = contentDoc.Descendants().Where(d => d.Name.LocalName == "p" || d.Name.LocalName == "span");
-        foreach (var t in texts)
-        {
-            if (FontComparison.IsForeign(t.Value))
-            {
-                foreignWriting = true;
-                break;
-            }
-        }
-
-
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
-        return textInfo;
-    }
-
 
 
     /// <summary>
     /// Reads the properties of a style-properties node, and gets font, text color and background color
     /// </summary>
-    /// <param name="e">The style property element</param>
-    /// <param name="defaultFont">The default font, if not present</param>
+    /// <param name="p">The style property element</param>
+    /// <param name="d">The default style property element</param>
+    /// <param name="text">The text of the element</param>
     /// <param name="fonts"></param>
     /// <param name="textColors"></param>
     /// <param name="bgColors"></param>
-    private static void ODReadStyleProperties(XElement e, string? defaultFont, HashSet<string>? fonts, HashSet<string> textColors, HashSet<string> bgColors)
+    private static void ReadStyleProperties(XElement? p, XElement? d, string? text, HashSet<string>? fonts, HashSet<string>? textColors, HashSet<string> bgColors, bool isBullet = false)
     {
-        var attrBgColor = e.Attributes().FirstOrDefault(a => a.Name.LocalName == "background-color");
-        var attrTextColor = e.Attributes().FirstOrDefault(a => a.Name.LocalName == "color");
-        var attrFont = e.Attributes().FirstOrDefault(a => a.Name.LocalName is "font-name" or "font-family");
+        if (p == null && d == null) return;
 
-        // Check background color
+        var attrBgColor = p?.Attributes().FirstOrDefault(a => a.Name.LocalName == "background-color") ?? 
+            d?.Attributes().FirstOrDefault(a => a.Name.LocalName == "background-color");
+
+        var attrTextColor = p?.Attributes().FirstOrDefault(a => a.Name.LocalName == "color") ??
+            d?.Attributes().FirstOrDefault(a => a.Name.LocalName == "color");
+
+        // Check the background color
         if (!string.IsNullOrEmpty(attrBgColor?.Value))
         {
             var hex = ODGetHex(attrBgColor.Value);
@@ -280,26 +223,57 @@ public static class ODFontExtraction
         }
 
         // Check the text color
-        if (!string.IsNullOrEmpty(attrTextColor?.Value))
+        if (textColors != null && !string.IsNullOrEmpty(attrTextColor?.Value))
         {
             var hex = ODGetHex(attrTextColor.Value);
-
             if (hex != null) textColors.Add(hex);
         }
 
         // Check the font
-        if (fonts != null)
+        if (fonts == null) return;
+
+
+        if (!isBullet && text != null)
         {
-            if (!string.IsNullOrEmpty(attrFont?.Value))
+            var gotten = new Dictionary<CharClassification, bool>();
+            gotten[CharClassification.CJK] = false;
+            gotten[CharClassification.CTL] = false;
+            gotten[CharClassification.Other] = false;
+
+            // Get the correct font based on classification
+            var classifications = GetCharClassifications(text);
+            foreach (var classification in classifications)
             {
-                fonts.Add(FontComparison.NormalizeFontName(attrFont.Value));
+                if (gotten[classification]) continue;
+
+                gotten[classification] = true;
+
+                var fontAttributeClassification = classification switch
+                {
+                    CharClassification.CJK => "-asian",
+                    CharClassification.CTL => "-complex",
+                    CharClassification.Other => ""
+                };
+
+                var fontName = $"font-name{fontAttributeClassification}";
+                var fontFamily = $"font-family{fontAttributeClassification}";
+                var font = p?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value ??
+                    d?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value;
+                if (font != null)
+                {
+                    fonts.Add(FontComparison.NormalizeFontName(font));
+                }
             }
-            else if (defaultFont != null)
+        } 
+        else if (isBullet)
+        {
+            var font = p?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value ??
+                d?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value;
+            if (font != null)
             {
-                fonts.Add(defaultFont);
+                fonts.Add(FontComparison.NormalizeFontName(font));
             }
         }
-
     }
 
 
@@ -325,5 +299,81 @@ public static class ODFontExtraction
         }
 
         return hex;
+    }
+
+
+
+    private enum CharClassification
+    {
+        CJK,
+        CTL,
+        Other
+    }
+
+    private static CharClassification GetCharClassification(char c)
+    {
+        if (FontComparison.InRange(c, CjkRanges)) return CharClassification.CJK;
+        if (FontComparison.InRange(c, CtlRanges)) return CharClassification.CJK;
+        return CharClassification.Other;
+    }
+
+
+    private static HashSet<CharClassification> GetCharClassifications(string str)
+    {
+        var classifications = new HashSet<CharClassification>();
+        foreach (char c in str)
+        {
+            classifications.Add(GetCharClassification(c));
+        }
+
+        return classifications;
+    }
+
+
+
+    private static XElement? GetStyle(XElement element, XElement styles)
+    {
+        var styleName = XmlHelpers.GetAttributeByLocalName(element, "style-name");
+        if (styleName == null) return null;
+
+        var style = styles.Descendants().FirstOrDefault(e => XmlHelpers.GetAttributeByLocalName(e, "name") == styleName);
+
+        return style;
+    }
+
+
+    /// <summary>
+    /// Extract the content and styles documents of an open document
+    /// </summary>
+    /// <param name="src"></param>
+    /// <returns></returns>
+    private static (XDocument contentDoc, XDocument stylesDoc)? ExtractDocuments(string src)
+    {
+        try
+        {
+            // Zip to extract xml files
+            var zip = ZipFile.OpenRead(src);
+            var content = zip.Entries.FirstOrDefault(e => e.Name == "content.xml");
+            var styles = zip.Entries.FirstOrDefault(e => e.Name == "styles.xml");
+            if (content == null || styles == null) return null;
+
+            // Parse content
+            var contentReader = new StreamReader(content.Open());
+            var xmlContent = contentReader.ReadToEnd();
+            XDocument contentDoc = XDocument.Parse(xmlContent);
+            if (contentDoc == null) return null;
+
+            // Parse styles
+            var stylesReader = new StreamReader(styles.Open());
+            var xmlStyles = stylesReader.ReadToEnd();
+            var stylesDoc = XDocument.Parse(xmlStyles);
+            if (stylesDoc == null) return null;
+
+            return (contentDoc, stylesDoc);
+        } 
+        catch
+        {
+            return null;
+        }
     }
 }
