@@ -4,6 +4,7 @@ using System.IO;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using ImageMagick;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -38,6 +39,9 @@ public static class JpgPipelines
         {
             List<Error> e = [];
             Error error;
+
+            using var oImage = new MagickImage(pair.OriginalFilePath);
+            using var nImage = new MagickImage(pair.NewFilePath);
             
             //Check options if this check is enabled.
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
@@ -164,7 +168,7 @@ public static class JpgPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.ImageToImageColorProfileComparison(pair);
+                    res = ColorProfileComparison.ImageToImageColorProfileComparison(oImage, nImage);
                 }
                 catch (Exception)
                 {
@@ -197,7 +201,7 @@ public static class JpgPipelines
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
-            
+
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 

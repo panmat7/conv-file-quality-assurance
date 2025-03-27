@@ -38,6 +38,9 @@ public static class DocxPipelines
             List<Error> e = [];
             Error error;
             
+            var oImages = ImageExtraction.ExtractImagesFromDocx(pair.OriginalFilePath);
+            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+            
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {
                 var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
@@ -114,7 +117,7 @@ public static class DocxPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.DocxToPdfColorProfileComparison(pair);
+                    res = ColorProfileComparison.DocxToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -156,7 +159,7 @@ public static class DocxPipelines
 
                 try
                 {
-                    res = TransparencyComparison.DocxToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.DocxToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -193,6 +196,8 @@ public static class DocxPipelines
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
+            
+            ImageExtraction.DisposeMagickImages(oImages);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

@@ -5,6 +5,7 @@ using ImageMagick;
 using UglyToad.PdfPig;
 using System.IO;
 using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Xml.Linq;
 using MimeKit;
 using UglyToad.PdfPig.Content;
@@ -18,7 +19,7 @@ public static class ImageExtraction
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    internal static List<MagickImage> ExtractImagesFromPdf(string filePath)
+    public static List<MagickImage> ExtractImagesFromPdf(string filePath)
     {
         var pdfImages = GetNonDuplicatePdfImages(filePath);
         return ConvertPdfImagesToMagickImages(pdfImages);
@@ -30,7 +31,7 @@ public static class ImageExtraction
     /// <param name="filePath"></param>
     /// <exception cref="ArgumentNullException"></exception>
     /// <returns></returns>
-    internal static List<IPdfImage> GetNonDuplicatePdfImages(string filePath)
+    public static List<IPdfImage> GetNonDuplicatePdfImages(string filePath)
     {
         var extractedImages = new List<IPdfImage>();
     
@@ -43,11 +44,23 @@ public static class ImageExtraction
             var images = page.GetImages().ToList();
     
             // Only extract images that are not already in the hash set
-            extractedImages.AddRange(from image in images let rawBytes = image.RawBytes.ToArray() 
-                let hash = Convert.ToBase64String(System.Security.Cryptography.MD5.HashData(rawBytes)) 
-                where imageHashes.Add(hash) select image);
+            extractedImages.AddRange(from image in images
+                let hash = ComputeHash(image.RawBytes)
+                where imageHashes.Add(hash)
+                select image);
         }
         return extractedImages;
+    }
+    
+    /// <summary>
+    /// Computes the hash of the image content
+    /// </summary>
+    /// <param name="rawBytes"></param>
+    /// <returns></returns>
+    private static string ComputeHash(ReadOnlySpan<byte> rawBytes)
+    {
+        var hashBytes = MD5.HashData(rawBytes.ToArray());
+        return Convert.ToBase64String(hashBytes);
     }
 
     /// <summary>
@@ -55,7 +68,7 @@ public static class ImageExtraction
     /// </summary>
     /// <param name="pdfImages"></param>
     /// <returns></returns>
-    private static List<MagickImage> ConvertPdfImagesToMagickImages(List<IPdfImage> pdfImages)
+    public static List<MagickImage> ConvertPdfImagesToMagickImages(List<IPdfImage> pdfImages)
     {
         var magickImages = new List<MagickImage>();
         
@@ -82,7 +95,7 @@ public static class ImageExtraction
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    internal static List<MagickImage> ExtractImagesFromOpenDocuments(string filePath)
+    public static List<MagickImage> ExtractImagesFromOpenDocuments(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
 
@@ -105,7 +118,7 @@ public static class ImageExtraction
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    internal static List<MagickImage> ExtractImagesFromEml(string filePath)
+    public static List<MagickImage> ExtractImagesFromEml(string filePath)
     {
         var images = new List<MagickImage>();
         var imageHashes = new HashSet<string>();
@@ -174,7 +187,7 @@ public static class ImageExtraction
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    internal static List<MagickImage> ExtractImagesFromXmlBasedPowerPoint(string filePath)
+    public static List<MagickImage> ExtractImagesFromXmlBasedPowerPoint(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
     
@@ -197,7 +210,7 @@ public static class ImageExtraction
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    internal static List<MagickImage> ExtractImagesFromDocx(string filePath)
+    public static List<MagickImage> ExtractImagesFromDocx(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
 
@@ -220,7 +233,7 @@ public static class ImageExtraction
     /// </summary>
     /// <param name="filePath"></param>
     /// <returns></returns>
-    internal static List<MagickImage> ExtractImagesFromXlsx(string filePath)
+    public static List<MagickImage> ExtractImagesFromXlsx(string filePath)
     {
         using var zip = ZipFile.OpenRead(filePath);
 
@@ -320,5 +333,17 @@ public static class ImageExtraction
             .FirstOrDefault(rel =>
                 (string)rel.Attribute("Id")! == embedId &&
                 (string)rel.Attribute("Type")! == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+    }
+
+    /// <summary>
+    /// Disposes of all magick images after use
+    /// </summary>
+    /// <param name="images"></param>
+    public static void DisposeMagickImages(List<MagickImage> images)
+    {
+        foreach (var image in images)
+        {
+            image.Dispose();            
+        }
     }
 }

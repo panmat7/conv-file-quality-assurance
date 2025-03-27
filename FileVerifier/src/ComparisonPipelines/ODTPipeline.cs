@@ -36,6 +36,9 @@ public static class OdtPipeline
         {
             List<Error> e = [];
             Error error;
+
+            var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(pair.OriginalFilePath);
+            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {
@@ -113,7 +116,7 @@ public static class OdtPipeline
 
                 try
                 {
-                    res = ColorProfileComparison.OdtAndOdpToPdfColorProfileComparison(pair);
+                    res = ColorProfileComparison.OpenDocumentToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -155,7 +158,7 @@ public static class OdtPipeline
 
                 try
                 {
-                    res = TransparencyComparison.OdtAndOdpToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -192,6 +195,8 @@ public static class OdtPipeline
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
+            
+            ImageExtraction.DisposeMagickImages(oImages);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

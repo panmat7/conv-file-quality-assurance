@@ -5,6 +5,7 @@ using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using ClosedXML;
+using ImageMagick;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -39,6 +40,9 @@ public static class PngPipelines
         {
             List<Error> e = [];
             Error error;
+
+            using var oImage = new MagickImage(pair.OriginalFilePath);
+            using var nImage = new MagickImage(pair.NewFilePath);
             
             //Check options if this check is enabled.
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
@@ -164,7 +168,7 @@ public static class PngPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.ImageToImageColorProfileComparison(pair);
+                    res = ColorProfileComparison.ImageToImageColorProfileComparison(oImage, nImage);
                 }
                 catch (Exception)
                 {

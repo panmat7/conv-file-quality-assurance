@@ -36,6 +36,9 @@ public static class PdfPipelines
         {
             List<Error> e = [];
             Error error;
+
+            var oImages = ImageExtraction.GetNonDuplicatePdfImages(pair.OriginalFilePath);
+            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {
@@ -108,7 +111,7 @@ public static class PdfPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.PdfToPdfColorProfileComparison(pair);
+                    res = ColorProfileComparison.PdfToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -150,7 +153,7 @@ public static class PdfPipelines
 
                 try
                 {
-                    res = TransparencyComparison.PdfToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.PdfToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {

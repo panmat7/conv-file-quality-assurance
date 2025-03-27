@@ -36,6 +36,9 @@ public static class PptxPipelines
         {
             List<Error> e = [];
             Error error;
+
+            var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(pair.OriginalFilePath);
+            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
@@ -114,7 +117,7 @@ public static class PptxPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(pair);
+                    res = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -155,7 +158,7 @@ public static class PptxPipelines
 
                 try
                 {
-                    res = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -192,6 +195,8 @@ public static class PptxPipelines
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
+            
+            ImageExtraction.DisposeMagickImages(oImages);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

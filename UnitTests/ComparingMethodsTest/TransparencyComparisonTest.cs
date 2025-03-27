@@ -1,5 +1,4 @@
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 
 namespace UnitTests.ComparingMethodsTest;
 
@@ -12,8 +11,10 @@ public class PdfToPdfTransparencyComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "PDF", "transparent.pdf");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "transparent.pdf");
         
-        var files = new FilePair(oFilePath, "fmt/276", nFilePath, "fmt/276");
-        var result = TransparencyComparison.PdfToPdfTransparencyComparison(files);
+        var oImages = ImageExtraction.GetNonDuplicatePdfImages(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.PdfToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.True);
     }
     
@@ -23,8 +24,10 @@ public class PdfToPdfTransparencyComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "PDF", "transparent.pdf");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "missing_transparent.pdf");
         
-        var files = new FilePair(oFilePath, "fmt/276", nFilePath, "fmt/276");
-        var result = TransparencyComparison.PdfToPdfTransparencyComparison(files);
+        var oImages = ImageExtraction.GetNonDuplicatePdfImages(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.PdfToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.False);
     }
 }
@@ -38,8 +41,10 @@ public class DocxToPdfTransparencyComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "transparent.docx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "transparent.pdf");
         
-        var files = new FilePair(oFilePath, "fmt/412", nFilePath, "fmt/276");
-        var result = TransparencyComparison.DocxToPdfTransparencyComparison(files);
+        var oImages = ImageExtraction.ExtractImagesFromDocx(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.DocxToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.True);
     }
     
@@ -49,8 +54,10 @@ public class DocxToPdfTransparencyComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "transparent.docx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "missing_transparent.pdf");
         
-        var files = new FilePair(oFilePath, "fmt/412", nFilePath, "fmt/276");
-        var result = TransparencyComparison.DocxToPdfTransparencyComparison(files);
+        var oImages = ImageExtraction.ExtractImagesFromDocx(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.DocxToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.False);
     }
 }
@@ -64,8 +71,10 @@ public class OdtAndOdpToPdfTransparencyComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "ODT", "transparent.odt");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "transparent.pdf");
         
-        var files = new FilePair(oFilePath, "fmt/1756", nFilePath, "fmt/276");
-        var result = TransparencyComparison.OdtAndOdpToPdfTransparencyComparison(files);
+        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.True);
     }
     
@@ -75,8 +84,36 @@ public class OdtAndOdpToPdfTransparencyComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "ODT", "transparent.odt");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "incorrect_transparency.pdf");
         
-        var files = new FilePair(oFilePath, "fmt/1756", nFilePath, "fmt/276");
-        var result = TransparencyComparison.OdtAndOdpToPdfTransparencyComparison(files);
+        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
+        Assert.That(result, Is.False);
+    }
+    
+    [Test]
+    public void TestCorrectScenario1()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODS", "ods-transparent.ods");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "ods-transparent.pdf");
+        
+        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
+        Assert.That(result, Is.True);
+    }
+    
+    [Test]
+    public void TestFailScenario1()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "ODS", "ods-transparent.ods");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "ods-transparent-fail.pdf");
+        
+        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.False);
     }
 }
@@ -90,8 +127,10 @@ public class XmlBasedPowerPointToPdfTransparencyComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "transparent.pptx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "transparent.pdf");
         
-        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/276");
-        var result = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(files);
+        var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.True);
     }
     
@@ -101,8 +140,42 @@ public class XmlBasedPowerPointToPdfTransparencyComparisonTest : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "transparent.pptx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "incorrect_transparency.pdf");
         
-        var files = new FilePair(oFilePath, "fmt/215", nFilePath, "fmt/276");
-        var result = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(files);
+        var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.False);
+    }
+}
+
+[TestFixture]
+public class XlsxToPdfColorProfileComparisonTest : TestBase
+{
+    [Test]
+    public void TestCorrectScenario()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_transparent.xlsx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_transparent.pdf");
+
+        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        var imagesOverCells = ImageExtraction.GetNonAnchoredImagesFromXlsx(oFilePath);
+
+        var result = TransparencyComparison.XlsxToPdfColorProfileComparison(oImages, nImages, imagesOverCells);
+        Assert.That(result, Is.True);
+    }
+    
+    [Test]
+    public void TestFailScenario()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_one_missing_profile_over_cells.xlsx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_one_missing_profile_over_cells.pdf");
+
+        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        var imagesOverCells = ImageExtraction.GetNonAnchoredImagesFromXlsx(oFilePath);
+
+        var result = TransparencyComparison.XlsxToPdfColorProfileComparison(oImages, nImages, imagesOverCells);
+        Assert.That(result, Is.True);
     }
 }

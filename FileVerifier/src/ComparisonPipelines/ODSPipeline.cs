@@ -36,6 +36,9 @@ public static class OdsPipeline
         {
             List<Error> e = [];
             Error error;
+
+            var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(pair.OriginalFilePath);
+            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
@@ -69,6 +72,47 @@ public static class OdsPipeline
                 }
             }
             
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = ColorProfileComparison.OpenDocumentToPdfColorProfileComparison(oImages, nImages);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    error = new Error(
+                        "Error comparing color profiles in ods contained images",
+                        "There occurred an error while extracting and comparing " +
+                        "color profiles of the images contained in the ods.",
+                        ErrorSeverity.High,
+                        ErrorType.Metadata
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                    e.Add(error);
+                }
+
+                switch (exceptionOccurred)
+                {
+                    case false when !res:
+                        error = new Error(
+                            "Mismatching color profile",
+                            "The color profile in the new file does not match the original on at least one image.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Metadata
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, err: error);
+                        e.Add(error);
+                        break;
+                    case false when res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
+                        break;
+                }
+            }
+            
             if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
             {
                 var res = false;
@@ -76,7 +120,7 @@ public static class OdsPipeline
 
                 try
                 {
-                    res = TransparencyComparison.OdtAndOdpToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -115,6 +159,8 @@ public static class OdsPipeline
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
+            
+            ImageExtraction.DisposeMagickImages(oImages);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

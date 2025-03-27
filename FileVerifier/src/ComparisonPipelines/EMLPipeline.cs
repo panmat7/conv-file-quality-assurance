@@ -37,6 +37,9 @@ public static class EmlPipeline
             List<Error> e = [];
             Error error;
             
+            var oImages = ImageExtraction.ExtractImagesFromEml(pair.OriginalFilePath);
+            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+            
             if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
                 var res = false;
@@ -44,7 +47,7 @@ public static class EmlPipeline
 
                 try
                 {
-                    res = ColorProfileComparison.EmlToPdfColorProfileComparison(pair);
+                    res = ColorProfileComparison.EmlToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -81,6 +84,9 @@ public static class EmlPipeline
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
+            
+            ImageExtraction.DisposeMagickImages(oImages);
+            
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

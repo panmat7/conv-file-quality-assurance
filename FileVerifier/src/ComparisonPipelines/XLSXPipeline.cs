@@ -34,6 +34,9 @@ public static class XlsxPipeline
     {
         List<Error> e = [];
         Error error;
+
+        var oImages = ImageExtraction.ExtractImagesFromXlsx(pair.OriginalFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
         
         BasePipeline.ExecutePipeline(() =>
         {
@@ -75,7 +78,7 @@ public static class XlsxPipeline
 
                 try
                 {
-                    res = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(pair);
+                    res = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -116,7 +119,7 @@ public static class XlsxPipeline
 
                 try
                 {
-                    res = TransparencyComparison.OdtAndOdpToPdfTransparencyComparison(pair);
+                    res = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -155,6 +158,8 @@ public static class XlsxPipeline
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
+            
+            ImageExtraction.DisposeMagickImages(oImages);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

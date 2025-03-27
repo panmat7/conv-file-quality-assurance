@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using AvaloniaDraft.FileManager;
 using ImageMagick;
 using UglyToad.PdfPig.Content;
 using UglyToad.PdfPig.Tokens;
@@ -12,52 +11,64 @@ public static class TransparencyComparison
     /// <summary>
     /// Compares transparency between images in docx and pdf
     /// </summary>
-    /// <param name="files"></param>
+    /// <param name="oImages"></param>
+    /// <param name="nImages"></param>
     /// <returns></returns>
-    public static bool DocxToPdfTransparencyComparison(FilePair files)
+    public static bool DocxToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
-        var oImages = ImageExtraction.ExtractImagesFromDocx(files.OriginalFilePath);
-        var nImages = ImageExtraction.GetNonDuplicatePdfImages(files.NewFilePath);
-        
         return CompareNonPdfImagesWithPdfImages(oImages, nImages);
     }
-    
+
     /// <summary>
     /// Compares transparency between images in pdf files
     /// </summary>
-    /// <param name="files"></param>
+    /// <param name="oImages"></param>
+    /// <param name="nImages"></param>
     /// <returns></returns>
-    public static bool PdfToPdfTransparencyComparison(FilePair files)
+    public static bool PdfToPdfTransparencyComparison(List<IPdfImage> oImages, List<IPdfImage> nImages)
     {
-        var oImages = ImageExtraction.GetNonDuplicatePdfImages(files.OriginalFilePath);
-        var nImages = ImageExtraction.GetNonDuplicatePdfImages(files.NewFilePath);
-
         return ComparePdfImagesWithPdfImages(oImages, nImages);
     }
 
     /// <summary>
     /// Compares transparency between xml based PowerPoint and pdf images
     /// </summary>
-    /// <param name="files"></param>
+    /// <param name="oImages"></param>
+    /// <param name="nImages"></param>
     /// <returns></returns>
-    public static bool XmlBasedPowerPointToPdfTransparencyComparison(FilePair files)
+    public static bool XmlBasedPowerPointToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
-        var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(files.OriginalFilePath);
-        var nImages = ImageExtraction.GetNonDuplicatePdfImages(files.NewFilePath);
-        
         return CompareNonPdfImagesWithPdfImages(oImages, nImages);
     }
     
     /// <summary>
+    /// Compares transparency between xlsx file and pdf images
+    /// </summary>
+    /// <param name="oImages"></param>
+    /// <param name="nImages"></param>
+    /// <param name="imagesOverCells"></param>
+    /// <returns></returns>
+    public static bool XlsxToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages, 
+        List<string> imagesOverCells)
+    {
+        // Get the array position of images
+        var imageNumbersOverCells = imagesOverCells.Select(image => int.Parse(new string(image
+            .Where(char.IsDigit).ToArray())) - 1).ToList();
+        
+        // Do comparison only on images that are not drawn over cell
+        return !oImages.Where((t, i) => imageNumbersOverCells.Count != 0 && 
+                                        !imageNumbersOverCells.Contains(i) && 
+                                        !CompareNonPdfImagesWithPdfImages([t], [nImages[i]])).Any();
+    }
+
+    /// <summary>
     /// Compares transparency between OpenDocuments (excluding sheets) and pdf images
     /// </summary>
-    /// <param name="files"></param>
+    /// <param name="oImages"></param>
+    /// <param name="nImages"></param>
     /// <returns></returns>
-    public static bool OdtAndOdpToPdfTransparencyComparison(FilePair files)
+    public static bool OpenDocumentToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
-        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(files.OriginalFilePath);
-        var nImages = ImageExtraction.GetNonDuplicatePdfImages(files.NewFilePath);
-
         return CompareNonPdfImagesWithPdfImages(oImages, nImages);
     }
 
@@ -69,6 +80,11 @@ public static class TransparencyComparison
     /// <returns></returns>
     private static bool ComparePdfImagesWithPdfImages(List<IPdfImage> oImages, List<IPdfImage> nImages)
     {
+        if (oImages.Count < 1)
+        {
+            return true;
+        }
+        
         if (oImages.Count != nImages.Count)
         {
             return false;
@@ -85,6 +101,11 @@ public static class TransparencyComparison
     /// <returns></returns>
     private static bool CompareNonPdfImagesWithPdfImages(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
+        if (oImages.Count < 1)
+        {
+            return true;
+        }
+        
         if (oImages.Count != nImages.Count)
         {
             return false;
