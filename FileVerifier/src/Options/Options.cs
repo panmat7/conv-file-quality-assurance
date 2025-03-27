@@ -32,6 +32,9 @@ public class Options
 
     private string? dir; // The directory where settings are stored
 
+    public double SizeComparisonThreshold { get; set; }
+    public double PbpComparisonThreshold { get; set; }
+
     public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; }
     public Dictionary<string, bool> MethodsEnabled { get; set; }
 
@@ -308,6 +311,8 @@ public class Options
                     this.MethodsEnabled = opt.MethodsEnabled;
                     this.SpecifiedThreadCount = opt.SpecifiedThreadCount;
                     this.IgnoreUnsupportedFileType = opt.IgnoreUnsupportedFileType;
+                    this.SizeComparisonThreshold = opt.SizeComparisonThreshold;
+                    this.PbpComparisonThreshold = opt.PbpComparisonThreshold;
                 }
             } 
             else

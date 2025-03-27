@@ -55,13 +55,6 @@
                     <Expander.Header>General</Expander.Header>
                     <StackPanel>
                         <CheckBox IsChecked="{Binding IsIgnoreUnsupportedFormatsEnabled}">Ignore Unsupported File Formats</CheckBox>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
-                            <TextBox Text="{Binding Value, ElementName=Slider, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
-                                     Width="50" Margin="5,0,5,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="%" VerticalAlignment="Center" Foreground="White" Width="50"/>
-                            <Slider x:Name="Slider" Width="200" VerticalAlignment="Center"/>
-                        </StackPanel>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,10,0,0">
                             <TextBlock Text="Window Size:" VerticalAlignment="Center" Foreground="White" Margin="0,0,10,0"/>
                             <ComboBox ItemsSource="{Binding AvailableWindowSizes}"
@@ -91,6 +84,15 @@
                     <Expander.Header>Size Comparison</Expander.Header>
 					<StackPanel>
 						<CheckBox IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}">Enable Size Comparison</CheckBox>
+
+						<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+							<TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
+							<TextBox Text="{Binding SizeComparisonThreshold, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
+                                     Width="50" Margin="5,0,5,0" VerticalAlignment="Center"/>
+							<TextBlock Text="%" VerticalAlignment="Center" Foreground="White" Width="50"/>
+							<Slider x:Name="SizeComparisonSlider"  Width="200" VerticalAlignment="Center"
+									Value="{Binding SizeComparisonThreshold, Mode=TwoWay}"/>
+						</StackPanel>
 					</StackPanel>
                 </Expander>
 
@@ -131,6 +133,15 @@
                     <Expander.Header>Point By Point Comparison</Expander.Header>
                     <StackPanel>
                         <CheckBox IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}">Enable Point By Point Comparison</CheckBox>
+
+						<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+							<TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
+							<TextBox Text="{Binding PbpComparisonThreshold, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
+                                     Width="50" Margin="5,0,5,0" VerticalAlignment="Center"/>
+							<TextBlock Text="%" VerticalAlignment="Center" Foreground="White" Width="50"/>
+							<Slider x:Name="PbpComparisonSlider"  Width="200" VerticalAlignment="Center"
+									Value="{Binding PbpComparisonThreshold, Mode=TwoWay}"/>
+						</StackPanel>
                     </StackPanel>
                 </Expander>
 

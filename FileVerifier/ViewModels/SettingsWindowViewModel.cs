@@ -1,7 +1,8 @@
 ﻿using AvaloniaDraft.Helpers;
 using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Linq;
+using System.Diagnostics;
+using System.Linq;
 
     namespace AvaloniaDraft.ViewModels;
 
@@ -16,6 +17,9 @@ using System.Collections.Generic;
     {
         private bool _isIgnoreUnsupportedFormatsEnabled;
 
+        private double _sizeComparisonThreshold;
+        private double _pbpComparisonThreshold;
+
         private bool _isSizeEnabled;
         private bool _isResolutionEnabled;
         private bool _isFontEnabled;
@@ -23,6 +27,7 @@ using System.Collections.Generic;
         private bool _isPageCountEnabled;
         private bool _isColorEnabled;
         private bool _isAnimationEnabled;
+
 
         public List<WindowSizeOption?> AvailableWindowSizes { get; } =
         [
@@ -50,6 +55,8 @@ using System.Collections.Generic;
             // Set default to the first option:
             _selectedWindowSize = AvailableWindowSizes.Skip(1).FirstOrDefault();
 
+            _sizeComparisonThreshold = GlobalVariables.Options.SizeComparisonThreshold;
+            _pbpComparisonThreshold = GlobalVariables.Options.PbpComparisonThreshold;
 
             _isSizeEnabled = GlobalVariables.Options.GetMethod(Methods.Size.Name);
             _isResolutionEnabled = GlobalVariables.Options.GetMethod(Methods.Resolution.Name);
@@ -62,6 +69,30 @@ using System.Collections.Generic;
             _isIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.IgnoreUnsupportedFileType;
         }
 
+
+        public double SizeComparisonThreshold
+        {
+            get => _sizeComparisonThreshold;
+            set
+            {
+                if (_sizeComparisonThreshold == value) return;
+                _sizeComparisonThreshold = value;
+                GlobalVariables.Options.SizeComparisonThreshold = value;
+                OnPropertyChanged(nameof(SizeComparisonThreshold));
+            }
+        }
+
+        public double PbpComparisonThreshold
+    {
+            get => _pbpComparisonThreshold;
+            set
+            {
+                if (_pbpComparisonThreshold == value) return;
+                _pbpComparisonThreshold = value;
+                GlobalVariables.Options.PbpComparisonThreshold = value;
+                OnPropertyChanged(nameof(PbpComparisonThreshold));
+            }
+        }
 
         public bool IsIgnoreUnsupportedFormatsEnabled
         {

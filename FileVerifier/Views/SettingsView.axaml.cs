@@ -27,16 +27,23 @@ public partial class SettingsView : UserControl
         var fileTypes = GlobalVariables.Options.FileFormatsEnabled;
         foreach (var fileType in fileTypes)
         {
-            var name = fileType.Key;
+            var fileFormat = fileType.Key;
             var formats = fileType.Value;
-            if (name == null || formats == null || formats.Count == 0) continue;
+            if (fileFormat == null || formats == null || formats.Count == 0) continue;
 
-            var fileTypeCheckBox = new CheckBox();
-            mainStackPanel.Children.Add(fileTypeCheckBox);
+            var fileTypeCheckBox = new CheckBox
+            {
+                Name = fileFormat,
+                Content = fileFormat,
+            };
+            fileTypeCheckBox.Click += (_, _) =>
+            {
+                MainFileFormatCheckBoxClick(fileTypeCheckBox.Name, fileTypeCheckBox.IsChecked ?? false);
+            };
 
             // Add an expander for each file type
             var fileTypeExpander = new Expander();
-            fileTypeExpander.Header = new TextBlock { Text = name };
+            fileTypeExpander.Header = fileTypeCheckBox;
             fileTypeExpander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
             mainStackPanel.Children.Add(fileTypeExpander);
 
@@ -44,7 +51,7 @@ public partial class SettingsView : UserControl
 
             var allChecked = true;
 
-            // Add a checkbox for each pronom code
+            // Add a checkbox for each PRONOM code
             foreach (var format in formats)
             {
                 var pronomCode = format.Key;
@@ -57,10 +64,13 @@ public partial class SettingsView : UserControl
                     Content = pronomCode,
                     IsChecked = isChecked,
                 };
+                checkBox.Classes.Add(fileFormat);
 
-                checkBox.IsCheckedChanged += (_, _) =>
+                checkBox.Click += (_, _) =>
                 {
-                    GlobalVariables.Options.FileFormatsEnabled[name][pronomCode] = checkBox.IsChecked ?? false;
+                    GlobalVariables.Options.FileFormatsEnabled[fileFormat][pronomCode] = checkBox.IsChecked ?? false;
+
+                    UpdateFormatCheckBox(checkBox.Classes[0]);
                 };
 
                 fileTypeStackPanel.Children.Add(checkBox);
@@ -71,6 +81,33 @@ public partial class SettingsView : UserControl
         }
 
         FileFormatsExpander.Content = mainStackPanel;
+    }
+
+    private void UpdateFormatCheckBox(string fileFormat)
+    {
+        var mainCheckBox = FileFormatsExpander.GetLogicalDescendants()
+                   .OfType<CheckBox>()
+                   .FirstOrDefault(cb => cb.Name == fileFormat);
+
+        if (mainCheckBox == null) return;
+
+        var checkBoxes = FileFormatsExpander.GetLogicalDescendants()
+                   .OfType<CheckBox>()
+                   .Where(cb => cb.Classes.Contains(fileFormat));
+
+        var allChecked = checkBoxes.Any(cb => cb.IsChecked == true);
+        mainCheckBox.IsChecked = allChecked;
+    }
+
+
+    private void MainFileFormatCheckBoxClick(string fileFormat, bool check)
+    {
+        var checkBoxes = FileFormatsExpander.GetLogicalDescendants()
+                   .OfType<CheckBox>()
+                   .Where(cb => cb.Classes.Contains(fileFormat));
+        
+
+        foreach (var checkBox in checkBoxes) checkBox.IsChecked = check;
     }
 
 
@@ -110,6 +147,9 @@ public partial class SettingsView : UserControl
 
         viewModel.IsIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.IgnoreUnsupportedFileType;
 
+        viewModel.SizeComparisonThreshold = GlobalVariables.Options.SizeComparisonThreshold;
+        viewModel.PbpComparisonThreshold = GlobalVariables.Options.PbpComparisonThreshold;
+
         viewModel.IsPointByPointEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.PointByPoint.Name);
         viewModel.IsAnimationEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Animations.Name);
         viewModel.IsPageCountEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Pages.Name);
@@ -117,26 +157,26 @@ public partial class SettingsView : UserControl
         viewModel.IsFontEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Fonts.Name);
         viewModel.IsResolutionEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Resolution.Name);
         viewModel.IsSizeEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
-        
-        // Reset file format check boxes
-        if (FileFormatsExpander.Content is StackPanel mainStackPanel)
+
+        // Synchronize format filtering
+        foreach (var format in GlobalVariables.Options.FileFormatsEnabled)
         {
-            foreach(Expander expander in mainStackPanel.Children.OfType<Expander>())
+            var fileType = format.Key;
+            var pronomCodes = format.Value;
+
+            var checkBoxes = FileFormatsExpander.GetLogicalDescendants()
+           .OfType<CheckBox>()
+           .Where(cb => cb.Classes.Contains(fileType));
+
+            foreach (var checkBox in checkBoxes)
             {
-                if (expander.Content is not StackPanel fileTypeStackPanel) continue;
-                if (expander.Header is not TextBlock headerTextBlock) continue;
-
-                var fileType = headerTextBlock.Text ?? "";
-                if (!GlobalVariables.Options.FileFormatsEnabled.ContainsKey(fileType)) continue;
-                foreach (CheckBox checkBox in fileTypeStackPanel.Children.OfType<CheckBox>())
+                var cbCode = checkBox?.Content?.ToString();
+                if (checkBox != null && cbCode != null && pronomCodes.ContainsKey(cbCode))
                 {
-                    var formatCode = checkBox?.Content?.ToString() ?? "";
-                    if (!GlobalVariables.Options.FileFormatsEnabled[fileType].ContainsKey(formatCode)) continue;
-
-                    if (checkBox.IsChecked == null) continue;
-                    checkBox.IsChecked = GlobalVariables.Options.FileFormatsEnabled[fileType][formatCode];
+                    checkBox.IsChecked = pronomCodes[cbCode];
                 }
             }
+            UpdateFormatCheckBox(fileType);
         }
     }
 }
