@@ -45,7 +45,9 @@ public static class PPFontExtraction
         var textColors = new HashSet<string>();
         var bgColors = new HashSet<string>();
 
-        PresentationDocument doc = PresentationDocument.Open(src, false);
+        var doc = PresentationDocument.Open(src, false);
+        if (doc is null) return null;
+
         var presPart = doc.PresentationPart;
 
         var slideParts = presPart?.SlideParts;
@@ -297,7 +299,6 @@ public static class PPFontExtraction
         }
 
         var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
-
         return textInfo;
     }
 
