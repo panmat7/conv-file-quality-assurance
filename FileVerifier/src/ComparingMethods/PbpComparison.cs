@@ -67,7 +67,7 @@ public static class PbpComparison
             {
                 var img1Row = MemoryMarshal.Cast<Rgba32, byte>(img1Accessor.GetRowSpan(y));
                 var img2Row = MemoryMarshal.Cast<Rgba32, byte>(img2Accessor.GetRowSpan(y));
-                matchingPixels += ProcessRowPixels(img1Row, img2Row, 3); // RGB has 3 components
+                matchingPixels += ProcessRowPixels(img1Row, img2Row, 4); // RGB has 3 components
             }
         });
 
@@ -132,11 +132,11 @@ public static class PbpComparison
         for (; x < img1Row.Length && x < img2Row.Length; x += componentPixel)
         {
             bool pixelMatch = true;
-        
+            
             // Compare each component (R, G, B) of the pixel
             for (int j = 0; j < componentPixel; j++)
             {
-                if (img1Row[x + j] != img2Row[x + j])
+                if (Math.Abs(img1Row[x + j] - img2Row[j]) >= 3)
                 {
                     pixelMatch = false;
                     break;

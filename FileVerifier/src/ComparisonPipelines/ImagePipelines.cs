@@ -5,6 +5,7 @@ using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using ClosedXML;
+using DocumentFormat.OpenXml.Wordprocessing;
 using ImageMagick;
 
 namespace AvaloniaDraft.ComparisonPipelines;
@@ -38,7 +39,6 @@ public static class ImagePipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
             Error error;
 
             using var oImage = new MagickImage(pair.OriginalFilePath);
@@ -59,7 +59,6 @@ public static class ImagePipelines
                     );
                       
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else if ((bool)res)
                 {
@@ -71,7 +70,6 @@ public static class ImagePipelines
                     );
                       
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Size.Name, true);
@@ -92,19 +90,16 @@ public static class ImagePipelines
                     );
 
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else if (res.Item1 > 0 || res.Item2 > 0)
                 {
-                    error = new Error(
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, errors: [
+                        new Error(
                         "Image resolution difference",
                         "Mismatched resolution between images.",
                         ErrorSeverity.High,
                         ErrorType.FileError
-                    );
-
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, errors: [error]);
-                    e.Add(error);
+                    )]);
                 }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Resolution.Name, true);
@@ -116,19 +111,18 @@ public static class ImagePipelines
                 
                 if (res is null)
                 {
-                    error = new Error(
-                        "Image resolution difference",
-                        "Mismatched resolution between images.",
-                        ErrorSeverity.High,
-                        ErrorType.FileError
-                    );
-
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: [error]);
-                    e.Add(error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: [
+                        new Error(
+                            "Could not read metadata",
+                            "There occurred an error when trying to read the metadata of the image file.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        )
+                    ]);
                 }
                 else if (res.Count > 0)
                 {
-                    //TODO: Log list of errors
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: res);
                 }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Metadata.Name, true);
@@ -149,7 +143,6 @@ public static class ImagePipelines
                         ErrorType.Visual
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, errors: [error]);
-                    e.Add(error);
                 } else if (res < acceptance)
                 {
                     error = new Error(
@@ -160,7 +153,6 @@ public static class ImagePipelines
                             res.ToString("0.##")
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, true);
@@ -185,7 +177,6 @@ public static class ImagePipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 if (!exceptionOccurred && !res)
@@ -197,22 +188,177 @@ public static class ImagePipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorProfile.Name, true);
             }
-            
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
-            
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
     
     private static void ImageToPDFPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
-        
+        BasePipeline.ExecutePipeline(() =>
+        {
+            var oImage = new MagickImage(pair.OriginalFilePath);
+            var nImages = ImageExtraction.ExtractImagesFromPdf(pair.NewFilePath);
+    
+            //Image converted to PDF should result in a single image embedded in the PDF 
+            if (nImages.Count != 1)
+            {
+                GlobalVariables.Logger.AddTestResult(pair, "Image Count in Resulting PDF", false,
+                    comments: ["The resulting PDF does not contain exactly one image."]);
+                return;
+            }
+            
+            //Converting the image to bytes encoded to correct format
+            var nImage = nImages[0];
+            var tempFile = ImageExtraction.SaveExtractedImageToDisk(nImage, oImage.Format);
+            FilePair? pairWithTemp = null;
+    
+            if (tempFile != null)
+            {
+                pairWithTemp = new FilePair(
+                    pair.OriginalFilePath, pair.OriginalFileFormat,
+                    tempFile.Value.Item1, tempFile.Value.Item2
+                );
+            }
+            else
+            {
+                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false,
+                    comments:
+                    ["Could not extract and save the image embedded in the PDF. Cannot preform image specific tests."]);
+            }
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
+            {
+                var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
+    
+                if (res == null)
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [
+                        new Error(
+                            "Could not get file size difference",
+                            "The tool was unable to get the file size difference for at least one file.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        )
+                    ]);
+                }
+                else if ((bool)res)
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [
+                        new Error(
+                            "File Size Difference",
+                            "The difference in size for the two files exceeds expected values.",
+                            ErrorSeverity.Medium,
+                            ErrorType.FileError
+                        )
+                    ]);
+                }
+                else
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
+            }
+    
+            if (GlobalVariables.Options.GetMethod(Methods.Resolution.Name) && pairWithTemp != null)
+            {
+                var res = ComperingMethods.GetImageResolutionDifference(pairWithTemp);
+    
+                if (res is null)
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, errors: [
+                        new Error(
+                            "Error getting image resolution difference",
+                            "There occured an error while trying to get the difference in image resolution.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        )
+                    ]);
+                }
+                else if (res.Item1 > 0 || res.Item2 > 0)
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, false, errors: [
+                        new Error(
+                            "Image resolution difference",
+                            "Mismatched resolution between images.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        )
+                    ]);
+                }
+                else
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Resolution.Name, true);
+            }
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name) && pairWithTemp != null)
+            {
+                var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pairWithTemp);
+                    
+                if (res is null)
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, 
+                        comments: ["This test was preformed on the extracted image."],
+                        errors: [
+                        new Error(
+                            "Could not read metadata",
+                            "There occurred an error when trying to read the metadata of the image file.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        )
+                    ]);
+                    
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: [
+                        new Error(
+                            "Could not read metadata",
+                            "There occurred an error when trying to read the metadata of the image file.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        )
+                    ]);
+                }
+                else if (res.Count > 0)
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: res);
+                }
+                else
+                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Metadata.Name, true);
+            }
+    
+            if(GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name) && pairWithTemp != null)
+            {
+                var acceptance = 85; //Read from options later ?
+    
+                var res = ImageRegistration.CalculateHistogramSimilarity(pairWithTemp);
+    
+                if (res < 0)
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, 
+                        comments: ["This test was preformed on the extracted image."],
+                        errors: [
+                            new Error(
+                                "Error calculating image similarity",
+                                "There occured an error while calculating the image similarity during Pixel by Pixel comparison.",
+                                ErrorSeverity.High,
+                                ErrorType.Visual
+                            )
+                        ]);
+                } else if (res < acceptance)
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, 
+                        comments: ["This test was preformed on the extracted image."],
+                        errors: [
+                            new Error(
+                                "Difference in image's visual appearance",
+                                "The images did not pass Pixel by Pixel comparison.",
+                                ErrorSeverity.High,
+                                ErrorType.Visual,
+                                res.ToString("0.##")
+                            )
+                        ]);
+                }
+                else
+                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, true);
+            }
+        }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

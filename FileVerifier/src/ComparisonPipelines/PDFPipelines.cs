@@ -250,9 +250,8 @@ public static class PdfPipelines
 
                             if (res.Count <= 0) continue;
                             
-                            Console.WriteLine("ERRORS DURING VISUAL COMPARISON");
                             errors = true;
-                            //TODO: Log errors
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false, errors: res);
                         }
                         
                         if(!errors) GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, true);
@@ -273,19 +272,16 @@ public static class PdfPipelines
                                     ErrorType.Visual
                                 )]);
                         else if (res.Count > 0)
-                        {
-                            Console.WriteLine("ERRORS DURING VISUAL COMPARISON");
-                            //TODO: Log errors
-                        }
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                                errors: res);
+                        
                         else
                             GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, true);
                     }
                 }
                 else
-                {
                     GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
                         comments: ["Comparison not preformed due to page count differences."]);
-                }
             }
             
             UiControlService.Instance.AppendToConsole(

@@ -376,6 +376,14 @@ public sealed class FileManager
     }
     
     /// <summary>
+    /// Returns the path to temporary directories as (original, new).
+    /// </summary>
+    public (string, string) GetTempDirectories()
+    {
+        return (_tempODirectory, _tempNDirectory);
+    }
+    
+    /// <summary>
     /// Waits till all threads inside _threads finish
     /// </summary>
     private void AwaitThreads()
