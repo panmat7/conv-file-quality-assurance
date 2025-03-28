@@ -33,6 +33,8 @@ namespace AvaloniaDraft.Helpers
         public static Method Metadata => new Method("Metadata", "Check to ensure the documents have the same metadata.");
         public static Method Transparency => new Method("Transparency", "Check to ensure the documents have the same transparency.");
         public static Method VisualDocComp => new Method("Visual Document Comparison", "A visual comparison between the two documents.");
+        public static Method TableBreakCheck => new Method("Table Break Check",
+            "Checks whether the original spreadsheet could cause a break in the resulting PDF.");
 
         /// <summary>
         /// Get all the methods in a list
