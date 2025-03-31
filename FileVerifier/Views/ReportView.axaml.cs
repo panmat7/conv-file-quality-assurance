@@ -17,28 +17,37 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using System.Linq;
 using DocumentFormat.OpenXml.Drawing.Diagrams;
 using System.Diagnostics;
+using Avalonia.VisualTree;
+using System.Collections.Generic;
+using Org.BouncyCastle.Asn1.Ocsp;
+using Avalonia.Input;
 
 namespace AvaloniaDraft.Views;
 
 public partial class ReportView : UserControl
 {
-    private Logger.Logger logger;
-    private int currentRow;
+    private Logger.Logger Logger;
+    private List<Expander> AllResultExpanders;
+    private List<Expander> ResultExpanders;
+
 
     public ReportView()
     {
         InitializeComponent();
-        currentRow = 0;
+
+        AllResultExpanders = [];
+        ResultExpanders = [];
 
         if (GlobalVariables.Logger.Finished)
         {
-            logger = GlobalVariables.Logger;
+            Logger = GlobalVariables.Logger;
+            CreateElements();
             DisplayReport();
         } 
         else
         {
-            logger = new Logger.Logger();
-            logger.Initialize();
+            Logger = new Logger.Logger();
+            Logger.Initialize();
         }
     }
 
@@ -66,7 +75,8 @@ public partial class ReportView : UserControl
             var json = result[0];
             var path = json.Path.AbsolutePath;
 
-            logger.ImportJSON(path);
+            Logger.ImportJSON(path);
+            CreateElements();
             DisplayReport();
         }
         else
@@ -75,18 +85,84 @@ public partial class ReportView : UserControl
         }
     }
 
+    private void CreateElements()
+    {
+        AllResultExpanders = [];
+        ResultExpanders = [];
+
+        ReportSummary.Text = $"{Logger.FileComparisonsFailed}/{Logger.FileComparisonCount} file comparisons failed";
+        foreach (var result in Logger.Results)
+        {
+            var comparisonResultexpander = CreateComparisonResultExpander(result);
+            AllResultExpanders.Add(comparisonResultexpander);
+            ResultExpanders.Add(comparisonResultexpander);
+        }   
+    }
+
 
     private void DisplayReport()
     {
-        InitializeComponent();
-        currentRow = 0;
+        ReportStackPanel.Children.Clear();
 
-        ReportSummary.Text = $"{logger.FileComparisonsFailed}/{logger.FileComparisonCount} file comparisons failed.";
-        foreach (var result in logger.Results)
+        foreach (var expander in ResultExpanders)
         {
-            var comparisonResultexpander = CreateComparisonResultExpander(result);
-            ReportStackPanel.Children.Add(comparisonResultexpander);
+            ReportStackPanel.Children.Add(expander);
         }
+    }
+
+
+    private void SearchBar_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            Search(sender, e);
+        }
+    }
+
+    private void Search(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var searchString = SearchBar?.Text?.Trim().ToLower();
+        if (string.IsNullOrEmpty(searchString))
+        {
+            ResultExpanders = AllResultExpanders.ToList();
+            DisplayReport();
+            return;
+        }
+
+        ResultExpanders.Clear();
+
+        var keyWords = searchString.Split(' ');
+        
+        foreach (var expander in AllResultExpanders)
+        {
+            if (expander.Header is not TextBlock header || header.Text is not string text) continue;
+
+            var match = true;
+            foreach (var keyWord in keyWords)
+            {
+                if (!text.ToLower().Contains(keyWord))
+                {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match) ResultExpanders.Add(expander);
+        }
+        DisplayReport();
+    }
+
+    private void ShowFailedFirst(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        ResultExpanders = ResultExpanders.OrderByDescending(e => e.Classes.Contains("FAIL")).ToList();
+        DisplayReport();
+    }
+
+
+    private void ShowPassedFirst(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        ResultExpanders = ResultExpanders.OrderByDescending(e => e.Classes.Contains("PASS")).ToList();
+        DisplayReport();
     }
 
 
@@ -96,6 +172,8 @@ public partial class ReportView : UserControl
         expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
 
         var stackPanel = new StackPanel();
+        var passOrFail = result.Pass ? "PASS" : "FAIL";
+        expander.Classes.Add(passOrFail);
 
         var passText = new TextBlock() { Foreground = Brushes.White };
         stackPanel.Children.Add(passText);
@@ -122,7 +200,7 @@ public partial class ReportView : UserControl
         var nFile = System.IO.Path.GetFileName(result.FilePair.NewFilePath);
         var nFormat = result.FilePair.NewFileFormat;
 
-        var headerText = $"{(result.Pass ? "PASS" : "FAIL")} - {oFile}  -> {nFile} ({oFormat} -> {nFormat})";
+        var headerText = $"{passOrFail} - {oFile}  -> {nFile} ({oFormat} -> {nFormat})";
         expander.Header = new TextBlock { Text = headerText };
 
         return expander;
