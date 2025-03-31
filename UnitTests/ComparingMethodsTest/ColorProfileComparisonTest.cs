@@ -531,6 +531,36 @@ public class OdtAndOdpToPdfColorProfileComparison : TestBase
 }
 
 [TestFixture]
+public class RtfToPdfColorProfileComparison : TestBase
+{
+    [Test]
+    public void TestSuccess()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "rtf_with_two_images_of_different_profile.rtf");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_two_images_of_different_profile.pdf");
+
+        var oImages = ImageExtraction.ExtractImagesFromRtf(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = ColorProfileComparison.RtfToPdfColorProfileComparison(oImages, nImages);
+        Assert.That(result, Is.True);
+    }
+
+    [Test]
+    public void TestFail()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "rtf_with_two_images_of_different_profile.rtf");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_two_images_of_same_profile.pdf");
+
+        var oImages = ImageExtraction.ExtractImagesFromRtf(oFilePath);
+        var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
+        
+        var result = ColorProfileComparison.RtfToPdfColorProfileComparison(oImages, nImages);
+        Assert.That(result, Is.False);
+    }
+}
+
+[TestFixture]
 public class XlsxToPdfColorProfileComparison : TestBase
 {
     [Test]

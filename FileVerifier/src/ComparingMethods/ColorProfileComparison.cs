@@ -69,6 +69,24 @@ public static class ColorProfileComparison
     }
 
     /// <summary>
+    /// General function to compare the color profiles of two images. Excludes pdf, img, and xlsx files
+    /// </summary>
+    /// <param name="oImages"></param>
+    /// <param name="nImages"></param>
+    /// <returns></returns>
+    public static bool GeneralDocsToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
+    {
+        // Convert from IPdfImage to MagickImage
+        var convertedNImages = ImageExtraction.ConvertPdfImagesToMagickImages(nImages);
+        
+        // If there are no images no test is done and we return true
+        if (oImages.Count < 1) return true;
+        
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, convertedNImages[i])).Any();
+    }
+    
+    
+    /// <summary>
     /// Compares the color profile of a xml based PowerPoint and a PDF file
     /// </summary>
     /// <param name="oImages"></param>
@@ -82,8 +100,7 @@ public static class ColorProfileComparison
         // If there are no images no test is done and we return true
         if (oImages.Count < 1) return true;
         
-        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, 
-            convertedNImages[i])).Any();
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, convertedNImages[i])).Any();
     }
 
     /// <summary>
@@ -153,6 +170,17 @@ public static class ColorProfileComparison
     /// <param name="nImages"></param>
     /// <returns></returns>
     public static bool OpenDocumentToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
+    {
+        // Convert from IPdfImage to MagickImage
+        var convertedNImages = ImageExtraction.ConvertPdfImagesToMagickImages(nImages);
+        
+        // If there are no images no test is done and we return true
+        if (oImages.Count < 1) return true;
+        
+        return oImages.Count == nImages.Count && !oImages.Where((t, i) => !CompareColorProfiles(t, convertedNImages[i])).Any();
+    }
+    
+    public static bool RtfToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
         // Convert from IPdfImage to MagickImage
         var convertedNImages = ImageExtraction.ConvertPdfImagesToMagickImages(nImages);
