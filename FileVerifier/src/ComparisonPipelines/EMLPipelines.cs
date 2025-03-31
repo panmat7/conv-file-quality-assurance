@@ -48,7 +48,7 @@ public static class EmlPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.EmlToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
