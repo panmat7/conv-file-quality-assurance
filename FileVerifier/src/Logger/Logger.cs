@@ -38,6 +38,9 @@ public class Logger
     /// </summary>
     public struct ComparisonResult
     {
+        public int TotalTests { get; set; }
+        public int TestsPassed { get; set; }
+
         public FilePair FilePair { get; set; }
         public Dictionary<string, TestResult> Tests { get; set; }
 
@@ -45,6 +48,9 @@ public class Logger
 
         public ComparisonResult(FilePair filePair)
         {
+            TotalTests = 0;
+            TestsPassed = 0;
+
             Tests = new Dictionary<string, TestResult>();
 
             Pass = true;
@@ -66,6 +72,8 @@ public class Logger
         }
     }
 
+    public int FileComparisonCount { get; set; }
+    public int FileComparisonsFailed { get; set; }
 
     public bool Active { get; set; }
     public bool Finished { get; set; }
@@ -78,6 +86,9 @@ public class Logger
     /// </summary>
     public void Initialize()
     {
+        FileComparisonCount = 0;
+        FileComparisonsFailed = 0;
+
         Active = false;
         Finished = false;
 
@@ -111,7 +122,7 @@ public class Logger
     /// <param name="errors">Error</param>
     public void AddTestResult(FilePair filePair, string testName, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
     {
-        var testResult = new TestResult(pass, percentage, comments, errors);
+        var testResult = new TestResult(pass, percentage, comments ?? [], errors ?? []);
 
         var index = Results.FindIndex(r => r.FilePair.OriginalFilePath == filePair.OriginalFilePath && r.FilePair.NewFilePath == filePair.NewFilePath);
         if (index == -1)
@@ -119,10 +130,14 @@ public class Logger
             var cr = new ComparisonResult(filePair);
             cr.AddTestResult(testResult, testName);
             Results.Add(cr);
+            FileComparisonCount++;
+            if (!cr.Pass) FileComparisonsFailed++;
         }
         else
         {
+            var testPassed = Results[index].Pass;
             Results[index].AddTestResult(testResult, testName);
+            if (testPassed && !Results[index].Pass) FileComparisonsFailed++;
         }
     }
 

@@ -16,6 +16,7 @@ using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using System.Linq;
 using DocumentFormat.OpenXml.Drawing.Diagrams;
+using System.Diagnostics;
 
 namespace AvaloniaDraft.Views;
 
@@ -80,19 +81,12 @@ public partial class ReportView : UserControl
         InitializeComponent();
         currentRow = 0;
 
-
-        var totalComparisons = 0;
-        var passedComparisons = 0;
-
+        ReportSummary.Text = $"{logger.FileComparisonsFailed}/{logger.FileComparisonCount} file comparisons failed.";
         foreach (var result in logger.Results)
         {
-            var expander = CreateComparisonResultExpander(result);
-            ReportGrid.Children.Add(expander);
-
-            totalComparisons++;
-            if (result.Pass) passedComparisons++;
+            var comparisonResultexpander = CreateComparisonResultExpander(result);
+            ReportStackPanel.Children.Add(comparisonResultexpander);
         }
-        ReportSummary.Text = $"{passedComparisons}/{totalComparisons} comparisons successful.";
     }
 
 
@@ -101,15 +95,7 @@ public partial class ReportView : UserControl
         var expander = new Expander();
         expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
 
-        Grid.SetColumn(expander, 2);
-        Grid.SetRow(expander, currentRow);
-        currentRow++;
-
-
         var stackPanel = new StackPanel();
-
-        int totalTests = 0;
-        int passedTests = 0;
 
         var passText = new TextBlock() { Foreground = Brushes.White };
         stackPanel.Children.Add(passText);
@@ -120,26 +106,23 @@ public partial class ReportView : UserControl
 
         foreach (var test in result.Tests)
         {
-            totalTests++;
-            if (test.Value.Pass) passedTests++;
-
             var testExpander = CreateTestResultExpander(test.Value);
             testExpander.Header = new TextBlock { Text = $"{(test.Value.Pass ? "PASS" : "FAIL")} - {test.Key}" };
 
             stackPanel.Children.Add(testExpander);
         }
 
-        var pass = (passedTests > 0);
+        passText.Text = $"Passed: {(result.Pass ? "Yes" : "No")}";
 
-        passText.Text = $"Passed: {(pass ? "Yes" : "No")}";
-
-        testSummary.Text = $"Tests ({passedTests}/{totalTests} passed) :";
+        testSummary.Text = $"Tests ({result.TestsPassed}/{result.TotalTests} passed) :";
         expander.Content = stackPanel;
 
         var oFile = System.IO.Path.GetFileName(result.FilePair.OriginalFilePath);
+        var oFormat = result.FilePair.OriginalFileFormat;
         var nFile = System.IO.Path.GetFileName(result.FilePair.NewFilePath);
+        var nFormat = result.FilePair.NewFileFormat;
 
-        var headerText = $"{(pass ? "PASS" : "FAIL")} - {oFile}  -> {nFile}";
+        var headerText = $"{(result.Pass ? "PASS" : "FAIL")} - {oFile}  -> {nFile} ({oFormat} -> {nFormat})";
         expander.Header = new TextBlock { Text = headerText };
 
         return expander;
