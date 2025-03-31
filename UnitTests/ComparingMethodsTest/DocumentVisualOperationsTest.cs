@@ -1,5 +1,11 @@
+using System.Diagnostics;
 using System.Drawing;
+using System.IO.Enumeration;
 using AvaloniaDraft.ComparingMethods;
+using DocumentFormat.OpenXml.Office2013.PowerPoint;
+using Emgu.CV;
+using Emgu.CV.CvEnum;
+using Emgu.CV.Structure;
 
 namespace UnitTests.ComparingMethodsTest;
 

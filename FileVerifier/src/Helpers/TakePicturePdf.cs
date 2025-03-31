@@ -1,15 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Docnet.Core;
 using Docnet.Core.Converters;
 using Docnet.Core.Models;
-using Docnet.Core.Readers;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace AvaloniaDraft.Helpers;
 

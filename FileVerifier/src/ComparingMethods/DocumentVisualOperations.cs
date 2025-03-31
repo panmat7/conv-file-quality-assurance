@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.Marshalling;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
@@ -71,7 +73,8 @@ public static class DocumentVisualOperations
             var grayscale = new Mat();
             CvInvoke.CvtColor(img, grayscale, ColorConversion.Bgr2Gray);
             
-            var darkBackground = HasDarkBackground(CvInvoke.Mean(grayscale).V0);
+            Console.WriteLine(CvInvoke.Mean(grayscale).V0);
+            var darkBackground = HasLightBackground(CvInvoke.Mean(grayscale).V0);
 
             var threshold = new Mat();
             //Finding best threshold using Otsu
@@ -276,11 +279,11 @@ public static class DocumentVisualOperations
     }
 
     /// <summary>
-    /// Determines whether the image should be considered having a dark background. 
+    /// Determines whether the image should be considered having a light background. 
     /// </summary>
     /// <param name="pixelIntensity">Average pixel intensity of the grayscale image.</param>
     /// <returns>True/False</returns>
-    private static bool HasDarkBackground(double pixelIntensity)
+    public static bool HasLightBackground(double pixelIntensity)
     {
         return pixelIntensity > 130;
     }
@@ -304,4 +307,33 @@ public static class DocumentVisualOperations
         
         return result;
     }
+    
+    /*
+    public static double DetermineSegmentRelevance(byte[] seg)
+    {
+        var img = new Mat();
+        CvInvoke.Imdecode(seg, ImreadModes.Unchanged, img);
+
+        var edges = new Mat();
+        CvInvoke.Canny(img, edges, 50, 150);
+        
+        var contours = new VectorOfVectorOfPoint();
+        var hier = new Mat();
+        CvInvoke.FindContours(edges, contours, hier, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+
+        var density = EdgeDensity(edges);
+        
+        Console.Error.WriteLine(density);
+
+        return density;
+    }
+
+    private static double EdgeDensity(Mat edges)
+    {
+        var pCount = CvInvoke.CountNonZero(edges);
+        var pTotal = edges.Rows * edges.Cols;
+        
+        return ((double)pCount / pTotal);
+    }
+    */
 }

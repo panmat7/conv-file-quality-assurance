@@ -297,7 +297,7 @@ public static class ImagePipelines
                 if (res is null)
                 {
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, 
-                        comments: ["This test was preformed on the extracted image."],
+                        comments: ["This test was preformed on an extracted image."],
                         errors: [
                         new Error(
                             "Could not read metadata",
@@ -333,7 +333,7 @@ public static class ImagePipelines
                 if (res < 0)
                 {
                     GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, 
-                        comments: ["This test was preformed on the extracted image."],
+                        comments: ["This test was preformed on an extracted image."],
                         errors: [
                             new Error(
                                 "Error calculating image similarity",
@@ -345,7 +345,7 @@ public static class ImagePipelines
                 } else if (res < acceptance)
                 {
                     GlobalVariables.Logger.AddTestResult(pair, Methods.PointByPoint.Name, false, 
-                        comments: ["This test was preformed on the extracted image."],
+                        comments: ["This test was preformed on an extracted image."],
                         errors: [
                             new Error(
                                 "Difference in image's visual appearance",

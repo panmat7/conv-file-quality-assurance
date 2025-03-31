@@ -159,9 +159,7 @@ public static class XLSXPipelines
             {
                 var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(pair.OriginalFilePath);
                 if (res.Count > 0)
-                {
                     GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: res);
-                }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, true);
             }
