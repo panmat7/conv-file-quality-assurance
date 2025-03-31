@@ -80,7 +80,7 @@ public static class XLSXPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {

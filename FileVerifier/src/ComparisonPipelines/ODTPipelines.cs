@@ -118,7 +118,7 @@ public static class ODTPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.OpenDocumentToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {

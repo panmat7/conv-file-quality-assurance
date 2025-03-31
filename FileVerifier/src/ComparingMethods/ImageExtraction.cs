@@ -7,8 +7,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Xml.Linq;
+using AODL.Document.Content.Text;
 using MimeKit;
 using UglyToad.PdfPig.Content;
+using RtfDomParser;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -111,6 +113,76 @@ public static class ImageExtraction
             .ToList();
 
         return images;
+    }
+
+    /// <summary>
+    /// Extracts images from .rtf files
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static List<MagickImage> ExtractImagesFromRtf(string filePath)
+    {
+        var images = new List<MagickImage>();
+        var imageHashes = new HashSet<string>();
+
+        var doc = new RTFDomDocument();
+        doc.Load(filePath);
+
+        // Recursively search for images in all elements in the document
+        TraverseElements(doc.Elements, images, imageHashes);
+
+        return images;
+    }
+
+    /// <summary>
+    /// Traverses items recursively to find images in RTF documents
+    /// </summary>
+    /// <param name="elements"></param>
+    /// <param name="images"></param>
+    /// <param name="imageHashes"></param>
+    private static void TraverseElements(
+        RTFDomElementList elements,
+        List<MagickImage> images,
+        HashSet<string> imageHashes)
+    {
+        foreach (var element in elements)
+        {
+            switch (element)
+            {
+                case RTFDomImage image:
+                {
+                    // Deduplicate images using a hash
+                    var hash = Convert.ToBase64String(MD5.HashData(image.Data));
+                    if (!imageHashes.Contains(hash))
+                    {
+                        var magickImage = new MagickImage(image.Data);
+                        images.Add(magickImage);
+                        imageHashes.Add(hash);
+                    }
+                    break;
+                }
+                case RTFDomShapeGroup shapeGroup:
+                    // Check if the shape group contains child elements (like images)
+                    TraverseElements(shapeGroup.Elements, images, imageHashes);
+                    break;
+                case RTFDomParagraph paragraph:
+                    // Paragraphs might contain nested elements (e.g., shapes/images)
+                    TraverseElements(paragraph.Elements, images, imageHashes);
+                    break;
+                case RTFDomTableCell cell:
+                    // Cells might contain nested elements (e.g., paragraphs)
+                    TraverseElements(cell.Elements, images, imageHashes);
+                    break;
+                case RTFDomTableRow row:
+                    // Rows might contain nested elements (e.g., cells)
+                    TraverseElements(row.Elements, images, imageHashes);
+                    break;
+                case RTFDomTable table:
+                    // Tables might contain nested elements (e.g., rows)
+                    TraverseElements(table.Elements, images, imageHashes);
+                    break;
+            }
+        }
     }
 
     /// <summary>
