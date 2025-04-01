@@ -83,6 +83,12 @@ public static class BasePipeline
 
         if (FormatCodes.PronomCodesXLSX.Contains(pair.OriginalFileFormat))
             return XLSXPipelines.GetXlsxPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesCSV.Contains(pair.OriginalFileFormat))
+            return CSVPipelines.GetCsvPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesRTF.Contains(pair.OriginalFileFormat))
+            return RtfPipelines.GetRtfPipeline(pair.NewFileFormat);
         
         return null;
     }
