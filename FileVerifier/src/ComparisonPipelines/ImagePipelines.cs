@@ -130,9 +130,9 @@ public static class ImagePipelines
 
             if(GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name))
             {
-                var acceptance = 85; //Read from options later ?
+                var acceptance = 0.5; //Read from options later ?
 
-                var res = ImageRegistration.CalculateHistogramSimilarity(pair);
+                var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
 
                 if (res < 0)
                 {

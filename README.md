@@ -1,4 +1,41 @@
 # conv-file-quality-assurance
+This application performs quality checks on files mostly for files converted from a fileformat to an archival format. 
+
+## Features
+
+## Supported file formats
+
+
+
+
+
+## Installation Windows
+1. Install Siegfried from their website (https://www.itforarchivists.com/) and add it to path enviromental variables. 
+2. Clone the repository 
+```sh
+git clone https://github.com/panmat7/conv-file-quality-assurance.git
+```
+3. Run the application
+### Dependencies Windows
+- .NET 8+
+- Siegfried 
+- Other dependencies
+
+
+
+## Installation Ubuntu 22.04
+1. Install Siegfried from their website (https://www.itforarchivists.com/)
+2. Install Emgu.cv (https://www.emgu.com/wiki/index.php/Download_And_Installation)
+3. Install ExifTool (https://exiftool.org/install.html#Unix)
+
+### Dependencies Ubuntu
+- .NET 8+
+- Siegfried
+- Emgu.cv - Emgu.cv 
+- ExifTool
+
+## Usage
+
 
 
 ## Comparison criteria
