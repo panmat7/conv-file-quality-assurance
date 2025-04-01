@@ -26,50 +26,20 @@ public static class RtfFontExtraction
         var doc = new RTFDomDocument();
         doc.Load(src);
 
-        foreach (var e in doc.Elements)
+        foreach (var p in doc.Elements.OfType<RTFDomParagraph>())
         {
-            if (e is RTFDomParagraph p)
+            foreach (var r in p.Elements)
             {
-                // var pColorHex = FontComparison.GetHex(p.Format.BackColor);
-
-                foreach (var r in p.Elements)
+                if (r is RTFDomText txt)
                 {
-
-                    if (r is RTFDomText txt)
+                    CheckText(txt, fonts, textColors, bgColors, ref foreignWriting);
+                }
+                else if (r is RTFDomField f)
+                {
+                    var texts = f.Elements.OfType<RTFDomElementContainer>().SelectMany(ec => f.Elements.OfType<RTFDomText>());
+                    foreach (var fTxt in texts)
                     {
-                        var fontName = FontComparison.NormalizeFontName(txt.Format.FontName);
-                        var textHex = FontComparison.GetHex(txt.Format.TextColor);
-                        var bgHex = FontComparison.GetHex(txt.Format.BackColor);
-
-                        if (!foreignWriting && FontComparison.IsForeign(txt.Text)) foreignWriting = true;
-
-                        fonts.Add(fontName);
-                        textColors.Add(textHex);
-                        bgColors.Add(bgHex);
-                    }
-                    else if (r is RTFDomField f)
-                    {
-                        foreach (var fieldElement in f.Elements)
-                        {
-                            if (fieldElement is RTFDomElementContainer ec)
-                            {
-                                foreach (var el in ec.Elements)
-                                {
-                                    if (el is RTFDomText fTxt)
-                                    {
-                                        var fontName = FontComparison.NormalizeFontName(fTxt.Format.FontName);
-                                        var textHex = FontComparison.GetHex(fTxt.Format.TextColor);
-                                        var bgHex = FontComparison.GetHex(fTxt.Format.BackColor);
-
-                                        if (!foreignWriting && FontComparison.IsForeign(fTxt.Text)) foreignWriting = true;
-
-                                        fonts.Add(fontName);
-                                        textColors.Add(textHex);
-                                        bgColors.Add(bgHex);
-                                    }
-                                }
-                            }
-                        }
+                        CheckText(fTxt, fonts, textColors, bgColors, ref foreignWriting);
                     }
                 }
             }
@@ -77,5 +47,27 @@ public static class RtfFontExtraction
 
         var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
+    }
+
+
+    /// <summary>
+    /// Add formatting of RTF text
+    /// </summary>
+    /// <param name="txt"></param>
+    /// <param name="fonts"></param>
+    /// <param name="textColors"></param>
+    /// <param name="bgColors"></param>
+    /// <param name="foreignWriting"></param>
+    private static void CheckText(RTFDomText txt, HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, ref bool foreignWriting)
+    {
+        var fontName = FontComparison.NormalizeFontName(txt.Format.FontName);
+        var textHex = FontComparison.GetHex(txt.Format.TextColor);
+        var bgHex = FontComparison.GetHex(txt.Format.BackColor);
+
+        if (!foreignWriting && FontComparison.IsForeign(txt.Text)) foreignWriting = true;
+
+        fonts.Add(fontName);
+        textColors.Add(textHex);
+        bgColors.Add(bgHex);
     }
 }
