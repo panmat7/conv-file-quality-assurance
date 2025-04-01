@@ -89,7 +89,7 @@ public static class EmlPipelines
             ImageExtraction.DisposeMagickImages(oImages);
             
 
-            e.AddRange(BasePipeline.CompareFonts(pair));
+            e.AddRange(ComperingMethods.CompareFonts(pair));
 
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

@@ -40,7 +40,7 @@ public static class ODTPipelines
             var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
             
-            e.AddRange(BasePipeline.CompareFonts(pair));
+            e.AddRange(ComperingMethods.CompareFonts(pair));
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {

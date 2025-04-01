@@ -40,7 +40,39 @@ public static class PptxPipelines
             var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
 
-            e.AddRange(BasePipeline.CompareFonts(pair));
+            e.AddRange(ComperingMethods.CompareFonts(pair));
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
+            {
+                var pageDiff = ComperingMethods.GetPageCountDifferenceExif(pair);
+                switch (pageDiff)
+                {
+                    case null:
+                        error = new Error(
+                            "Could not get page count",
+                            "There was an error trying to get the page count from at least one of the files.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        e.Add(error);
+                        break;
+                    case > 0:
+                        error = new Error(
+                            "Difference in page count",
+                            "The original and new document have a different page count.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError,
+                            $"{pageDiff}"
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        e.Add(error);
+                        break;
+                    default:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
+                        break;
+                }
+            }
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {

@@ -40,12 +40,13 @@ public static class PdfPipelines
             var oImages = ImageExtraction.GetNonDuplicatePdfImages(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
           
-            e.AddRange(BasePipeline.CompareFonts(pair));
+            e.AddRange(ComperingMethods.CompareFonts(pair));
+            int? pageDiff = null;
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {
-                var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
-                switch (diff)
+                pageDiff = ComperingMethods.GetPageCountDifferenceExif(pair);
+                switch (pageDiff)
                 {
                     case null:
                         error = new Error(
@@ -63,7 +64,7 @@ public static class PdfPipelines
                             "The original and new document have a different page count.",
                             ErrorSeverity.High,
                             ErrorType.FileError,
-                            $"{diff}"
+                            $"{pageDiff}"
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
                         e.Add(error);
@@ -72,35 +73,6 @@ public static class PdfPipelines
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
                         break;
                 }
-            }
-            
-            var pageDiff = ComperingMethods.GetPageCountDifferenceExif(pair);
-            switch (pageDiff)
-            {
-                case null:
-                    GlobalVariables.Logger.AddTestResult(pair, "Page Count", false,
-                        errors: [new Error(
-                            "Could not get page count",
-                            "There was an error trying to get the page count from at least one of the files.",
-                            ErrorSeverity.High,
-                            ErrorType.FileError
-                        )]
-                    );
-                    break;
-                case > 0:
-                    GlobalVariables.Logger.AddTestResult(pair, "Page Count", false,
-                        errors: [new Error(
-                            "Difference in page count",
-                            "The original and new document have a different page count.",
-                            ErrorSeverity.High,
-                            ErrorType.FileError,
-                            $"{pageDiff}"
-                        )]
-                    );
-                    break;
-                default:
-                    GlobalVariables.Logger.AddTestResult(pair, "Page Count", true);
-                    break;
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))

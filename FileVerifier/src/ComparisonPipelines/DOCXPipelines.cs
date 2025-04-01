@@ -41,7 +41,7 @@ public static class DocxPipelines
             var oImages = ImageExtraction.ExtractImagesFromDocx(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
             
-            e.AddRange(BasePipeline.CompareFonts(pair));
+            e.AddRange(ComperingMethods.CompareFonts(pair));
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {

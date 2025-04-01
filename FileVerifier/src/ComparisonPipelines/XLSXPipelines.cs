@@ -38,7 +38,7 @@ public static class XLSXPipelines
         var oImages = ImageExtraction.ExtractImagesFromXlsx(pair.OriginalFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
         
-        e.AddRange(BasePipeline.CompareFonts(pair));
+        e.AddRange(ComperingMethods.CompareFonts(pair));
         
         BasePipeline.ExecutePipeline(() =>
         {
