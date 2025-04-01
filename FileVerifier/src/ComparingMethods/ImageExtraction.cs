@@ -7,7 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Xml.Linq;
-using AODL.Document.Content.Text;
+using AvaloniaDraft.Helpers;
 using MimeKit;
 using UglyToad.PdfPig.Content;
 using RtfDomParser;
@@ -416,6 +416,69 @@ public static class ImageExtraction
         foreach (var image in images)
         {
             image.Dispose();            
+        }
+    }
+
+    /// <summary>
+    /// Saves an MagickImage object as an actual image to disk. 
+    /// </summary>
+    /// <param name="image">The MagickImagic object to be saved.</param>
+    /// <param name="oFormat">Format of the original, using which the object will be encoded.</param>
+    /// <returns>A tuple containing the path to the file and its expected PRONOM code.</returns>
+    public static (string, string)? SaveExtractedImageToDisk(MagickImage image, MagickFormat oFormat)
+    {
+        try
+        {
+            string ext;
+            string expectedPronom; //Note that this might not be the exact code, but it should serve to distinguish format group.
+            switch (oFormat)
+            {
+                case MagickFormat.Png:
+                    image.Format = MagickFormat.Png;
+                    ext = ".png";
+                    expectedPronom = FormatCodes.PronomCodesPNG.FormatCodes[0];
+                    break;
+                case MagickFormat.Jpeg:
+                    image.Format = MagickFormat.Jpeg;
+                    ext = ".jpg";
+                    expectedPronom = FormatCodes.PronomCodesJPEG.FormatCodes[0];
+                    break;
+                case MagickFormat.Gif:
+                    image.Format = MagickFormat.Gif;
+                    ext = ".gif";
+                    expectedPronom = FormatCodes.PronomCodesGIF.FormatCodes[0];
+                    break;
+                case MagickFormat.Tiff:
+                    image.Format = MagickFormat.Tiff;
+                    ext = ".tiff";
+                    expectedPronom = FormatCodes.PronomCodesTIFF.FormatCodes[0];
+                    break;
+                case MagickFormat.Bmp:
+                    image.Format = MagickFormat.Bmp;
+                    ext = ".bmp";
+                    expectedPronom = FormatCodes.PronomCodesBMP.FormatCodes[0];
+                    break;
+                default:
+                    return null;
+            }
+
+            byte[] nImageBytes;
+            using (var ms = new MemoryStream())
+            {
+                image.Write(ms);
+                nImageBytes = ms.ToArray();
+            }
+
+            var tempDirs = GlobalVariables.FileManager!.GetTempDirectories();
+            var tempFilePath = TempFiles.CreateTemporaryFile(nImageBytes, tempDirs.Item2, ext);
+
+            if (tempFilePath == null) return null;
+            
+            return (tempFilePath, expectedPronom);
+        }
+        catch
+        {
+            return null;
         }
     }
 }

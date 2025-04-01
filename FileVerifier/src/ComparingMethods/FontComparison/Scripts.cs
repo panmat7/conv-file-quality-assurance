@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace AvaloniaDraft.ComparingMethods;
 /// </summary>
 public static class ScriptCodes
 {
-    public static readonly Dictionary<string, Dictionary<string, string>> Scripts = new Dictionary<string, Dictionary<string, string>>() {
+    public static readonly ImmutableDictionary<string, Dictionary<string, string>> Scripts = new Dictionary<string, Dictionary<string, string>>() {
             { "aa", new Dictionary<string, string> { { "", "Latn"} } },
             { "ab", new Dictionary<string, string> { { "", "Cyrl"} } },
             { "abq", new Dictionary<string, string> { { "", "Cyrl"} } },
@@ -584,5 +585,5 @@ public static class ScriptCodes
             { "zu", new Dictionary<string, string> { { "", "Latn"} } },
             { "zun", new Dictionary<string, string> { { "", "Latn"} } },
             { "zza", new Dictionary<string, string> { { "", "Arab"} } }
-        };
+        }.ToImmutableDictionary();
 }

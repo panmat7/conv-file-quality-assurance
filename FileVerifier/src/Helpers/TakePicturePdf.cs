@@ -1,15 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Docnet.Core;
 using Docnet.Core.Converters;
 using Docnet.Core.Models;
-using Docnet.Core.Readers;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace AvaloniaDraft.Helpers;
 
@@ -84,7 +80,6 @@ public static class TakePicturePdf
                 using (var library = DocLib.Instance)
                 using (var docReader = library.GetDocReader(path, new PageDimensions(512, 1920)))
                 {
-                    Console.WriteLine($"Opened {Path.GetFileName(path)} PDF file");
                     var pageCount = docReader.GetPageCount();
     
                     if (pageEnd > pageCount || pageEnd == null)
@@ -95,7 +90,6 @@ public static class TakePicturePdf
                     // Loop through all pages of the PDF
                     for (var i = pageStart ?? 0; i < pageEnd; i++)
                     {
-                        Console.WriteLine($"Reading page {i + 1} of {pageCount}");
                         using var pageReader = docReader.GetPageReader(i);
                         
                         if(pageReader == null) continue;

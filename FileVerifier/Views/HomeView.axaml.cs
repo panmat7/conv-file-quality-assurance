@@ -119,7 +119,12 @@ public partial class HomeView : UserControl
         });
         
         LoadButton.IsEnabled = true;
-        
+
+
+        GlobalVariables.Logger.Finish();
+        GlobalVariables.Logger.SaveReport();
+        Trace.WriteLine("Finished");
+
         Working = false;
     }
 

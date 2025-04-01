@@ -156,7 +156,23 @@ public static class ODSPipelines
                 }
             }
             
-            // TODO: Add table break check
+            if (GlobalVariables.Options.GetMethod(Methods.TableBreakCheck.Name))
+            {
+                var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(pair.OriginalFilePath);
+                if (res == null)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: [
+                        new Error(
+                            "Could not preform check for table breaks",
+                            "There occured an error when trying to preform check for table breaks.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        )
+                    ]);
+                else if (res.Count > 0)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: res);
+                else
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, true);
+            }
             
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +

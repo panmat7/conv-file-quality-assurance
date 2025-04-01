@@ -1,5 +1,6 @@
 ﻿using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using Emgu.CV.Face;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using System;
 using System.Collections.Generic;
@@ -46,12 +47,21 @@ public struct FontComparisonResult
     public List<string> FontsOnlyInOriginal { get; set; }
     public List<string> FontsOnlyInConverted { get; set; }
 
+    public List<string> TextColorsOnlyInOriginal { get; set; }
+    public List<string> BgColorsOnlyInOriginal { get; set; }
+
     public FontComparisonResult()
     {
+        Pass = false;
+        ContainsForeignCharacters = false;
+
         Errors = new List<Error>();
 
-        FontsOnlyInOriginal = new List<string>();
-        FontsOnlyInConverted = new List<string>();
+        FontsOnlyInOriginal = [];
+        FontsOnlyInConverted = [];
+
+        TextColorsOnlyInOriginal = [];
+        BgColorsOnlyInOriginal = [];
     }
 }
 
@@ -67,12 +77,11 @@ public static partial class FontComparison
     public static FontComparisonResult CompareFiles(FilePair fp)
     {
         var result = new FontComparisonResult();
-
-        TextInfo? oti;
-        TextInfo? nti;
+        result.Pass = true;
 
         // Make sure there were no issues reading the original file
-        if ((oti = GetTextInfo(fp.OriginalFilePath, fp.OriginalFileFormat)) is null)
+        var oti = GetTextInfo(fp.OriginalFilePath, fp.OriginalFileFormat);
+        if (oti is null)
         {
             result.Errors.Add(new Error(
                 "Error reading/opening file", 
@@ -83,7 +92,8 @@ public static partial class FontComparison
         }
 
         // Make sure there were no issues reading the converted file
-        if ((nti = GetTextInfo(fp.NewFilePath, fp.NewFileFormat)) is null)
+        var nti = GetTextInfo(fp.NewFilePath, fp.NewFileFormat);
+        if (nti is null)
         {
             result.Errors.Add(new Error(
                 "Error reading/opening file", 
@@ -94,28 +104,47 @@ public static partial class FontComparison
         }
 
         // Return if there were errors reading either
-        if (oti is not TextInfo ot || nti is not TextInfo nt) return result;
+        if (oti is not TextInfo ot || nti is not TextInfo nt)
+        {
+            result.Pass = false;
+            return result;
+        }
 
         // Check for fonts present in the original, but not the converted
         var fontsOnlyInOriginal = ot.Fonts.Except(nt.Fonts);
-        if (fontsOnlyInOriginal.Any()) foreach (var font in fontsOnlyInOriginal) result.FontsOnlyInOriginal.Add(font);
+        if (fontsOnlyInOriginal.Any())
+        {
+            foreach (var font in fontsOnlyInOriginal) result.FontsOnlyInOriginal.Add(font);
+            result.Pass = false;
+        }
 
         // Check for fonts present in the converted, but not the original
         var fontsOnlyInConverted = nt.Fonts.Except(ot.Fonts);
-        if (fontsOnlyInOriginal.Any()) foreach (var font in fontsOnlyInConverted) result.FontsOnlyInConverted.Add(font);
+        if (fontsOnlyInOriginal.Any())
+        {
+            foreach (var font in fontsOnlyInConverted) result.FontsOnlyInConverted.Add(font);
+            result.Pass = false;
+        }
 
         // Foreign characters
         result.ContainsForeignCharacters = (ot.ForeignWriting || nt.ForeignWriting);
 
-
-        // Check if colors are the same
-        if (!CompareColors(ot.TextColors, nt.TextColors))
+        // Check if text colors are the same
+        var textColorsOnlyInOriginal = CompareColors(ot.TextColors, nt.TextColors);
+        if (textColorsOnlyInOriginal.Any())
         {
             result.TextColorsNotConverted = true;
+            result.TextColorsOnlyInOriginal = textColorsOnlyInOriginal;
+            result.Pass = false;
         }
-        if (!CompareColors(ot.BgColors, nt.BgColors))
+
+        // Check if background colors are the same
+        var bgColorsOnlyInOriginal = CompareColors(ot.BgColors, nt.BgColors);
+        if (bgColorsOnlyInOriginal.Any())
         {
             result.BgColorsNotConverted = true;
+            result.BgColorsOnlyInOriginal = bgColorsOnlyInOriginal;
+            result.Pass = false;
         }
 
         return result;
@@ -244,9 +273,11 @@ public static partial class FontComparison
         {
             (0x0, 0x7F),    // Basic Latin
             (0x0A0, 0xFF),  // Latin supplement
-            (0x2000, 0x206F) // General punctuation
+            (0x2000, 0x206F), // General punctuation
+            (0x25A0, 0x25FF), // Geometric shapes
+            (0x2B00, 0x2BFF), // Miscellaneous Symbols and Arrows
+            (0xE000, 0xF8FF), // Private use area
         };
-
         return !InRange(c, nonForeignRanges);
     }
 
@@ -269,26 +300,15 @@ public static partial class FontComparison
     /// </summary>
     /// <param name="cols1">The first list of colors</param>
     /// <param name="cols2">The second list of colors</param>
-    /// <returns></returns>
-    private static bool CompareColors(HashSet<string> cols1, HashSet<string> cols2)
+    /// <returns>A list of colors from cols1 that did not match any colors form cols2</returns>
+    private static List<string> CompareColors(HashSet<string> cols1, HashSet<string> cols2)
     {
+        var nonMatchingColors = new List<string>();
         foreach (var col1 in cols1)
         {
-            var match = false;
-
-            foreach (var col2 in cols2)
-            {
-                if (ColorsEqual(col1, col2))
-                {
-                    match = true;
-                    break;
-                }
-            }
-
-            if (!match) return false;
+            if (!cols2.Any(col2 => ColorsEqual(col1, col2))) nonMatchingColors.Add(col1);
         }
-
-        return true;
+        return nonMatchingColors;
     }
 
 

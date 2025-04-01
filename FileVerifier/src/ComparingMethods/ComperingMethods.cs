@@ -111,7 +111,7 @@ public static class ComperingMethods
         {
             var propertyName = "";
             
-            if (FormatCodes.PronomCodesDOCX.Contains(format))
+            if (FormatCodes.PronomCodesDOCX.Contains(format) || FormatCodes.PronomCodesRTF.Contains(format))
             {
                 //Unboxing the value
                 propertyName = "Pages";
@@ -293,8 +293,18 @@ public static class ComperingMethods
         var pagesOriginal = TakePicturePdf.ConvertPdfToImagesToBytes(pair.OriginalFilePath, pageStart, pageEnd);
         var pagesNew = TakePicturePdf.ConvertPdfToImagesToBytes(pair.NewFilePath, pageStart, pageEnd);
         
-        //Return null if error occured or page count does not match.
-        if(pagesOriginal == null || pagesNew == null || pagesOriginal.Count != pagesNew.Count) return null;
+        //Return null if error occured
+        if (pagesOriginal == null || pagesNew == null) return null;
+        
+        //Error for mismatched page count
+        if(pagesOriginal.Count != pagesNew.Count)
+            return
+            [ new Error(
+                "Could not preform visual comparison due to mismatched page count",
+                "The two documents have a different amount of pages, thus no visual comparison could be preformed.",
+                ErrorSeverity.Medium,
+                ErrorType.FileError
+            )];
 
         for (var pageIndex = 0; pageIndex < pagesOriginal.Count; pageIndex++)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Avalonia;
 using Avalonia.Threading;
@@ -56,19 +57,16 @@ public static class BasePipeline
     /// <returns>The selected pipeline function, or null if none fitting the formats were found.</returns>
     public static Action<FilePair, int, Action<int>, Action>? SelectPipeline(FilePair pair)
     {
-        if (FormatCodes.PronomCodesPNG.Contains(pair.OriginalFileFormat))
-            return PngPipelines.GetPNGPipelines(pair.NewFileFormat);
+        if (FormatCodes.PronomCodesImages.Contains(pair.OriginalFileFormat))
+            return ImagePipelines.GetImagePipelines(pair.NewFileFormat);
         
         if (FormatCodes.PronomCodesDOCX.Contains(pair.OriginalFileFormat))
             return DocxPipelines.GetDocxPipeline(pair.NewFileFormat);
-
-        if (FormatCodes.PronomCodesJPEG.Contains(pair.OriginalFileFormat))
-            return JpgPipelines.GetJPEGPipelines(pair.NewFileFormat);
         
-        if (FormatCodes.PronomCodesPPTX.Contains(pair.OriginalFileFormat))
+        if(FormatCodes.PronomCodesPPTX.Contains(pair.OriginalFileFormat))
             return PptxPipelines.GetPptxPipeline(pair.NewFileFormat);
         
-        if (FormatCodes.PronomCodesPDF.Contains(pair.OriginalFileFormat))
+        if(FormatCodes.PronomCodesPDF.Contains(pair.OriginalFileFormat))
             return PdfPipelines.GetPdfPipelines(pair.NewFileFormat);
 
         if (FormatCodes.PronomCodesODP.Contains(pair.OriginalFileFormat))
@@ -93,11 +91,11 @@ public static class BasePipeline
     /// <summary>
     /// Compare the fonts of two files
     /// </summary>
-    /// <param name="fp"></param>
+    /// <param name="fp">The file pair</param>
     public static List<Error> CompareFonts(FilePair fp)
     {
         if (!GlobalVariables.Options.GetMethod(Methods.Fonts)) return [];
-        
+
         var comments = new List<string>();
         var errors = new List<Error>();
 

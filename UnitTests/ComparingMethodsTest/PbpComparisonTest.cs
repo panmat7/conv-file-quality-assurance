@@ -87,4 +87,17 @@ public class PbpComparisonTests
         // Assert: Ensure the result is -1 for invalid paths
         Assert.That(result, Is.EqualTo(-1));
     }
+
+    [Test]
+    public void ManualTestThing()
+    {
+        var filePathO = @"C:\Users\kaczm\Pictures\TEST\test2.png";
+        var filePathN = @"C:\Users\kaczm\Pictures\TEST\test2.jpg";
+        
+        var pair = new FilePair(filePathO, filePathN);
+        
+        var res = PbpComparison.CalculateImageSimilarity(pair);
+        
+        Assert.That(res, Is.InRange(80.0, 100.0));
+    }
 }

@@ -38,6 +38,9 @@ public class Logger
     /// </summary>
     public struct ComparisonResult
     {
+        public int TotalTests { get; set; }
+        public int TestsPassed { get; set; }
+
         public FilePair FilePair { get; set; }
         public Dictionary<string, TestResult> Tests { get; set; }
 
@@ -45,6 +48,9 @@ public class Logger
 
         public ComparisonResult(FilePair filePair)
         {
+            TotalTests = 0;
+            TestsPassed = 0;
+
             Tests = new Dictionary<string, TestResult>();
 
             Pass = true;
@@ -66,6 +72,8 @@ public class Logger
         }
     }
 
+    public int FileComparisonCount { get; set; }
+    public int FileComparisonsFailed { get; set; }
 
     public bool Active { get; set; }
     public bool Finished { get; set; }
@@ -83,6 +91,8 @@ public class Logger
 
         Stopwatch = new Stopwatch();
 
+        FileComparisonCount = 0;
+        FileComparisonsFailed = 0;
         Results = new List<ComparisonResult>();
     }
 
@@ -93,6 +103,9 @@ public class Logger
     public void Start()
     {
         if (Active) return;
+
+        FileComparisonCount = 0;
+        FileComparisonsFailed = 0;
 
         Active = true;
         Stopwatch.Restart();
@@ -111,7 +124,7 @@ public class Logger
     /// <param name="errors">Error</param>
     public void AddTestResult(FilePair filePair, string testName, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
     {
-        var testResult = new TestResult(pass, percentage, comments, errors);
+        var testResult = new TestResult(pass, percentage, comments ?? [], errors ?? []);
 
         var index = Results.FindIndex(r => r.FilePair.OriginalFilePath == filePair.OriginalFilePath && r.FilePair.NewFilePath == filePair.NewFilePath);
         if (index == -1)
@@ -119,15 +132,19 @@ public class Logger
             var cr = new ComparisonResult(filePair);
             cr.AddTestResult(testResult, testName);
             Results.Add(cr);
+            FileComparisonCount++;
+            if (!cr.Pass) FileComparisonsFailed++;
         }
         else
         {
+            var testPassed = Results[index].Pass;
             Results[index].AddTestResult(testResult, testName);
+            if (testPassed && !Results[index].Pass) FileComparisonsFailed++;
         }
     }
 
     /// <summary>
-    /// Finish logging. Must be called before ExportJSON can be called
+    /// Finish logging
     /// </summary>
     public void Finish()
     {
@@ -140,13 +157,42 @@ public class Logger
 
 
     /// <summary>
+    /// Save the report
+    /// </summary>
+    public void SaveReport()
+    {
+        // Get directory
+        string? dir = null;
+        var currentDir = Directory.GetCurrentDirectory();
+        while (currentDir != null)
+        {
+            if (Path.GetFileName(currentDir) == "FileVerifier")
+            {
+                dir = Path.Join(currentDir, "reports");
+                break;
+            }
+            currentDir = Directory.GetParent(currentDir)?.FullName;
+        }
+
+        if (dir == null) return;
+
+        var name = DateTime.Now.ToString();
+        name = name.Replace(' ', '_');
+        name = name.Replace('.', '-');
+        name = name.Replace(':', '-');
+        name += ".json";
+        var path = Path.Join(dir, name);
+
+        ExportJSON(path);
+    }
+
+
+    /// <summary>
     /// Export the current log to a JSON file
     /// </summary>
     /// <param name="dir">The directory where the JSON file is to be exported</param>
     public void ExportJSON(string path)
     {
-        if (Active) return;
-
         try
         {
             string jsonString = JsonSerializer.Serialize(this);
@@ -179,6 +225,8 @@ public class Logger
             var l = JsonSerializer.Deserialize<Logger>(jsonString, seralizerOptions);
             if (l is Logger logger)
             {
+                this.FileComparisonCount = l.FileComparisonCount;
+                this.FileComparisonsFailed = l.FileComparisonsFailed;
                 this.Results = logger.Results;
                 this.Stopwatch = logger.Stopwatch;
             }

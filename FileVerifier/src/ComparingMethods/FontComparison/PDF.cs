@@ -21,7 +21,6 @@ public static class PdfFontExtraction
         var textColors = new HashSet<string>();
         var bgColors = new HashSet<string>();
 
-
         var doc = UglyToad.PdfPig.PdfDocument.Open(src);
         var pages = doc.GetPages();
         foreach (var page in pages)
@@ -70,7 +69,6 @@ public static class PdfFontExtraction
                 if (hex != null) textColors.Add(hex);
             }
         }
-
         var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
