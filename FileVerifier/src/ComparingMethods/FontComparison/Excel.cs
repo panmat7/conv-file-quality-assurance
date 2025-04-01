@@ -29,63 +29,67 @@ public static class ExcelFontExtraction
         var doc = new ExcelPackage(src);
         var sheets = doc.Workbook.Worksheets;
 
-        if (sheets == null) return null;
-
-        // Go through each sheet
-        foreach (var sheet in sheets)
+        // Go through each cell
+        foreach (var cell in sheets.Select(sheet => sheet.Cells))
         {
-
-            // Go through each cell
-            var cells = sheet.Cells;
-            foreach (var cell in cells)
-            {
-                // Get the cell's fill color
-                var fillCol = cell.Style.Fill.BackgroundColor.LookupColor();
-                if (fillCol != null && fillCol != "")
-                {
-                    var hex = fillCol.Substring(3); // Remove the '#' and the alpha
-                    bgColors.Add(hex);
-                }
-
-                if (!foreignWriting && FontComparison.IsForeign(cell.Text)) foreignWriting = true;
-
-                // If there are multiple styles in cell
-                if (cell.IsRichText)
-                {
-                    var richTxt = cell.RichText;
-
-                    // Go through each part of the rich text
-                    foreach (var p in richTxt)
-                    {
-                        // Text color
-                        var txtCol = p.Color;
-                        var hex = FontComparison.GetHex((txtCol.R, txtCol.G, txtCol.B));
-                        textColors.Add(hex);
-
-                        // Font
-                        var font = FontComparison.NormalizeFontName(p.FontName);
-                        if (font != "") fonts.Add(font);
-                    }
-                }
-                else // One font style
-                {
-                    var fStyle = cell.Style.Font;
-
-                    // Text color
-                    var txtCol = fStyle.Color.LookupColor();
-                    if (txtCol != null && txtCol != "")
-                    {
-                        textColors.Add(txtCol.Substring(3));
-                    }
-
-                    // Font
-                    var font = FontComparison.NormalizeFontName(fStyle.Name);
-                    if (font != "") fonts.Add(font);
-                }
-            }
+            ReadCellProperties(cell, fonts, textColors, bgColors, ref foreignWriting);
         }
 
         var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
+    }
+
+
+    /// <summary>
+    /// Read the properties of a cell
+    /// </summary>
+    /// <param name="cell"></param>
+    /// <param name="fonts"></param>
+    /// <param name="textColors"></param>
+    /// <param name="bgColors"></param>
+    private static void ReadCellProperties(ExcelRange cell, HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, ref bool foreignWriting)
+    {
+        // Check for foreign writing
+        var containsForeignText = (!foreignWriting && FontComparison.IsForeign(cell.Text));
+        if (containsForeignText) foreignWriting = true;
+
+        // Get the cell's fill color
+        var fillCol = cell.Style.Fill.BackgroundColor.LookupColor();
+        if (!string.IsNullOrEmpty(fillCol))
+        {
+            var hex = fillCol.Substring(3); // Remove the '#' and the alpha
+            bgColors.Add(hex);
+        }
+
+        // If there are multiple styles in cell
+        if (cell.IsRichText)
+        {
+            var richTxt = cell.RichText;
+
+            // Go through each part of the rich text
+            foreach (var p in richTxt)
+            {
+                // Text color
+                var txtCol = p.Color;
+                var hex = FontComparison.GetHex((txtCol.R, txtCol.G, txtCol.B));
+                textColors.Add(hex);
+
+                // Font
+                var font = FontComparison.NormalizeFontName(p.FontName);
+                if (font != "") fonts.Add(font);
+            }
+        }
+        else // One font style
+        {
+            var fStyle = cell.Style.Font;
+
+            // Text color
+            var txtCol = fStyle.Color.LookupColor();
+            if (!string.IsNullOrEmpty(txtCol)) textColors.Add(txtCol.Substring(3));
+
+            // Font
+            var font = FontComparison.NormalizeFontName(fStyle.Name);
+            if (!string.IsNullOrEmpty(font)) fonts.Add(font);
+        }
     }
 }
