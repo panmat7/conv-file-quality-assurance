@@ -41,6 +41,8 @@ public static class DocxPipelines
             var oImages = ImageExtraction.ExtractImagesFromDocx(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
             
+            e.AddRange(BasePipeline.CompareFonts(pair));
+            
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {
                 var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
@@ -117,7 +119,7 @@ public static class DocxPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.DocxToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {

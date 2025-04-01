@@ -119,7 +119,7 @@ public static class PptxPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
