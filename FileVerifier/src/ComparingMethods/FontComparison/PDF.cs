@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UglyToad.PdfPig.Graphics.Colors;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -23,53 +24,61 @@ public static class PdfFontExtraction
 
         var doc = UglyToad.PdfPig.PdfDocument.Open(src);
         var pages = doc.GetPages();
-        foreach (var page in pages)
+
+
+        // Go through each character
+        foreach (var letter in pages.SelectMany(p => p.Letters))
         {
-            var letters = page.Letters;
+            // Skip if it is null or white space
+            if (String.IsNullOrWhiteSpace(letter.Value)) continue;
 
-            // Get marking and paragraph colors
-            var paths = page.Paths;
-            foreach (var path in paths)
-            {
-                if (path.IsFilled)
-                {
-                    try
-                    {
-                        var color = path.FillColor?.ToRGBValues();
-                        if (color is (double r, double g, double b) rgb)
-                        {
-                            var hex = FontComparison.GetHex(rgb);
-                            bgColors.Add(hex);
-                        }
-                    }
-                    catch
-                    {
-                        // Nothing
-                    }
-                }
-            }
+            // Get the font
+            string font = letter.Font.Name;
+            fonts.Add(FontComparison.NormalizeFontName(font));
 
-            // Go through each character
-            foreach (var letter in letters)
-            {
-                // Skip if it is null or white space
-                if (String.IsNullOrWhiteSpace(letter.Value)) continue;
+            // Get the color of the letter
+            var hex = GetColor(letter.Color);
+            if (hex != null) bgColors.Add(hex);
 
-                // Get the font
-                string font = letter.Font.Name;
-                fonts.Add(FontComparison.NormalizeFontName(font));
-
-                // Get the color of the letter
-                var col = letter.Color.ToRGBValues();
-                var hex = FontComparison.GetHex(col);
-
-                // Check for foreign writing
-                if (!foreignWriting && FontComparison.IsForeign(letter.Value)) foreignWriting = true;
-
-                if (hex != null) textColors.Add(hex);
-            }
+            // Check for foreign writing
+            if (!foreignWriting && FontComparison.IsForeign(letter.Value)) foreignWriting = true;
         }
+
+
+        // Get marking and paragraph colors
+        foreach (var path in pages.SelectMany(p => p.Paths))
+        {
+            var hex = GetColor(path.FillColor);
+            if (hex != null) bgColors.Add(hex);
+        }
+
         var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
+    }
+
+
+    /// <summary>
+    /// Get the hex from a PDF color
+    /// </summary>
+    /// <param name="col"></param>
+    /// <returns></returns>
+    private static string? GetColor(IColor? col)
+    {
+        if (col == null) return null;
+
+        try
+        {
+            var color = col.ToRGBValues();
+            if (color is (double r, double g, double b) rgb)
+            {
+                return FontComparison.GetHex(rgb);
+            }
+        }
+        catch
+        {
+            return null;
+        }
+
+        return null;
     }
 }
