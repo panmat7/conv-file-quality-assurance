@@ -138,7 +138,8 @@ public static class PngPipelines
             {
                 var acceptance = 85; //Read from options later ?
 
-                var res = ImageRegistration.CalculateHistogramSimilarity(pair);
+                var res = PbpComparison.CalculateImageSimilarity(pair);
+                Console.WriteLine($"Similarity: {res}");
 
                 if (res < 0)
                 {

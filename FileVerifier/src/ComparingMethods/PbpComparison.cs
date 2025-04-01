@@ -67,7 +67,7 @@ public static class PbpComparison
             {
                 var img1Row = MemoryMarshal.Cast<Rgba32, byte>(img1Accessor.GetRowSpan(y));
                 var img2Row = MemoryMarshal.Cast<Rgba32, byte>(img2Accessor.GetRowSpan(y));
-                matchingPixels += ProcessRowPixels(img1Row, img2Row, 3); // RGB has 3 components
+                matchingPixels += ProcessRowPixels(img1Row, img2Row, 4); 
             }
         });
 
@@ -122,28 +122,16 @@ public static class PbpComparison
     }
 
     /// <summary>
-    /// Counts the number of matching pixels using SIMD (Single Instruction, Multiple Data) for performance.
+    /// Counts the number of matching pixels
     /// </summary>
     private static int CountMatchingPixels(Span<byte> img1Row, Span<byte> img2Row, int componentPixel, ref int x)
     {
         int matchingPixels = 0;
+        int length = Math.Min(img1Row.Length, img2Row.Length) - componentPixel;
 
-        // Iterate through pixels one-by-one
-        for (; x < img1Row.Length && x < img2Row.Length; x += componentPixel)
+        for (; x <= length; x += componentPixel)
         {
-            bool pixelMatch = true;
-        
-            // Compare each component (R, G, B) of the pixel
-            for (int j = 0; j < componentPixel; j++)
-            {
-                if (img1Row[x + j] != img2Row[x + j])
-                {
-                    pixelMatch = false;
-                    break;
-                }
-            }
-
-            if (pixelMatch)
+            if (img1Row.Slice(x, componentPixel).SequenceEqual(img2Row.Slice(x, componentPixel)))
             {
                 matchingPixels++;
             }
@@ -151,6 +139,4 @@ public static class PbpComparison
 
         return matchingPixels;
     }
-
-
 }
