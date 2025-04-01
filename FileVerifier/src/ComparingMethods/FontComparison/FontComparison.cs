@@ -200,7 +200,7 @@ public static partial class FontComparison
         }
 
         // Remove substrings, such as style variations, that only appear in some formats
-        string[] str = ["Semibold", "Demibold", "Bold", "Italic", "Condensed", "Medium", "Regular", "Reg", "PS", "MT", "MS", "Unicode", "-", ",", " "];
+        string[] str = ["Semibold", "Demibold", "Bold", "Italic", "Condensed", "Medium", "Regular", "Reg", "PS", "MT", "MS", "Unicode", "-", ",", "'", " "];
         foreach (string s in str)
         {
             f = f.Replace(s, "");
