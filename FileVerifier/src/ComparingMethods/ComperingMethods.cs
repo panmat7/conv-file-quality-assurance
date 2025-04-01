@@ -111,7 +111,7 @@ public static class ComperingMethods
         {
             var propertyName = "";
             
-            if (FormatCodes.PronomCodesDOCX.Contains(format))
+            if (FormatCodes.PronomCodesDOCX.Contains(format) || FormatCodes.PronomCodesRTF.Contains(format))
             {
                 //Unboxing the value
                 propertyName = "Pages";
