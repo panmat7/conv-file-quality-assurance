@@ -136,9 +136,9 @@ public static class PngPipelines
 
             if(GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name))
             {
-                var acceptance = 85; //Read from options later ?
+                var acceptance = 0.5; //Read from options later ?
 
-                var res = PbpComparison.CalculateImageSimilarity(pair);
+                var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
                 Console.WriteLine($"Similarity: {res}");
 
                 if (res < 0)
