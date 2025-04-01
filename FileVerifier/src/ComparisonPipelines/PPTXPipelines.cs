@@ -160,7 +160,7 @@ public static class PptxPipelines
 
                 try
                 {
-                    res = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(oImages, nImages);
+                    res = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {

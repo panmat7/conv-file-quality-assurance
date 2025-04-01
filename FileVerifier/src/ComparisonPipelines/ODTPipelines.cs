@@ -160,7 +160,7 @@ public static class ODTPipelines
 
                 try
                 {
-                    res = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
+                    res = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {

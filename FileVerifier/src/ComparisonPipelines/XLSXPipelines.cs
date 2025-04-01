@@ -121,7 +121,7 @@ public static class XLSXPipelines
 
                 try
                 {
-                    res = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
+                    res = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
