@@ -43,12 +43,12 @@ public static class Siegfried
     /// <param name="files">The list of file pairs from both directories</param>
     public static void GetFileFormats(string originalDir, string newDir, string tempOriginalDir, string tempNewDir, ref List<FilePair> files)
     {
-        string terminal = "";
-        string arguments = "";
-        string windowsTerminal = "powershell.exe";
-        string linuxTerminal = "/bin/bash";
-        string windowsArguments = $"-ExecutionPolicy Bypass -Command \"sf -json \\\"{originalDir}\\\"; sf -json \\\"{newDir}\\\"; sf -json \\\"{tempOriginalDir}\\\"; sf -json \\\"{tempNewDir}\\\"\"";
-        string linuxArguments = $"-c \"sf -json '{originalDir}'; sf -json '{newDir}'; sf -json '{tempOriginalDir}'; sf -json '{tempNewDir}'\"";
+        var terminal = "";
+        var arguments = "";
+        const string windowsTerminal = "powershell.exe";
+        const string linuxTerminal = "/bin/bash";
+        var windowsArguments = $"-ExecutionPolicy Bypass -Command \"sf -json \\\"{originalDir}\\\"; sf -json \\\"{newDir}\\\"; sf -json \\\"{tempOriginalDir}\\\"; sf -json \\\"{tempNewDir}\\\"\"";
+        var linuxArguments = $"-c \"sf -json '{originalDir}'; sf -json '{newDir}'; sf -json '{tempOriginalDir}'; sf -json '{tempNewDir}'\"";
 
         if (OperatingSystem.IsWindows())
         {
@@ -85,7 +85,7 @@ public static class Siegfried
         var output = process.StandardOutput.ReadToEnd();
         var error = process.StandardError.ReadToEnd();
 
-        if (!string.IsNullOrEmpty(error)) throw new Exception(windowsArguments);
+        if (!string.IsNullOrEmpty(error)) UiControlService.Instance.OverwriteConsoleOutput("There occurred an error when using Siegried.");
 
         // Use a regular expression to split the JSON objects correctly
         var regex = new Regex(@"(?<=\})\s*(?=\{)");

@@ -74,6 +74,35 @@ public static class PdfPipelines
                 }
             }
             
+            var pageDiff = ComperingMethods.GetPageCountDifferenceExif(pair);
+            switch (pageDiff)
+            {
+                case null:
+                    GlobalVariables.Logger.AddTestResult(pair, "Page Count", false,
+                        errors: [new Error(
+                            "Could not get page count",
+                            "There was an error trying to get the page count from at least one of the files.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        )]
+                    );
+                    break;
+                case > 0:
+                    GlobalVariables.Logger.AddTestResult(pair, "Page Count", false,
+                        errors: [new Error(
+                            "Difference in page count",
+                            "The original and new document have a different page count.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError,
+                            $"{pageDiff}"
+                        )]
+                    );
+                    break;
+                default:
+                    GlobalVariables.Logger.AddTestResult(pair, "Page Count", true);
+                    break;
+            }
+            
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
@@ -190,28 +219,69 @@ public static class PdfPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.VisualDocComp.Name))
             {
-                var res = ComperingMethods.VisualDocumentComparison(pair);
+                //No point preformed if mismatched pages
+                if (pageDiff == 0)
+                {
+                    //Getting the page count and using it to determine if to do everything in one go, or split
+                    var pageCount = ComperingMethods.GetPageCountExif(pair.OriginalFilePath, pair.OriginalFileFormat);
 
-                if (res == null)
-                {
-                    error = new Error(
-                        "Error while preforming the visual comparison",
-                        "Could not preform the visual comparison due to an error while getting the page " +
-                        "images or while segmenting the image.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Visual
-                    );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false, errors: [error]);
-                    e.Add(error);
-                }
+                    if (pageCount > 75)
+                    {
+                        var checkIntervals = DocumentVisualOperations.GetPageCheckIndexes(pageCount.Value, 25);
+                        var errors = false;
+                        
+                        foreach (var interval in checkIntervals)
+                        {
+                            var res = ComperingMethods.VisualDocumentComparison(pair, interval.Item1, interval.Item2);
+
+                            if (res == null)
+                            {
+                                GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                                    errors: [new Error(
+                                        "Error while preforming the visual comparison",
+                                        "Could not preform the visual comparison due to an error while getting the page " +
+                                        "images or while segmenting the image.",
+                                        ErrorSeverity.Medium,
+                                        ErrorType.Visual
+                                    )]);
+                                errors = true;
+                                break;
+                            }
+
+                            if (res.Count <= 0) continue;
+                            
+                            errors = true;
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false, errors: res);
+                        }
+                        
+                        if(!errors) GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, true);
+                        
+                        GC.WaitForPendingFinalizers();
+                    }
+                    else
+                    {
+                        var res = ComperingMethods.VisualDocumentComparison(pair);
                 
-                else if (res.Count > 0)
-                {
-                    Console.WriteLine("ERRORS DURING VISUAL COMPARISON");
-                    //TODO: Log errors
+                        if (res == null)
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                                errors: [new Error(
+                                    "Error while preforming the visual comparison",
+                                    "Could not preform the visual comparison due to an error while getting the page " +
+                                    "images or while segmenting the image.",
+                                    ErrorSeverity.Medium,
+                                    ErrorType.Visual
+                                )]);
+                        else if (res.Count > 0)
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                                errors: res);
+                        
+                        else
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, true);
+                    }
                 }
                 else
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, true);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                        comments: ["Comparison not preformed due to page count differences."]);
             }
             
             UiControlService.Instance.AppendToConsole(

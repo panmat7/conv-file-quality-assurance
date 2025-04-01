@@ -9,31 +9,50 @@ public class TempFileTest
     private byte[] testData;
     private string testExtension;
     private string tempFilePath;
+    private string _testFileDirectory;
 
     [SetUp]
     public void Setup()
     {
         testData = new byte[] { 1, 2, 3, 4, 5 }; // Sample data
         testExtension = "txt"; // Example extension
+        
+        var curDir = Directory.GetCurrentDirectory();
+
+        while (!string.IsNullOrEmpty(curDir))
+        {
+            if (Path.GetFileName(curDir) == "conv-file-quality-assurance")
+            {
+                _testFileDirectory = curDir + @"\UnitTests\ComparingMethodsTest\TestFiles\";
+                return;
+            }
+            
+            curDir = Directory.GetParent(curDir)?.FullName;
+        }
+        
+        throw new Exception("Failed to find project directory \"conv-file-quality-assurance\"");
     }
 
     [Test]
     public void CreateTemporaryFile_ShouldCreateFileWithCorrectExtension()
     {
-        tempFilePath = TempFiles.CreateTemporaryFile(testData, testExtension);
-        Assert.That(tempFilePath, Is.Not.Null);
+        tempFilePath = TempFiles.CreateTemporaryFile(testData, _testFileDirectory, testExtension);
+        Assert.Multiple(() =>
+        {
+            Assert.That(tempFilePath, Is.Not.Null);
 
-        // Check file exists
-        Assert.That(File.Exists(tempFilePath), Is.True, "Temp file should exist.");
+            // Check file exists
+            Assert.That(File.Exists(tempFilePath), Is.True, "Temp file should exist.");
 
-        // Check extension
-        Assert.That(Path.GetExtension(tempFilePath), Is.EqualTo($".{testExtension}"), "File should have the correct extension.");
+            // Check extension
+            Assert.That(Path.GetExtension(tempFilePath), Is.EqualTo($".{testExtension}"), "File should have the correct extension.");
+        });
     }
 
     [Test]
     public void CreateTemporaryFile_ShouldWriteCorrectData()
     {
-        tempFilePath = TempFiles.CreateTemporaryFile(testData, testExtension);
+        tempFilePath = TempFiles.CreateTemporaryFile(testData, _testFileDirectory, testExtension);
         Assert.That(tempFilePath, Is.Not.Null);
 
         byte[] fileContents = File.ReadAllBytes(tempFilePath);
@@ -45,7 +64,7 @@ public class TempFileTest
     [Test]
     public void CreateTemporaryFile_CorrectDataNoExtension()
     {
-        tempFilePath = TempFiles.CreateTemporaryFile(testData);
+        tempFilePath = TempFiles.CreateTemporaryFile(testData, _testFileDirectory);
         Assert.That(tempFilePath, Is.Not.Null);
 
         Assert.That(Path.GetExtension(tempFilePath), Is.EqualTo(".temp"), "File should have the correct extension.");
@@ -54,7 +73,7 @@ public class TempFileTest
     [Test]
     public void DeleteTemporaryFile_ShouldRemoveFile()
     {
-        tempFilePath = TempFiles.CreateTemporaryFile(testData, testExtension);
+        tempFilePath = TempFiles.CreateTemporaryFile(testData, _testFileDirectory, testExtension);
         Assert.Multiple(() =>
         {
             Assert.That(tempFilePath, Is.Not.Null);
