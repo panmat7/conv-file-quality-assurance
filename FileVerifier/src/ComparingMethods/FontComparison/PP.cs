@@ -128,14 +128,14 @@ public static class PPFontExtraction
                     });
 
                     // Go through each paragraph
-                    var paragraphs = text.Descendants<DocumentFormat.OpenXml.Drawing.Paragraph>();
-                    foreach (var paragraph in paragraphs)
+                    var paragraphs = text.Descendants<Paragraph>();
+                    foreach (Paragraph paragraph in paragraphs)
                     {
-                        var pProp = paragraph?.ParagraphProperties;
+                        var pProp = paragraph.ParagraphProperties;
                         int? lvl = pProp?.Level?.Value;
 
                         bool hasLevel = lvl != null;
-                        bool phHasNonBullet = placeholderShape?.TextBody?.Descendants<DocumentFormat.OpenXml.Drawing.Paragraph>().Any(p => p.ParagraphProperties?.Level is null) ?? true;
+                        bool phHasNonBullet = placeholderShape?.TextBody?.Descendants<Paragraph>().Any(p => p.ParagraphProperties?.Level is null) ?? true;
                         bool isExplicitlyNotBullet = paragraph.Descendants<NoBullet>().Any();
                         bool hasExplicitBullet = paragraph.Descendants<CharacterBullet>().Any() ||
                             paragraph.Descendants<AutoNumberedBullet>().Any() || paragraph.Descendants<BulletFont>().Any();
@@ -441,7 +441,7 @@ public static class PPFontExtraction
     /// </summary>
     /// <param name="slideMasterPart"></param>
     /// <returns></returns>
-    private static Dictionary<string, string> GetSlideColors(SlideMasterPart slideMasterPart)
+    private static Dictionary<string, string>? GetSlideColors(SlideMasterPart slideMasterPart)
     {
         var colorDic = new Dictionary<string, string>();
 
@@ -453,18 +453,18 @@ public static class PPFontExtraction
         var colorScheme = themePart?.Theme?.ThemeElements?.ColorScheme;
         if (colorScheme == null) return null;
 
-        colorDic["accent1"] = GetMappedColor(colorScheme, colorMap.Accent1);
-        colorDic["accent2"] = GetMappedColor(colorScheme, colorMap.Accent2);
-        colorDic["accent3"] = GetMappedColor(colorScheme, colorMap.Accent3);
-        colorDic["accent4"] = GetMappedColor(colorScheme, colorMap.Accent4);
-        colorDic["accent5"] = GetMappedColor(colorScheme, colorMap.Accent5);
-        colorDic["accent6"] = GetMappedColor(colorScheme, colorMap.Accent6);
-        colorDic["tx1"] = GetMappedColor(colorScheme, colorMap.Text1);
-        colorDic["tx2"] = GetMappedColor(colorScheme, colorMap.Text2);
-        colorDic["bg1"] = GetMappedColor(colorScheme, colorMap.Background1);
-        colorDic["bg2"] = GetMappedColor(colorScheme, colorMap.Background2);
-        colorDic["hlink"] = GetMappedColor(colorScheme, colorMap.Hyperlink);
-        colorDic["folHlink"] = GetMappedColor(colorScheme, colorMap.FollowedHyperlink);
+        colorDic["accent1"] = GetMappedColor(colorScheme, colorMap.Accent1) ?? "";
+        colorDic["accent2"] = GetMappedColor(colorScheme, colorMap.Accent2) ?? "";
+        colorDic["accent3"] = GetMappedColor(colorScheme, colorMap.Accent3) ?? "";
+        colorDic["accent4"] = GetMappedColor(colorScheme, colorMap.Accent4) ?? "";
+        colorDic["accent5"] = GetMappedColor(colorScheme, colorMap.Accent5) ?? "";
+        colorDic["accent6"] = GetMappedColor(colorScheme, colorMap.Accent6) ?? "";
+        colorDic["tx1"] = GetMappedColor(colorScheme, colorMap.Text1) ?? "";
+        colorDic["tx2"] = GetMappedColor(colorScheme, colorMap.Text2) ?? "";
+        colorDic["bg1"] = GetMappedColor(colorScheme, colorMap.Background1) ?? "";
+        colorDic["bg2"] = GetMappedColor(colorScheme, colorMap.Background2) ?? "";
+        colorDic["hlink"] = GetMappedColor(colorScheme, colorMap.Hyperlink) ?? "";
+        colorDic["folHlink"] = GetMappedColor(colorScheme, colorMap.FollowedHyperlink)  ?? "";
 
         return colorDic;
     }
@@ -476,7 +476,7 @@ public static class PPFontExtraction
     /// <param name="colorScheme"></param>
     /// <param name="colorIndex"></param>
     /// <returns></returns>
-    private static string GetMappedColor(ColorScheme colorScheme, string? colorIndex)
+    private static string? GetMappedColor(ColorScheme colorScheme, string? colorIndex)
     {
         const string black = "000000";
         const string white = "FFFFFF";
