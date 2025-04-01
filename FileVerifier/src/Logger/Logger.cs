@@ -86,14 +86,13 @@ public class Logger
     /// </summary>
     public void Initialize()
     {
-        FileComparisonCount = 0;
-        FileComparisonsFailed = 0;
-
         Active = false;
         Finished = false;
 
         Stopwatch = new Stopwatch();
 
+        FileComparisonCount = 0;
+        FileComparisonsFailed = 0;
         Results = new List<ComparisonResult>();
     }
 
@@ -104,6 +103,9 @@ public class Logger
     public void Start()
     {
         if (Active) return;
+
+        FileComparisonCount = 0;
+        FileComparisonsFailed = 0;
 
         Active = true;
         Stopwatch.Restart();
@@ -142,7 +144,7 @@ public class Logger
     }
 
     /// <summary>
-    /// Finish logging. Must be called before ExportJSON can be called
+    /// Finish logging
     /// </summary>
     public void Finish()
     {
@@ -155,13 +157,42 @@ public class Logger
 
 
     /// <summary>
+    /// Save the report
+    /// </summary>
+    public void SaveReport()
+    {
+        // Get directory
+        string? dir = null;
+        var currentDir = Directory.GetCurrentDirectory();
+        while (currentDir != null)
+        {
+            if (Path.GetFileName(currentDir) == "FileVerifier")
+            {
+                dir = Path.Join(currentDir, "reports");
+                break;
+            }
+            currentDir = Directory.GetParent(currentDir)?.FullName;
+        }
+
+        if (dir == null) return;
+
+        var name = DateTime.Now.ToString();
+        name = name.Replace(' ', '_');
+        name = name.Replace('.', '-');
+        name = name.Replace(':', '-');
+        name += ".json";
+        var path = Path.Join(dir, name);
+
+        ExportJSON(path);
+    }
+
+
+    /// <summary>
     /// Export the current log to a JSON file
     /// </summary>
     /// <param name="dir">The directory where the JSON file is to be exported</param>
     public void ExportJSON(string path)
     {
-        if (Active) return;
-
         try
         {
             string jsonString = JsonSerializer.Serialize(this);
@@ -194,6 +225,8 @@ public class Logger
             var l = JsonSerializer.Deserialize<Logger>(jsonString, seralizerOptions);
             if (l is Logger logger)
             {
+                this.FileComparisonCount = l.FileComparisonCount;
+                this.FileComparisonsFailed = l.FileComparisonsFailed;
                 this.Results = logger.Results;
                 this.Stopwatch = logger.Stopwatch;
             }

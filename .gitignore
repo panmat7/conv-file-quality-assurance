@@ -270,3 +270,6 @@ FakesAssemblies/
 
 # Ignore saved settings
 FileVerifier/settings/*.json
+
+# Ignore reports
+FileVerifier/reports/*.json

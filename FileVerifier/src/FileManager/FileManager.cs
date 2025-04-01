@@ -288,8 +288,6 @@ public sealed class FileManager
         }
 
         AwaitThreads(); //Awaiting all remaining threads
-
-        GlobalVariables.Logger.Finish();
         
         foreach (var file in _filePairs)
         {
