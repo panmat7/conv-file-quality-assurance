@@ -80,7 +80,7 @@ public static class XLSXPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.XmlBasedPowerPointToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {
@@ -154,8 +154,15 @@ public static class XLSXPipelines
                         break;
                 }
             }
-            
-            // TODO: Add table break check
+
+            if (GlobalVariables.Options.GetMethod(Methods.TableBreakCheck.Name))
+            {
+                var res = SpreadsheetComparison.PossibleSpreadsheetBreakExcel(pair.OriginalFilePath);
+                if (res.Count > 0)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: res);
+                else
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, true);
+            }
             
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +

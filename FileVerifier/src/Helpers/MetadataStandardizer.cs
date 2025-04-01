@@ -184,53 +184,46 @@ public class StandardizedImageMetadata
     {
         List<Error> addVErrors = new();
         
-        foreach(var (key, value) in AdditionalValues)
+        foreach (var (key, value) in AdditionalValues)
         {
-            if (img2.AdditionalValues.TryGetValue(key, out var value2))
+            if (img2.AdditionalValues.TryGetValue(key, out var value2) && value is JObject g1 && value2 is JObject g2)
             {
-                if (value is JObject g1 && value2 is JObject g2)
-                {
-                    var properties1 = g1.Properties().Select(p => p.Name).ToList();
-                    var properties2 = g2.Properties().Select(p => p.Name).ToList();
-                    
-                    var missing = properties1.Except(properties2).ToList();
-                    var added = properties2.Except(properties1).ToList();
+                var properties1 = g1.Properties().Select(p => p.Name);
+                var properties2 = g2.Properties().Select(p => p.Name);
 
-                    if (missing.Count > 0)
-                    {
-                        addVErrors.Add(new Error(
-                            "Missing metadata group members",
-                            $"Missing following members in metadata group {key}: {string.Join(", ", missing)}",
-                            ErrorSeverity.Medium,
-                            ErrorType.Metadata
-                        ));
-                    }
+                var missing = properties1.Except(properties2).ToList();
+                var added = properties2.Except(properties1).ToList();
 
-                    if (added.Count > 0)
-                    {
-                        addVErrors.Add(new Error(
-                            "Additional metadata group members",
-                            $"New members in metadata group {key}: {string.Join(", ", added)}",
-                            ErrorSeverity.Low,
-                            ErrorType.Metadata
-                        ));
-                    }
-                }
-                else
+                if (missing.Count != 0)
                 {
                     addVErrors.Add(new Error(
-                        "Metadata group error",
-                        $"Could not extract metadata in following group: {key}",
+                        "Missing metadata group members",
+                        $"Missing following members in metadata group {key}: {string.Join(", ", missing)}",
                         ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    ));
+                }
+
+                if (added.Count != 0)
+                {
+                    addVErrors.Add(new Error(
+                        "Additional metadata group members",
+                        $"New members in metadata group {key}: {string.Join(", ", added)}",
+                        ErrorSeverity.Low,
                         ErrorType.Metadata
                     ));
                 }
             }
             else
             {
+                var groupDetails = value is JObject g ? string.Join(", ", g.Properties().Select(p => p.Name)) 
+                    : "Could not extract group members.";
+                var message = $"The following metadata group is missing in new: {key}\n" +
+                              $"{groupDetails}";
+
                 addVErrors.Add(new Error(
                     "Missing metadata group",
-                    $"The following metadata group is missing in new: {key}",
+                    message,
                     ErrorSeverity.Medium,
                     ErrorType.Metadata
                 ));
@@ -242,12 +235,27 @@ public class StandardizedImageMetadata
 
         foreach (var group in newGroups)
         {
-            addVErrors.Add(new Error(
-                "New metadata group",
-                $"The following metadata group is present only in new: {group}",
-                ErrorSeverity.Low,
-                ErrorType.Metadata
-            ));
+            if (img2.AdditionalValues.TryGetValue(group, out var value) && value is JObject g1)
+            {
+                var properties = g1.Properties().Select(p => p.Name);
+                addVErrors.Add(new Error(
+                    "Missing metadata group",
+                    $"The following metadata group is only present in new: {group}\n" +
+                    $"The group contains the following values: {string.Join(", ", properties)}",
+                    ErrorSeverity.Medium,
+                    ErrorType.Metadata
+                ));
+            }
+            else
+            {
+                addVErrors.Add(new Error(
+                    "Missing metadata group",
+                    $"The following metadata group is only present in new: {group}\n" +
+                    "Could not extract group members.",
+                    ErrorSeverity.Medium,
+                    ErrorType.Metadata
+                ));
+            }
         }
         
         return addVErrors;
@@ -349,7 +357,6 @@ public static class DictionaryExtensions
 
 public static class MetadataStandardizer
 {
-    
     /// <summary>
     /// Based on a format extracts, standardizes and returns metadata for a file. 
     /// </summary>

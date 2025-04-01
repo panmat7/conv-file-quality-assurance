@@ -300,6 +300,34 @@ public class ComperingMethodsTest
     }
 
     [Test]
+    public void GetMissingOrWrongImageMetadataExifTest_NotImageWrongPronom()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"ODS\ods-with-no-images.ods",
+            "fmt/43",
+            _testFileDirectory + @"PDF\correct_transparency.pdf",
+            "fmt/12"
+        );
+        
+        var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+        
+        //Should not fail, as the pronom codes match
+        if(res is null) Assert.Fail();
+        
+        //Everything should be missing, as the comparison commenced but none of the values are present in non-images
+        Assert.Multiple(() =>
+        {
+            Assert.That(res.Any(e => e.Name == "Image resolution missing in original file"), Is.True);
+            Assert.That(res.Any(e => e.Name == "Image resolution missing in new file"), Is.True);
+            Assert.That(res.Any(e => e.Name == "Bit-depth missing in original file"), Is.True);
+            Assert.That(res.Any(e => e.Name == "Bit-depth missing in new file"), Is.True);
+            Assert.That(res.Any(e => e.Name == "Color type missing in original file"), Is.True);
+            Assert.That(res.Any(e => e.Name == "Color type missing in new file"), Is.True);
+        });
+    }
+
+    [Test]
     public void ContainsTransparencyTest_PNG_NoTransparency()
     {
         var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\225x225.png");
@@ -337,5 +365,90 @@ public class ComperingMethodsTest
         var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T450x600.tiff");
         
         Assert.That(res, Is.True);
+    }
+
+    [Test]
+    public void VisualDocumentComparisonTest_SameFile()
+    {
+        var pair = new FilePair(
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/12",
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/12"
+        );
+        
+        var res = ComperingMethods.VisualDocumentComparison(pair);
+        
+        if(res is null || res.Count > 0) Assert.Fail();
+        
+        Assert.Pass();
+    }
+    
+    [Test]
+    public void VisualDocumentComparisonTest_SameFileSelectedPages()
+    {
+        var pair = new FilePair(
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/12",
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/12"
+        );
+        
+        var res = ComperingMethods.VisualDocumentComparison(pair, 2, 5);
+        
+        if(res is null || res.Count > 0) Assert.Fail();
+        
+        Assert.Pass();
+    }
+    
+    [Test]
+    public void VisualDocumentComparisonTest_DifferentPageCount()
+    {
+        var pair = new FilePair(
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/12",
+            _testFileDirectory + @"TestDocuments\NoImage3Pages.pdf",
+            "fmt/12"
+        );
+        
+        var res = ComperingMethods.VisualDocumentComparison(pair);
+        
+        if(res is null || res.Count != 1) Assert.Fail();
+        
+        Assert.That(res.Any(e => e.Name == "Could not preform visual comparison due to mismatched page count"), Is.True);
+    }
+    
+    [Test]
+    public void VisualDocumentComparisonTest_ChangedFile()
+    {
+        var pair = new FilePair(
+            _testFileDirectory + @"TestDocuments\Image8Pages.pdf",
+            "fmt/12",
+            _testFileDirectory + @"TestDocuments\Image8PagesChanged.pdf",
+            "fmt/12"
+        );
+        
+        var res = ComperingMethods.VisualDocumentComparison(pair);
+        
+        if(res is null || res.Count == 0) Assert.Fail();
+        
+        Assert.Pass();
+    }
+
+    [Test]
+    public void VisualDocumentComparisonTest_Invalid()
+    {
+        var pair = new FilePair(
+            _testFileDirectory + @"TestDocuments\Image8Pages.docx",
+            "fmt/12",
+            _testFileDirectory + @"TestDocuments\notarealfile",
+            "fmt/12"
+        );
+        
+        var res = ComperingMethods.VisualDocumentComparison(pair);
+        
+        if(res is not null) Assert.Fail();
+        
+        Assert.Pass();
     }
 }
