@@ -16,28 +16,38 @@ using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using System.Linq;
 using DocumentFormat.OpenXml.Drawing.Diagrams;
+using System.Diagnostics;
+using Avalonia.VisualTree;
+using System.Collections.Generic;
+using Org.BouncyCastle.Asn1.Ocsp;
+using Avalonia.Input;
 
 namespace AvaloniaDraft.Views;
 
 public partial class ReportView : UserControl
 {
-    private Logger.Logger logger;
-    private int currentRow;
+    private Logger.Logger Logger;
+    private List<Expander> AllResultExpanders;
+    private List<Expander> ResultExpanders;
+
 
     public ReportView()
     {
         InitializeComponent();
-        currentRow = 0;
+
+        AllResultExpanders = [];
+        ResultExpanders = [];
 
         if (GlobalVariables.Logger.Finished)
         {
-            logger = GlobalVariables.Logger;
+            Logger = GlobalVariables.Logger;
+            CreateElements();
             DisplayReport();
         } 
         else
         {
-            logger = new Logger.Logger();
-            logger.Initialize();
+            Logger = new Logger.Logger();
+            Logger.Initialize();
         }
     }
 
@@ -65,7 +75,8 @@ public partial class ReportView : UserControl
             var json = result[0];
             var path = json.Path.AbsolutePath;
 
-            logger.ImportJSON(path);
+            Logger.ImportJSON(path);
+            CreateElements();
             DisplayReport();
         }
         else
@@ -74,25 +85,84 @@ public partial class ReportView : UserControl
         }
     }
 
+    private void CreateElements()
+    {
+        AllResultExpanders = [];
+        ResultExpanders = [];
+
+        ReportSummary.Text = $"{Logger.FileComparisonsFailed}/{Logger.FileComparisonCount} file comparisons failed";
+        foreach (var result in Logger.Results)
+        {
+            var comparisonResultexpander = CreateComparisonResultExpander(result);
+            AllResultExpanders.Add(comparisonResultexpander);
+            ResultExpanders.Add(comparisonResultexpander);
+        }   
+    }
+
 
     private void DisplayReport()
     {
-        InitializeComponent();
-        currentRow = 0;
+        ReportStackPanel.Children.Clear();
 
-
-        var totalComparisons = 0;
-        var passedComparisons = 0;
-
-        foreach (var result in logger.Results)
+        foreach (var expander in ResultExpanders)
         {
-            var expander = CreateComparisonResultExpander(result);
-            ReportGrid.Children.Add(expander);
-
-            totalComparisons++;
-            if (result.Pass) passedComparisons++;
+            ReportStackPanel.Children.Add(expander);
         }
-        ReportSummary.Text = $"{passedComparisons}/{totalComparisons} comparisons successful.";
+    }
+
+
+    private void SearchBar_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            Search(sender, e);
+        }
+    }
+
+    private void Search(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var searchString = SearchBar?.Text?.Trim().ToLower();
+        if (string.IsNullOrEmpty(searchString))
+        {
+            ResultExpanders = AllResultExpanders.ToList();
+            DisplayReport();
+            return;
+        }
+
+        ResultExpanders.Clear();
+
+        var keyWords = searchString.Split(' ');
+        
+        foreach (var expander in AllResultExpanders)
+        {
+            if (expander.Header is not TextBlock header || header.Text is not string text) continue;
+
+            var match = true;
+            foreach (var keyWord in keyWords)
+            {
+                if (!text.ToLower().Contains(keyWord))
+                {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match) ResultExpanders.Add(expander);
+        }
+        DisplayReport();
+    }
+
+    private void ShowFailedFirst(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        ResultExpanders = ResultExpanders.OrderByDescending(e => e.Classes.Contains("FAIL")).ToList();
+        DisplayReport();
+    }
+
+
+    private void ShowPassedFirst(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        ResultExpanders = ResultExpanders.OrderByDescending(e => e.Classes.Contains("PASS")).ToList();
+        DisplayReport();
     }
 
 
@@ -101,15 +171,9 @@ public partial class ReportView : UserControl
         var expander = new Expander();
         expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
 
-        Grid.SetColumn(expander, 2);
-        Grid.SetRow(expander, currentRow);
-        currentRow++;
-
-
         var stackPanel = new StackPanel();
-
-        int totalTests = 0;
-        int passedTests = 0;
+        var passOrFail = result.Pass ? "PASS" : "FAIL";
+        expander.Classes.Add(passOrFail);
 
         var passText = new TextBlock() { Foreground = Brushes.White };
         stackPanel.Children.Add(passText);
@@ -120,26 +184,23 @@ public partial class ReportView : UserControl
 
         foreach (var test in result.Tests)
         {
-            totalTests++;
-            if (test.Value.Pass) passedTests++;
-
             var testExpander = CreateTestResultExpander(test.Value);
             testExpander.Header = new TextBlock { Text = $"{(test.Value.Pass ? "PASS" : "FAIL")} - {test.Key}" };
 
             stackPanel.Children.Add(testExpander);
         }
 
-        var pass = (passedTests > 0);
+        passText.Text = $"Passed: {(result.Pass ? "Yes" : "No")}";
 
-        passText.Text = $"Passed: {(pass ? "Yes" : "No")}";
-
-        testSummary.Text = $"Tests ({passedTests}/{totalTests} passed) :";
+        testSummary.Text = $"Tests ({result.TestsPassed}/{result.TotalTests} passed) :";
         expander.Content = stackPanel;
 
         var oFile = System.IO.Path.GetFileName(result.FilePair.OriginalFilePath);
+        var oFormat = result.FilePair.OriginalFileFormat;
         var nFile = System.IO.Path.GetFileName(result.FilePair.NewFilePath);
+        var nFormat = result.FilePair.NewFileFormat;
 
-        var headerText = $"{(pass ? "PASS" : "FAIL")} - {oFile}  -> {nFile}";
+        var headerText = $"{passOrFail} - {oFile}  -> {nFile} ({oFormat} -> {nFormat})";
         expander.Header = new TextBlock { Text = headerText };
 
         return expander;

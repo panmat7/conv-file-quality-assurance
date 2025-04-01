@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Avalonia;
 using Avalonia.Threading;
@@ -90,11 +91,11 @@ public static class BasePipeline
     /// <summary>
     /// Compare the fonts of two files
     /// </summary>
-    /// <param name="fp"></param>
+    /// <param name="fp">The file pair</param>
     public static List<Error> CompareFonts(FilePair fp)
     {
         if (!GlobalVariables.Options.GetMethod(Methods.Fonts)) return [];
-        
+
         var comments = new List<string>();
         var errors = new List<Error>();
 

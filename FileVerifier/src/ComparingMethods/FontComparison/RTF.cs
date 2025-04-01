@@ -23,7 +23,6 @@ public static class RtfFontExtraction
         var textColors = new HashSet<string>();
         var bgColors = new HashSet<string>();
 
-
         var doc = new RTFDomDocument();
         doc.Load(src);
 
