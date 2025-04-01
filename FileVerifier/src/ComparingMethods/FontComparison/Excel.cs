@@ -30,7 +30,7 @@ public static class ExcelFontExtraction
         var sheets = doc.Workbook.Worksheets;
 
         // Go through each cell
-        foreach (var cell in sheets.Select(sheet => sheet.Cells))
+        foreach (var cell in sheets.SelectMany(sheet => sheet.Cells))
         {
             ReadCellProperties(cell, fonts, textColors, bgColors, ref foreignWriting);
         }
@@ -47,7 +47,7 @@ public static class ExcelFontExtraction
     /// <param name="fonts"></param>
     /// <param name="textColors"></param>
     /// <param name="bgColors"></param>
-    private static void ReadCellProperties(ExcelRange cell, HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, ref bool foreignWriting)
+    private static void ReadCellProperties(ExcelRangeBase cell, HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, ref bool foreignWriting)
     {
         // Check for foreign writing
         var containsForeignText = (!foreignWriting && FontComparison.IsForeign(cell.Text));

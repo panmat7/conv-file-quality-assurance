@@ -98,7 +98,7 @@ public class FontComparisonTest
 
             var comparisonResult = FontComparison.CompareFiles(fp);
             (bool pass, bool foreignChars) result = (comparisonResult.Pass, comparisonResult.ContainsForeignCharacters);
-
+            if (fp.OriginalFilePath.Contains(".html")) Console.WriteLine($"Foreign char: {result.foreignChars} | {expectedResult.foreignChars}");
 
             try
             {
