@@ -16,6 +16,8 @@ namespace AvaloniaDraft.Views;
 
 public partial class HomeView : UserControl
 {
+    private bool AutoStartVerification { get; set; } = false;
+    
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
     private bool Working { get; set; } = false;
@@ -102,30 +104,7 @@ public partial class HomeView : UserControl
 
     private async void Start_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (Working || GlobalVariables.FileManager == null) return;
-        
-        Working = true;
-        
-        StartButton.IsEnabled = false;
-        LoadButton.IsEnabled = false;
-        
-        OverwriteConsole(null);
-
-        GlobalVariables.Logger.Start();
-
-        await Task.Run(() =>
-        {
-            GlobalVariables.FileManager.StartVerification();
-        });
-        
-        LoadButton.IsEnabled = true;
-
-
-        GlobalVariables.Logger.Finish();
-        GlobalVariables.Logger.SaveReport();
-        Trace.WriteLine("Finished");
-
-        Working = false;
+        StartVerificationProcess();
     }
 
     
@@ -138,6 +117,8 @@ public partial class HomeView : UserControl
 
         var loadingWindow = new LoadingView();
 
+        loadingWindow.AutoStartChanged += LoadingWindow_AutoStartChanged;
+        
         try
         {
             loadingWindow.Show();
@@ -163,7 +144,11 @@ public partial class HomeView : UserControl
 
             try
             {
-                if (GlobalVariables.FileManager != null)
+                if (AutoStartVerification)
+                {
+                    StartVerificationProcess();
+                }
+                else if (GlobalVariables.FileManager != null)
                 {
                     var ignoredFilesWindow = new IgnoredFilesView(
                         GlobalVariables.FileManager.GetFilePairs().Count, GlobalVariables.FileManager.IgnoredFiles);
@@ -173,8 +158,52 @@ public partial class HomeView : UserControl
             catch (Exception exception)
             {
                 System.Console.WriteLine(exception);
-                throw;
             }
+        }
+    }
+    
+    private void LoadingWindow_AutoStartChanged(object? sender, bool e)
+    {
+        AutoStartVerification = e;
+    }
+
+    private async void StartVerificationProcess()
+    {
+        try
+        {
+            if (Working || GlobalVariables.FileManager == null) return;
+        
+            Working = true;
+        
+            StartButton.IsEnabled = false;
+            LoadButton.IsEnabled = false;
+        
+            OverwriteConsole(null);
+
+            GlobalVariables.Logger.Start();
+
+            await Task.Run(() =>
+            {
+                GlobalVariables.FileManager.StartVerification();
+            });
+        
+            LoadButton.IsEnabled = true;
+
+
+            GlobalVariables.Logger.Finish();
+            GlobalVariables.Logger.SaveReport();
+            Trace.WriteLine("Finished");
+
+            Working = false;
+        }
+        catch (Exception)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow =
+                    new ErrorWindow("An error occured when starting the verification process.");
+                errWindow.ShowDialog((VisualRoot as Window)!);
+            });
         }
     }
     
