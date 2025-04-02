@@ -226,23 +226,99 @@ public partial class ReportView : UserControl
             Foreground = Brushes.White,
         });
 
-        // Comments
-        if (result.Comments != null) foreach (var comment in result.Comments)
-        {
-            stackPanel.Children.Add(new TextBlock()
-            {
-                Text = comment,
-                Foreground = Brushes.White,
-            });
-        }
 
         // Errors
-        if (result.Errors.Any()) stackPanel.Children.Add(new TextBlock()
+        if (result.Errors != null && result.Errors.Any())
         {
-            Text = "",
+            var commentsContainer = new Border
+            {
+                BorderThickness = new Thickness(2),
+                BorderBrush = Brushes.Gray,
+                Background = Brushes.Black,
+                Padding = new Thickness(5),
+                Margin = new Thickness(5),
+            };
 
-            Foreground = Brushes.White,
-        });
+            var commentsStackPanel = new StackPanel();
+            commentsStackPanel.Children.Add(new TextBlock
+            {
+                Text = "Errors:",
+                Foreground = Brushes.White
+            });
+            commentsContainer.Child = commentsStackPanel;
+            stackPanel.Children.Add(commentsContainer);
+
+            // Errors
+            foreach (var err in result.Errors.OrderByDescending(e => e.Severity))
+            {
+                (var bgCol, var severityString) = err.Severity switch
+                {
+                    ErrorSeverity.Unset => (Brushes.Black, "Unset"),
+                    ErrorSeverity.Low => (Brushes.DarkGoldenrod, "Low"),
+                    ErrorSeverity.Medium => (Brushes.DarkOrange, "Medium"),
+                    ErrorSeverity.High => (Brushes.DarkRed, "High"),
+                    ErrorSeverity.Internal => (Brushes.Purple, "Internal"),
+                    _ => (null, null),
+                };
+                if (bgCol == null || severityString == null) continue;
+
+                commentsStackPanel.Children.Add(new Border
+                {
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = Brushes.Gray,
+                    Background = bgCol,
+                    Padding = new Thickness(5),
+                    Margin = new Thickness(5),
+                    Child = new TextBlock
+                    {
+                        Text = $"{err.Name}: {err.Description}\nSeverity: {severityString}",
+                        Foreground = Brushes.White
+                    }
+                });
+            }
+        }
+
+
+        // Comments
+        if (result.Comments != null && result.Comments.Any())
+        {
+            var commentsContainer = new Border
+            {
+                BorderThickness = new Thickness(2),
+                BorderBrush = Brushes.Gray,
+                Background = Brushes.Black,
+                Padding = new Thickness(5),
+                Margin = new Thickness(5),
+            };
+
+            var commentsStackPanel = new StackPanel();
+            commentsStackPanel.Children.Add(new TextBlock
+            {
+                Text = "Comments:",
+                Foreground = Brushes.White
+            });
+            commentsContainer.Child = commentsStackPanel;
+            stackPanel.Children.Add(commentsContainer);
+
+
+            foreach (var comment in result.Comments)
+            {
+
+                commentsStackPanel.Children.Add(new Border
+                {
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = Brushes.Gray,
+                    Background = Brushes.Black,
+                    Padding = new Thickness(5),
+                    Margin = new Thickness(5),
+                    Child = new TextBlock
+                    {
+                        Text = comment,
+                        Foreground = Brushes.White
+                    }
+                });
+            }
+        }
 
 
         expander.Content = stackPanel;

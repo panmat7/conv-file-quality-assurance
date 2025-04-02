@@ -29,11 +29,11 @@ public enum ErrorType
 /// </summary>
 public class Error
 {
-    public string Name { get; }
-    public string Description { get; }
-    public ErrorSeverity Severity { get; }
-    public ErrorType ErrorType { get; }
-    public object? ErrorValue { get; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public ErrorSeverity Severity { get; set; }
+    public ErrorType ErrorType { get; set; }
+    public object? ErrorValue { get; set; }
 
     public Error()
     {
