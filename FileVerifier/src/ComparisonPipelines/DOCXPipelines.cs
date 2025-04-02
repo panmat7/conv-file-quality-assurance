@@ -161,7 +161,7 @@ public static class DocxPipelines
 
                 try
                 {
-                    res = TransparencyComparison.DocxToPdfTransparencyComparison(oImages, nImages);
+                    res = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
                 }
                 catch (Exception)
                 {

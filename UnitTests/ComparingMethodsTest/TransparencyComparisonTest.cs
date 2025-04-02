@@ -33,10 +33,10 @@ public class PdfToPdfTransparencyComparisonTest : TestBase
 }
 
 [TestFixture]
-public class DocxToPdfTransparencyComparisonTest : TestBase
+public class GeneralDocsToPdfTransparencyComparisonTest : TestBase
 {
     [Test]
-    public void TestCorrectScenario()
+    public void TestCorrectScenarioDocx()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "transparent.docx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "transparent.pdf");
@@ -44,12 +44,12 @@ public class DocxToPdfTransparencyComparisonTest : TestBase
         var oImages = ImageExtraction.ExtractImagesFromDocx(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         
-        var result = TransparencyComparison.DocxToPdfTransparencyComparison(oImages, nImages);
+        var result = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.True);
     }
     
     [Test]
-    public void TestFailScenario()
+    public void TestFailScenarioDocx()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "transparent.docx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "missing_transparent.pdf");
@@ -57,16 +57,12 @@ public class DocxToPdfTransparencyComparisonTest : TestBase
         var oImages = ImageExtraction.ExtractImagesFromDocx(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         
-        var result = TransparencyComparison.DocxToPdfTransparencyComparison(oImages, nImages);
+        var result = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.False);
     }
-}
 
-[TestFixture]
-public class OdtAndOdpToPdfTransparencyComparisonTest : TestBase
-{
     [Test]
-    public void TestCorrectScenario()
+    public void TestCorrectScenarioOdt()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "ODT", "transparent.odt");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "transparent.pdf");
@@ -74,12 +70,12 @@ public class OdtAndOdpToPdfTransparencyComparisonTest : TestBase
         var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         
-        var result = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
+        var result = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.True);
     }
     
     [Test]
-    public void TestFailScenario()
+    public void TestFailScenarioOdt()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "ODT", "transparent.odt");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "incorrect_transparency.pdf");
@@ -87,12 +83,12 @@ public class OdtAndOdpToPdfTransparencyComparisonTest : TestBase
         var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         
-        var result = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
+        var result = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.False);
     }
     
     [Test]
-    public void TestCorrectScenario1()
+    public void TestCorrectScenarioOds()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "ODS", "ods-transparent.ods");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "ods-transparent.pdf");
@@ -100,12 +96,12 @@ public class OdtAndOdpToPdfTransparencyComparisonTest : TestBase
         var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         
-        var result = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
+        var result = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.True);
     }
     
     [Test]
-    public void TestFailScenario1()
+    public void TestFailScenarioOds()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "ODS", "ods-transparent.ods");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "ods-transparent-fail.pdf");
@@ -113,16 +109,12 @@ public class OdtAndOdpToPdfTransparencyComparisonTest : TestBase
         var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         
-        var result = TransparencyComparison.OpenDocumentToPdfTransparencyComparison(oImages, nImages);
+        var result = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.False);
     }
-}
 
-[TestFixture]
-public class XmlBasedPowerPointToPdfTransparencyComparisonTest : TestBase
-{
     [Test]
-    public void TestCorrectScenario()
+    public void TestCorrectScenarioPptx()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "transparent.pptx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "transparent.pdf");
@@ -130,12 +122,12 @@ public class XmlBasedPowerPointToPdfTransparencyComparisonTest : TestBase
         var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         
-        var result = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(oImages, nImages);
+        var result = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.True);
     }
     
     [Test]
-    public void TestFailScenario()
+    public void TestFailScenarioPptx()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "PowerPoint", "transparent.pptx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "incorrect_transparency.pdf");
@@ -143,7 +135,7 @@ public class XmlBasedPowerPointToPdfTransparencyComparisonTest : TestBase
         var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         
-        var result = TransparencyComparison.XmlBasedPowerPointToPdfTransparencyComparison(oImages, nImages);
+        var result = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.False);
     }
 }
