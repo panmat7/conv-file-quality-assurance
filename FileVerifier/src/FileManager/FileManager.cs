@@ -245,7 +245,23 @@ public sealed class FileManager
     {
         Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs);
     }
-    
+
+
+    /// <summary>
+    /// Filter out file pairs containing file formats that is not to be checked
+    /// </summary>
+    public void FilterOutDisabledFileFormats()
+    {
+        var filteredOut = _filePairs.Where(fp => !GlobalVariables.Options.FormatsAreEnabled(fp)).ToList();
+        _filePairs = _filePairs.Except(filteredOut).ToList();
+        foreach (var fp in filteredOut)
+        {
+            var reason = ReasonForIgnoring.Filtered;
+            IgnoredFiles.Add(new IgnoredFile(fp.OriginalFilePath, reason));
+            IgnoredFiles.Add(new IgnoredFile(fp.NewFilePath, reason));
+        }
+    }
+
     /// <summary>
     /// Starts the verification process. Continues until all files are checked.
     /// </summary>

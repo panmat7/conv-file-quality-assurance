@@ -123,7 +123,6 @@ public partial class HomeView : UserControl
 
         GlobalVariables.Logger.Finish();
         GlobalVariables.Logger.SaveReport();
-        Trace.WriteLine("Finished");
 
         Working = false;
     }
@@ -183,6 +182,8 @@ public partial class HomeView : UserControl
         try
         {
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+            GlobalVariables.FileManager.GetSiegfriedFormats();
+            GlobalVariables.FileManager.FilterOutDisabledFileFormats();
             SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
         }
         catch (InvalidOperationException err)
@@ -206,7 +207,6 @@ public partial class HomeView : UserControl
             });
             return;
         }
-        GlobalVariables.FileManager.GetSiegfriedFormats();
         GlobalVariables.FileManager.WritePairs();
     }
 
