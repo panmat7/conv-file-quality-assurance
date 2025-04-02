@@ -192,7 +192,9 @@ public partial class ReportView : UserControl
 
         passText.Text = $"Passed: {(result.Pass ? "Yes" : "No")}";
 
-        testSummary.Text = $"Tests ({result.TestsPassed}/{result.TotalTests} passed) :";
+        var totalTests = result.Tests.Count;
+        var testsPassed = result.Tests.Where(t => t.Value.Pass).Count();
+        testSummary.Text = $"Tests ({testsPassed}/{totalTests} passed)";
         expander.Content = stackPanel;
 
         var oFile = System.IO.Path.GetFileName(result.FilePair.OriginalFilePath);
@@ -248,14 +250,14 @@ public partial class ReportView : UserControl
             commentsContainer.Child = commentsStackPanel;
             stackPanel.Children.Add(commentsContainer);
 
-            // Errors
+            // List errors in order of severity
             foreach (var err in result.Errors.OrderByDescending(e => e.Severity))
             {
                 (var bgCol, var severityString) = err.Severity switch
                 {
                     ErrorSeverity.Unset => (Brushes.Black, "Unset"),
                     ErrorSeverity.Low => (Brushes.DarkGoldenrod, "Low"),
-                    ErrorSeverity.Medium => (Brushes.DarkOrange, "Medium"),
+                    ErrorSeverity.Medium => (Brushes.Chocolate, "Medium"),
                     ErrorSeverity.High => (Brushes.DarkRed, "High"),
                     ErrorSeverity.Internal => (Brushes.Purple, "Internal"),
                     _ => (null, null),

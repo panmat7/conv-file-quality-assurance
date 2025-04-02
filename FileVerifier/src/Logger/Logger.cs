@@ -38,9 +38,6 @@ public class Logger
     /// </summary>
     public struct ComparisonResult
     {
-        public int TotalTests { get; set; }
-        public int TestsPassed { get; set; }
-
         public FilePair FilePair { get; set; }
         public Dictionary<string, TestResult> Tests { get; set; }
 
@@ -48,9 +45,6 @@ public class Logger
 
         public ComparisonResult(FilePair filePair)
         {
-            TotalTests = 0;
-            TestsPassed = 0;
-
             Tests = new Dictionary<string, TestResult>();
 
             Pass = true;
@@ -68,7 +62,7 @@ public class Logger
             if (!testResult.Pass)
             {
                 Pass = false;
-            }
+            } 
         }
     }
 
