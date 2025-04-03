@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using AvaloniaDraft.Helpers;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Avalonia.Logging;
 
 namespace AvaloniaDraft.Logger;
 
@@ -68,11 +69,11 @@ public class Logger
 
     public int FileComparisonCount { get; set; }
     public int FileComparisonsFailed { get; set; }
-
-    public bool Active { get; set; }
-    public bool Finished { get; set; }
     public Stopwatch Stopwatch { get; set; }
     public List<ComparisonResult> Results { get; set; }
+
+    private bool Active { get; set; }
+    private bool Finished { get; set; }
 
 
     /// <summary>
@@ -88,6 +89,12 @@ public class Logger
         FileComparisonCount = 0;
         FileComparisonsFailed = 0;
         Results = new List<ComparisonResult>();
+    }
+
+
+    public bool HasFinished()
+    {
+        return Finished;
     }
 
 

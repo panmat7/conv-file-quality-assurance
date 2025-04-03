@@ -15,12 +15,12 @@ using Avalonia.Controls.Shapes;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using System.Linq;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
 using System.Diagnostics;
 using Avalonia.VisualTree;
 using System.Collections.Generic;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Avalonia.Input;
+using Avalonia.Media.Immutable;
 
 namespace AvaloniaDraft.Views;
 
@@ -38,14 +38,15 @@ public partial class ReportView : UserControl
         AllResultExpanders = [];
         ResultExpanders = [];
 
-        if (GlobalVariables.Logger.Finished)
+        if (GlobalVariables.Logger.HasFinished())
         {
             Logger = GlobalVariables.Logger;
             CreateElements();
             DisplayReport();
-        } 
+        }
         else
         {
+            LoadCurrentReportButton.IsEnabled = false;
             Logger = new Logger.Logger();
             Logger.Initialize();
         }
@@ -75,7 +76,12 @@ public partial class ReportView : UserControl
             var json = result[0];
             var path = json.Path.AbsolutePath;
 
-            Logger.ImportJSON(path);
+            var tempLogger = new Logger.Logger();
+            tempLogger.Initialize();
+            tempLogger.ImportJSON(path);
+
+            Logger = tempLogger;
+
             CreateElements();
             DisplayReport();
         }
@@ -85,10 +91,18 @@ public partial class ReportView : UserControl
         }
     }
 
+
+    private void LoadCurrentReport(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Logger = GlobalVariables.Logger;
+        CreateElements();
+        DisplayReport();
+    }
+
     private void CreateElements()
     {
-        AllResultExpanders = [];
-        ResultExpanders = [];
+        AllResultExpanders.Clear();
+        ResultExpanders.Clear();
 
         ReportSummary.Text = $"{Logger.FileComparisonsFailed}/{Logger.FileComparisonCount} file comparisons failed";
         foreach (var result in Logger.Results)
@@ -228,11 +242,17 @@ public partial class ReportView : UserControl
             Foreground = Brushes.White,
         });
 
+        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.Low));
+        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.Unset));
+        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.Internal));
+        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.High));
+        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.Medium));
+
 
         // Errors
         if (result.Errors != null && result.Errors.Any())
         {
-            var commentsContainer = new Border
+            var errorsContainer = new Border
             {
                 BorderThickness = new Thickness(2),
                 BorderBrush = Brushes.Gray,
@@ -241,34 +261,46 @@ public partial class ReportView : UserControl
                 Margin = new Thickness(5),
             };
 
-            var commentsStackPanel = new StackPanel();
-            commentsStackPanel.Children.Add(new TextBlock
+            var errorsStackPanel = new StackPanel();
+            errorsStackPanel.Children.Add(new TextBlock
             {
                 Text = "Errors:",
                 Foreground = Brushes.White
             });
-            commentsContainer.Child = commentsStackPanel;
-            stackPanel.Children.Add(commentsContainer);
+            errorsContainer.Child = errorsStackPanel;
+            stackPanel.Children.Add(errorsContainer);
 
             // List errors in order of severity
             foreach (var err in result.Errors.OrderByDescending(e => e.Severity))
             {
-                (var bgCol, var severityString) = err.Severity switch
+                (var errCol, var severityString) = err.Severity switch
                 {
-                    ErrorSeverity.Unset => (Brushes.Black, "Unset"),
-                    ErrorSeverity.Low => (Brushes.DarkGoldenrod, "Low"),
-                    ErrorSeverity.Medium => (Brushes.Chocolate, "Medium"),
-                    ErrorSeverity.High => (Brushes.DarkRed, "High"),
-                    ErrorSeverity.Internal => (Brushes.Purple, "Internal"),
+                    ErrorSeverity.Unset => (Brushes.Gray, "Unset"),
+                    ErrorSeverity.Low => (Brushes.Yellow, "Low"),
+                    ErrorSeverity.Medium => (Brushes.Orange, "Medium"),
+                    ErrorSeverity.High => (Brushes.Red, "High"),
+                    ErrorSeverity.Internal => (Brushes.Black, "Internal"),
                     _ => (null, null),
                 };
-                if (bgCol == null || severityString == null) continue;
+                if (errCol == null || severityString == null) continue;
 
-                commentsStackPanel.Children.Add(new Border
+
+                var errStackPanel = new StackPanel();
+                errStackPanel.Orientation = Avalonia.Layout.Orientation.Horizontal;
+                errorsStackPanel.Children.Add(errStackPanel);
+
+                errStackPanel.Children.Add(new Ellipse
+                {
+                    Width = 30,
+                    Height = 30,
+                    Fill = errCol,
+                    Stroke = Brushes.White,
+                    StrokeThickness = 1,
+                });
+                errStackPanel.Children.Add(new Border
                 {
                     BorderThickness = new Thickness(2),
                     BorderBrush = Brushes.Gray,
-                    Background = bgCol,
                     Padding = new Thickness(5),
                     Margin = new Thickness(5),
                     Child = new TextBlock
