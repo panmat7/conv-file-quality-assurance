@@ -242,12 +242,6 @@ public partial class ReportView : UserControl
             Foreground = Brushes.White,
         });
 
-        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.Low));
-        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.Unset));
-        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.Internal));
-        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.High));
-        result.Errors.Add(new Error("Test error", "Test error description", ErrorSeverity.Medium));
-
 
         // Errors
         if (result.Errors != null && result.Errors.Any())
