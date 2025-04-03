@@ -225,6 +225,7 @@ public partial class ReportView : UserControl
 
     private Expander CreateTestResultExpander(Logger.TestResult result)
     {
+        var maxTextboxWidth = 500;
         var expander = new Expander();
         expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
 
@@ -311,6 +312,9 @@ public partial class ReportView : UserControl
                     Child = new TextBlock
                     {
                         Text = $"{err.Name}: {err.Description}\nType: {errTypeString}\nSeverity: {errSeverityString}",
+                        MaxWidth = maxTextboxWidth - 44,
+                        Width = maxTextboxWidth - 44,
+                        TextWrapping = TextWrapping.Wrap,
                         Foreground = Brushes.White
                     }
                 });
@@ -330,7 +334,10 @@ public partial class ReportView : UserControl
                 Margin = new Thickness(5),
             };
 
-            var commentsStackPanel = new StackPanel();
+            var commentsStackPanel = new StackPanel
+            {
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+            };
             commentsStackPanel.Children.Add(new TextBlock
             {
                 Text = "Comments:",
@@ -350,9 +357,13 @@ public partial class ReportView : UserControl
                     Background = Brushes.Black,
                     Padding = new Thickness(5),
                     Margin = new Thickness(5),
+                    MaxWidth = maxTextboxWidth,
+                    Width = maxTextboxWidth,
                     Child = new TextBlock
                     {
                         Text = comment,
+                        MaxWidth = maxTextboxWidth,
+                        TextWrapping = TextWrapping.Wrap,
                         Foreground = Brushes.White
                     }
                 });
