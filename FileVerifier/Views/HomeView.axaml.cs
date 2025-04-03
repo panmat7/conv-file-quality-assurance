@@ -112,17 +112,16 @@ public partial class HomeView : UserControl
         OverwriteConsole(null);
 
         GlobalVariables.Logger.Start();
-
-        await Task.Run(() =>
+        await Task.Run(async () =>
         {
             GlobalVariables.FileManager.StartVerification();
         });
         
         LoadButton.IsEnabled = true;
 
-
         GlobalVariables.Logger.Finish();
         GlobalVariables.Logger.SaveReport();
+        AppendConsole("End report written.");
         Trace.WriteLine("Finished");
 
         Working = false;
@@ -208,6 +207,7 @@ public partial class HomeView : UserControl
         }
         GlobalVariables.FileManager.GetSiegfriedFormats();
         GlobalVariables.FileManager.WritePairs();
+        AppendConsole(GlobalVariables.FileManager.GetPairFormats());
     }
 
     private void SetFileCount(int count)
@@ -242,12 +242,13 @@ public partial class HomeView : UserControl
             });
         }
     }
-
+    
     private void AppendConsole(string message)
     {
         Dispatcher.UIThread.Post(() =>
         {
             Console.Text += message + Environment.NewLine;
+            Console.CaretIndex = Console.Text.Length;
         });
     }
 

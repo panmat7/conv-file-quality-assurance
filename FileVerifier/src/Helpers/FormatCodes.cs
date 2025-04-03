@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -326,4 +327,43 @@ public static class FormatCodes
         "fmt/103", // 1.0
 
     ]);
+    
+    public static readonly List<FileFormat> AllCodes =
+    [
+        PronomCodesDOC,
+        PronomCodesDOCM,
+        PronomCodesDOCX,
+        PronomCodesDOT,
+        PronomCodesDOTM,
+        PronomCodesODT,
+        PronomCodesRTF,
+        PronomCodesPDF,
+        PronomCodesPDF1A,
+        PronomCodesPDF2A,
+        PronomCodesPDF3A,
+        PronomCodesPDF4A,
+        PronomCodesPPT,
+        PronomCodesPPTM,
+        PronomCodesPPTX,
+        PronomCodesODP,
+        PronomCodesPOT,
+        PronomCodesPPS,
+        PronomCodesPPSX,
+        PronomCodesPPSM,
+        PronomCodesPOTX,
+        PronomCodesPOTM,
+        PronomCodesXML,
+        PronomCodesXLS,
+        PronomCodesXLSM,
+        PronomCodesXLSX,
+        PronomCodesODS,
+        PronomCodesCSV,
+        PronomCodesPNG,
+        PronomCodesJPEG,
+        PronomCodesTIFF,
+        PronomCodesBMP,
+        PronomCodesGIF,
+        PronomCodesEML,
+        PronomCodesHTML
+    ];
 }
