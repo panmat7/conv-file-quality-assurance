@@ -77,7 +77,7 @@ public static class DocxPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
+                var res = ComperingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {
