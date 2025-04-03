@@ -9,17 +9,6 @@ namespace AvaloniaDraft.ComparingMethods;
 public static class TransparencyComparison
 {
     /// <summary>
-    /// Compares transparency between images in docx and pdf
-    /// </summary>
-    /// <param name="oImages"></param>
-    /// <param name="nImages"></param>
-    /// <returns></returns>
-    public static bool DocxToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
-    {
-        return CompareNonPdfImagesWithPdfImages(oImages, nImages);
-    }
-
-    /// <summary>
     /// Compares transparency between images in pdf files
     /// </summary>
     /// <param name="oImages"></param>
@@ -28,17 +17,6 @@ public static class TransparencyComparison
     public static bool PdfToPdfTransparencyComparison(List<IPdfImage> oImages, List<IPdfImage> nImages)
     {
         return ComparePdfImagesWithPdfImages(oImages, nImages);
-    }
-
-    /// <summary>
-    /// Compares transparency between xml based PowerPoint and pdf images
-    /// </summary>
-    /// <param name="oImages"></param>
-    /// <param name="nImages"></param>
-    /// <returns></returns>
-    public static bool XmlBasedPowerPointToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
-    {
-        return CompareNonPdfImagesWithPdfImages(oImages, nImages);
     }
     
     /// <summary>
@@ -62,12 +40,12 @@ public static class TransparencyComparison
     }
 
     /// <summary>
-    /// Compares transparency between OpenDocuments (excluding sheets) and pdf images
+    /// General function to compare the transparency of images between docx, pptx, pdf with a pdf file
     /// </summary>
     /// <param name="oImages"></param>
     /// <param name="nImages"></param>
     /// <returns></returns>
-    public static bool OpenDocumentToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
+    public static bool GeneralDocsToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
         return CompareNonPdfImagesWithPdfImages(oImages, nImages);
     }
