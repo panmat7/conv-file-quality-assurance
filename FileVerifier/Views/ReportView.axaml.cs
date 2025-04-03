@@ -180,7 +180,7 @@ public partial class ReportView : UserControl
     }
 
 
-    private Expander CreateComparisonResultExpander(Logger.Logger.ComparisonResult result)
+    private Expander CreateComparisonResultExpander(Logger.ComparisonResult result)
     {
         var expander = new Expander();
         expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
@@ -223,7 +223,7 @@ public partial class ReportView : UserControl
     }
 
 
-    private Expander CreateTestResultExpander(Logger.Logger.TestResult result)
+    private Expander CreateTestResultExpander(Logger.TestResult result)
     {
         var expander = new Expander();
         expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;

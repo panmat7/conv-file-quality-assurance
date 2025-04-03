@@ -13,60 +13,66 @@ using Avalonia.Logging;
 
 namespace AvaloniaDraft.Logger;
 
+
+
+/// <summary>
+/// A result of a single comparison test
+/// </summary>
+public class TestResult
+{
+    public bool Pass { get; set; }
+    public double? Percentage { get; set; }
+    public List<string>? Comments { get; set; }
+    public List<Error> Errors { get; set; }
+
+    public TestResult(bool pass, double? percentage, List<string>? comments, List<Error> errors)
+    {
+        this.Pass = pass;
+        this.Percentage = percentage;
+        this.Comments = comments;
+        this.Errors = errors;
+    }
+}
+
+/// <summary>
+/// A result of comparing two files
+/// </summary>
+public class ComparisonResult
+{
+    public FilePair FilePair { get; set; }
+    public Dictionary<string, TestResult> Tests { get; set; }
+
+    public bool Pass { get; set; }
+
+    public ComparisonResult(FilePair filePair)
+    {
+        Tests = new Dictionary<string, TestResult>();
+
+        Pass = true;
+        this.FilePair = filePair;
+    }
+
+    /// <summary>
+    /// Add a test result
+    /// </summary>
+    /// <param name="testResult">The test result</param>
+    /// <param name="testName">Name of the test/method</param>
+    public void AddTestResult(TestResult testResult, string testName)
+    {
+        Tests[testName] = testResult;
+        if (!testResult.Pass)
+        {
+            Pass = false;
+        }
+    }
+}
+
+
+/// <summary>
+/// A logger to store test results
+/// </summary>
 public class Logger
 {
-    /// <summary>
-    /// A result of a single comparison test
-    /// </summary>
-    public struct TestResult
-    {
-        public bool Pass { get; set; }
-        public double? Percentage { get; set; }
-        public List<string>? Comments { get; set; }
-        public List<Error> Errors { get; set; }
-
-        public TestResult(bool pass, double? percentage, List<string>? comments, List<Error> errors)
-        {
-            this.Pass = pass;
-            this.Percentage = percentage;
-            this.Comments = comments;
-            this.Errors = errors;
-        }
-    }
-
-    /// <summary>
-    /// A result of comparing two files
-    /// </summary>
-    public struct ComparisonResult
-    {
-        public FilePair FilePair { get; set; }
-        public Dictionary<string, TestResult> Tests { get; set; }
-
-        public bool Pass { get; set; }
-
-        public ComparisonResult(FilePair filePair)
-        {
-            Tests = new Dictionary<string, TestResult>();
-
-            Pass = true;
-            this.FilePair = filePair;
-        }
-
-        /// <summary>
-        /// Add a test result
-        /// </summary>
-        /// <param name="testResult">The test result</param>
-        /// <param name="testName">Name of the test/method</param>
-        public void AddTestResult(TestResult testResult, string testName)
-        {
-            Tests[testName] = testResult;
-            if (!testResult.Pass)
-            {
-                Pass = false;
-            } 
-        }
-    }
-
     public int FileComparisonCount { get; set; }
     public int FileComparisonsFailed { get; set; }
     public Stopwatch Stopwatch { get; set; }
@@ -138,9 +144,9 @@ public class Logger
         }
         else
         {
-            var testPassed = Results[index].Pass;
+            var previousTestsPassed = Results[index].Pass;
             Results[index].AddTestResult(testResult, testName);
-            if (testPassed && !Results[index].Pass) FileComparisonsFailed++;
+            if (previousTestsPassed && !Results[index].Pass) FileComparisonsFailed++;
         }
     }
 
