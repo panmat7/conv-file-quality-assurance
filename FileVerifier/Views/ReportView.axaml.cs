@@ -267,7 +267,18 @@ public partial class ReportView : UserControl
             // List errors in order of severity
             foreach (var err in result.Errors.OrderByDescending(e => e.Severity))
             {
-                (var errCol, var severityString) = err.Severity switch
+                var errTypeString = err.ErrorType switch
+                {
+                    ErrorType.Unset => "Unset",
+                    ErrorType.Metadata => "Metadata",
+                    ErrorType.Visual => "Visual",
+                    ErrorType.KnownErrorSource => "Known error source",
+                    ErrorType.FileError => "File error",
+                    _ => null,
+                };
+                if (errTypeString == null) continue;
+
+                (var errCol, var errSeverityString) = err.Severity switch
                 {
                     ErrorSeverity.Unset => (Brushes.Gray, "Unset"),
                     ErrorSeverity.Low => (Brushes.Yellow, "Low"),
@@ -276,7 +287,7 @@ public partial class ReportView : UserControl
                     ErrorSeverity.Internal => (Brushes.Black, "Internal"),
                     _ => (null, null),
                 };
-                if (errCol == null || severityString == null) continue;
+                if (errCol == null || errSeverityString == null) continue;
 
 
                 var errStackPanel = new StackPanel();
@@ -299,7 +310,7 @@ public partial class ReportView : UserControl
                     Margin = new Thickness(5),
                     Child = new TextBlock
                     {
-                        Text = $"{err.Name}: {err.Description}\nSeverity: {severityString}",
+                        Text = $"{err.Name}: {err.Description}\nType: {errTypeString}\nSeverity: {errSeverityString}",
                         Foreground = Brushes.White
                     }
                 });
