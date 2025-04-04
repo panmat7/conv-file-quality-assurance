@@ -22,8 +22,9 @@ public static class BasePipeline
         {
             pipeline();
         }
-        catch
+        catch(Exception er)
         {
+            Console.WriteLine(er);
             var e = new Error(
                 "Error during file processing.",
                 "An internal error occurred while processing the files.",

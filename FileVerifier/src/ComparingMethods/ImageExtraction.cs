@@ -11,6 +11,7 @@ using AvaloniaDraft.Helpers;
 using MimeKit;
 using UglyToad.PdfPig.Content;
 using RtfDomParser;
+using UglyToad.PdfPig.Tokens;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -107,8 +108,36 @@ public static class ImageExtraction
             {
                 var hash = Convert.ToBase64String(MD5.HashData(image.RawBytes.ToArray()));
                 if (!imageHashes.Add(hash)) continue;
+
+                MagickImage magickImage;
+                if (image.TryGetPng(out var pngBytes))
+                {
+                    magickImage = new MagickImage(pngBytes);
+                }
+                else
+                {
+                    magickImage = new MagickImage(image.RawBytes);
+                }
+
+                // Check for transparency mask
+                if (image.ImageDictionary.ContainsKey(NameToken.Smask) || image.ImageDictionary.ContainsKey(NameToken.Mask))
+                {
+                    var maskToken = image.ImageDictionary.ContainsKey(NameToken.Smask)
+                        ? image.ImageDictionary.Data[NameToken.Smask]
+                        : image.ImageDictionary.Data[NameToken.Mask];
+
+                    if (maskToken is StreamToken maskStreamToken)
+                    {
+                        var maskBytes = maskStreamToken.Data.ToArray();
+                        using var maskImage = new MagickImage(maskBytes);
+                        maskImage.Negate(); // Invert the mask to match the alpha channel expectations
+                        magickImage.Composite(maskImage, CompositeOperator.CopyAlpha);
+                    }
+                }
+
                 var outputPath = Path.Combine(outputDirectory, $"{Guid.NewGuid()}.png");
-                File.WriteAllBytes(outputPath, image.RawBytes.ToArray());
+                magickImage.Write(outputPath);
+                magickImage.Dispose();
             }
         }
     }

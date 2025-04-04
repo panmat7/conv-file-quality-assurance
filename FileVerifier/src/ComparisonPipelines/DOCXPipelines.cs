@@ -125,8 +125,9 @@ public static class DocxPipelines
                         tempFoldersForImages.Item2
                     );
                 }
-                catch (Exception)
+                catch (Exception er)
                 {
+                    Console.WriteLine(er);
                     exceptionOccurred = true;
                     error = new Error(
                         "Error comparing color profiles in docx contained images",

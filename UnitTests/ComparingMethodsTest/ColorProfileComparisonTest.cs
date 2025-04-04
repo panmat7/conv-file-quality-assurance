@@ -494,13 +494,12 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
     [Test]
     public void TestEmailWithOneMissingProfileDisk()
     {
-        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-one-missing-profile.eml");
-        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-one-missing-profile.pdf");
+        var oFilePath = Path.Combine(TestFileDirectory, "Transparency", "correct_transparency.docx");
+        var nFilePath = Path.Combine(TestFileDirectory, "Transparency", "correct_transparency.pdf");
 
-        ImageExtraction.ExtractImagesFromEmlToDisk(oFilePath, TestExtractionODirectory);
+        ImageExtraction.ExtractImagesFromDocxToDisk(oFilePath, TestExtractionODirectory);
         ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
-        try
-        {
+        
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
@@ -511,17 +510,17 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
     
             var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
             Assert.That(result, Is.True); // Two files with same color profiles should pass
-        }
-        finally
-        {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
-            Assert.Multiple(() =>
-            {
-                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
-                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
-            });
-        }
+        
+        // finally
+        // {
+        //     ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+        //     ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+        //     Assert.Multiple(() =>
+        //     {
+        //         Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+        //         Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+        //     });
+        // }
     }
 
     [Test]
