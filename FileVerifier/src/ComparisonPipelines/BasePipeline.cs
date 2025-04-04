@@ -1,4 +1,5 @@
 using System;
+using System.IO.Abstractions;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 
@@ -84,5 +85,31 @@ public static class BasePipeline
             return RtfPipelines.GetRtfPipeline(pair.NewFileFormat);
         
         return null;
+    }
+
+    public static (string, string) CreateTempFoldersForImages()
+    {
+        var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
+    
+        var tempODirectory = fileSystem?.Path.Combine(fileSystem.Path.GetTempPath(), fileSystem.Path.GetRandomFileName());
+        var tempNDirectory = fileSystem?.Path.Combine(fileSystem.Path.GetTempPath(), fileSystem.Path.GetRandomFileName());
+
+        if (tempODirectory == null) return (string.Empty, string.Empty);
+        fileSystem?.Directory.CreateDirectory(tempODirectory);
+        if (tempNDirectory == null) return (string.Empty, string.Empty);
+        fileSystem?.Directory.CreateDirectory(tempNDirectory);
+
+        return (tempODirectory, tempNDirectory);
+    }
+    
+    public static void DeleteTempFolders(string tempODirectory, string tempNDirectory)
+    {
+        var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
+        if (fileSystem == null) return;
+        
+        if (fileSystem.Directory.Exists(tempODirectory))
+            fileSystem.Directory.Delete(tempODirectory, true);
+        if (fileSystem.Directory.Exists(tempNDirectory))
+            fileSystem.Directory.Delete(tempNDirectory, true);
     }
 }

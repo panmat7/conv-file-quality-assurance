@@ -32,6 +32,8 @@
     <ItemGroup>
       <Folder Include="ComparingMethodsTest\TestFiles\FontComparison\Converted\" />
       <Folder Include="ComparingMethodsTest\TestFiles\FontComparison\Original\" />
+      <Folder Include="ComparingMethodsTest\TestFiles\NTempFilesTest\" />
+      <Folder Include="ComparingMethodsTest\TestFiles\OTempFilesTest\" />
     </ItemGroup>
 
 </Project>

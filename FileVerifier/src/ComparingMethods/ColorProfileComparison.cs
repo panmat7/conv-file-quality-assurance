@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
@@ -112,6 +113,31 @@ public static class ColorProfileComparison
                                         !CompareColorProfiles(t, convertedNImages[i])).Any();
     }
 
+    public static bool CompareColorProfilesFromDisk(string oFolderPath, string nFolderPath)
+    {
+        var oFiles = Directory.GetFiles(oFolderPath);
+        var nFiles = Directory.GetFiles(nFolderPath);
+    
+        // If both folders are empty, return true
+        if (oFiles.Length == 0 && nFiles.Length == 0) return true;
+    
+        // If the number of files in the folders differ, return false
+        if (oFiles.Length != nFiles.Length) return false;
+    
+        for (var i = 0; i < oFiles.Length; i++)
+        {
+            using var oImage = new MagickImage(oFiles[i]);
+            using var nImage = new MagickImage(nFiles[i]);
+    
+            if (!CompareColorProfiles(oImage, nImage))
+            {
+                return false;
+            }
+        }
+    
+        return true;
+    }
+    
     /// <summary>
     /// Function checks that embedded color profile for two images are the same
     /// </summary>
