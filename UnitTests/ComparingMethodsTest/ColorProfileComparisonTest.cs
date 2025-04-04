@@ -287,27 +287,32 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
     {
         var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "word_with_two_images_of_different_profile.docx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_two_images_of_different_profile.pdf");
-
+    
         ImageExtraction.ExtractImagesFromDocxToDisk(oFilePath, TestExtractionODirectory);
         ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
-        Assert.Multiple(() =>
+        try
         {
-            Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
-            Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
-            Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
-            Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
-        });
-
-        var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
-        Assert.That(result, Is.True); // Two files with same color profiles should pass
-        
-        ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-        ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
-        Assert.Multiple(() =>
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
+                Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
+            });
+    
+            var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
+            Assert.That(result, Is.True); // Two files with same color profiles should pass
+        }
+        finally
         {
-            Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
-            Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
-        });
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
     }
     
     [Test]
@@ -383,24 +388,29 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
 
         ImageExtraction.ExtractImagesFromXmlBasedPowerPointToDisk(oFilePath, TestExtractionODirectory);
         ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
-        Assert.Multiple(() =>
+        try
         {
-            Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
-            Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
-            Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
-            Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
-        });
-
-        var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
-        Assert.That(result, Is.True); // Two files where color profiles match should pass
-        
-        ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-        ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
-        Assert.Multiple(() =>
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
+                Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
+            });
+    
+            var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
+            Assert.That(result, Is.True); // Two files with same color profiles should pass
+        }
+        finally
         {
-            Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
-            Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
-        });
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
     }
     
     [Test]
@@ -489,24 +499,29 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
 
         ImageExtraction.ExtractImagesFromEmlToDisk(oFilePath, TestExtractionODirectory);
         ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
-        Assert.Multiple(() =>
+        try
         {
-            Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
-            Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
-            Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
-            Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
-        });
-
-        var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
-        Assert.That(result, Is.True); // Two files where color profiles match should pass
-        
-        ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-        ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
-        Assert.Multiple(() =>
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
+                Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
+            });
+    
+            var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
+            Assert.That(result, Is.True); // Two files with same color profiles should pass
+        }
+        finally
         {
-            Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
-            Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
-        });
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
     }
 
     [Test]
@@ -556,24 +571,29 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
 
         ImageExtraction.ExtractImagesFromOpenDocumentsToDisk(oFilePath, TestExtractionODirectory);
         ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
-        Assert.Multiple(() =>
+        try
         {
-            Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
-            Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
-            Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
-            Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
-        });
-
-        var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
-        Assert.That(result, Is.True); // Two files where color profiles match should pass
-        
-        ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-        ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
-        Assert.Multiple(() =>
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
+                Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
+            });
+    
+            var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
+            Assert.That(result, Is.True); // Two files with same color profiles should pass
+        }
+        finally
         {
-            Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
-            Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
-        });
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
     }
 
     [Test]

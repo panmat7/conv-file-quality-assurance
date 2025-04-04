@@ -147,6 +147,7 @@ public partial class HomeView : UserControl
                 if (AutoStartVerification)
                 {
                     StartVerificationProcess();
+                    AutoStartVerification = false;
                 }
                 else if (GlobalVariables.FileManager != null)
                 {

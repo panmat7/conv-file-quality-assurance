@@ -158,50 +158,53 @@ public static class DocxPipelines
                 
             }
 
-            // if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
-            // {
-            //     var res = false;
-            //     var exceptionOccurred = false;
-            //
-            //     try
-            //     {
-            //         res = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
-            //     }
-            //     catch (Exception)
-            //     {
-            //         exceptionOccurred = true;
-            //         error = new Error(
-            //             "Error comparing transparency in docx contained images",
-            //             "There occurred an error while comparing transparency" +
-            //             " of the images contained in the docx.",
-            //             ErrorSeverity.Medium,
-            //             ErrorType.Metadata
-            //         );
-            //         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-            //         e.Add(error);
-            //     }
-            //
-            //     switch (exceptionOccurred)
-            //     {
-            //         case false when !res:
-            //             error = new Error(
-            //                 "Difference of transparency detected in images contained in the docx",
-            //                 "The images contained in the docx and pdf files did not pass Transparency comparison.",
-            //                 ErrorSeverity.Medium,
-            //                 ErrorType.Visual
-            //             );
-            //             GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-            //             e.Add(error);
-            //             break;
-            //         case false when res:
-            //             GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
-            //             break;
-            //     }
-            // }
+            if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
+            {
+                var res = false;
+                var exceptionOccurred = false;
+            
+                try
+                {
+                    res = TransparencyComparison.CompareTransparencyInImagesOnDisk(tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2);
+                }
+                catch (Exception er)
+                {
+                    Console.WriteLine(er);
+                    exceptionOccurred = true;
+                    error = new Error(
+                        "Error comparing transparency in docx contained images",
+                        "There occurred an error while comparing transparency" +
+                        " of the images contained in the docx.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    e.Add(error);
+                }
+            
+                switch (exceptionOccurred)
+                {
+                    case false when !res:
+                        error = new Error(
+                            "Difference of transparency detected in images contained in the docx",
+                            "The images contained in the docx and pdf files did not pass Transparency comparison.",
+                            ErrorSeverity.Medium,
+                            ErrorType.Visual
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                        e.Add(error);
+                        break;
+                    case false when res:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
+                        break;
+                }
+            }
             
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
+            
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);

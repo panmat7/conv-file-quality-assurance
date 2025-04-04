@@ -38,8 +38,9 @@ public static class EmlPipelines
             List<Error> e = [];
             Error error;
             
-            var oImages = ImageExtraction.ExtractImagesFromEml(pair.OriginalFilePath);
-            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+            var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
+            ImageExtraction.ExtractImagesFromEmlToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
             
             if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
@@ -48,7 +49,10 @@ public static class EmlPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.CompareColorProfilesFromDisk(
+                        tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2
+                    );
                 }
                 catch (Exception)
                 {
@@ -86,7 +90,7 @@ public static class EmlPipelines
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
             
-            ImageExtraction.DisposeMagickImages(oImages);
+            BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             
 
             e.AddRange(ComperingMethods.CompareFonts(pair));

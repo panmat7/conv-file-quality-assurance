@@ -115,8 +115,8 @@ public static class ColorProfileComparison
 
     public static bool CompareColorProfilesFromDisk(string oFolderPath, string nFolderPath)
     {
-        var oFiles = Directory.GetFiles(oFolderPath);
-        var nFiles = Directory.GetFiles(nFolderPath);
+        var oFiles = Directory.GetFiles(oFolderPath).OrderBy(File.GetCreationTime).ToArray();
+        var nFiles = Directory.GetFiles(nFolderPath).OrderBy(File.GetCreationTime).ToArray();
     
         // If both folders are empty, return true
         if (oFiles.Length == 0 && nFiles.Length == 0) return true;

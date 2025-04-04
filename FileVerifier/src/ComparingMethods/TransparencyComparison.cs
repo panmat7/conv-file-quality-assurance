@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using ImageMagick;
 using UglyToad.PdfPig.Content;
@@ -90,6 +92,31 @@ public static class TransparencyComparison
         }
         
         return !oImages.Where((t, i) => CheckNonPdfImageTransparency(t) != CheckPdfImageTransparency(nImages[i])).Any();
+    }
+    
+    public static bool CompareTransparencyInImagesOnDisk(string oFolderPath, string nFolderPath)
+    {
+        var oFiles = Directory.GetFiles(oFolderPath).OrderBy(File.GetCreationTime).ToArray();
+        var nFiles = Directory.GetFiles(nFolderPath).OrderBy(File.GetCreationTime).ToArray();
+    
+        // If both folders are empty, return true
+        if (oFiles.Length == 0 && nFiles.Length == 0) return true;
+    
+        // If the number of files in the folders differ, return false
+        if (oFiles.Length != nFiles.Length) return false;
+    
+        for (var i = 0; i < oFiles.Length; i++)
+        {
+            using var oImage = new MagickImage(oFiles[i]);
+            using var nImage = new MagickImage(nFiles[i]);
+            
+            if (!CheckNonPdfImageTransparency(oImage) && nImage.IsOpaque)
+            {
+                return false;
+            }
+        }
+    
+        return true;
     }
 
     /// <summary>
