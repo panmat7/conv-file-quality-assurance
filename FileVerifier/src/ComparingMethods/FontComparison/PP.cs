@@ -14,6 +14,7 @@ using System.Diagnostics;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Presentation;
 using System.Globalization;
+using Org.BouncyCastle.Asn1.Tsp;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -261,7 +262,7 @@ public static class PPFontExtraction
 
         foreach (var classification in classifications)
         {
-            var font = classification switch
+            string? font = classification switch
             {
                 "latin" => rLatinFont ?? sldLayoutStyle.latinFont ?? sldMasterStyle.latinFont,
                 "ea" => rEaFont ?? sldLayoutStyle.eaFont ?? sldMasterStyle.eaFont,
@@ -274,31 +275,7 @@ public static class PPFontExtraction
 
             if (font.First() == '+') // A default font
             {
-                var fontThemeParts = font.Split('-');
-                var type = fontThemeParts.FirstOrDefault(); // Minor or major
-                var fontDic = type switch
-                {
-                    "+mj" => majFonts,
-                    "+mn" => minFonts,
-                    _ => null,
-                };
-                if (fontDic == null) continue;
-
-                var script = ScriptCodes.GetScript(lang);
-                if (script != null)
-                {
-                    var fontUsed = fontDic.GetValueOrDefault(script);
-                    if (!string.IsNullOrEmpty(fontUsed)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(fontUsed));
-                }
-                else
-                {
-                    var scriptType = fontThemeParts.ElementAtOrDefault(1);
-                    if (scriptType == null) continue;
-
-                    scriptType = scriptType == "lt" ? "latin" : scriptType;
-                    var fontUsed = fontDic.GetValueOrDefault(scriptType);
-                    if (!string.IsNullOrEmpty(fontUsed)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(fontUsed));
-                }
+                GetDefaultFont(font, lang, majFonts, minFonts, textInfo);
             }
             else // Specific font
             {
@@ -307,6 +284,44 @@ public static class PPFontExtraction
         }
     }
 
+
+    /// <summary>
+    /// Perform font substitution if the font is not explicitly stated
+    /// </summary>
+    /// <param name="font"></param>
+    /// <param name="lang"></param>
+    /// <param name="majFonts"></param>
+    /// <param name="minFonts"></param>
+    /// <param name="textInfo"></param>
+    private static void GetDefaultFont(string font, string? lang, 
+        Dictionary<string, string> majFonts, Dictionary<string, string> minFonts, TextInfo textInfo)
+    {
+        var fontThemeParts = font.Split('-');
+        var type = fontThemeParts.FirstOrDefault(); // Minor or major
+        var fontDic = type switch
+        {
+            "+mj" => majFonts,
+            "+mn" => minFonts,
+            _ => null,
+        };
+        if (fontDic == null) return;
+
+        var script = ScriptCodes.GetScript(lang);
+        if (script != null)
+        {
+            var fontUsed = fontDic.GetValueOrDefault(script);
+            if (!string.IsNullOrEmpty(fontUsed)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(fontUsed));
+        }
+        else
+        {
+            var scriptType = fontThemeParts.ElementAtOrDefault(1);
+            if (scriptType == null) return;
+
+            scriptType = scriptType == "lt" ? "latin" : scriptType;
+            var fontUsed = fontDic.GetValueOrDefault(scriptType);
+            if (!string.IsNullOrEmpty(fontUsed)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(fontUsed));
+        }
+    }
 
 
     private static (bool foreignChars, HashSet<string> classifications) GetFontClassifications(string txt)
@@ -318,6 +333,7 @@ public static class PPFontExtraction
 
         return (foreignChars, classifications);
     }
+
 
     /// <summary>
     /// Get the default style of a shape or shape type
@@ -448,6 +464,7 @@ public static class PPFontExtraction
             return null;
         }
     }
+
 
     /// <summary>
     /// Get the colors of a slide
