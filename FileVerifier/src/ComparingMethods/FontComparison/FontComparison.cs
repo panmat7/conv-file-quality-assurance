@@ -15,13 +15,23 @@ using System.Threading.Tasks;
 namespace AvaloniaDraft.ComparingMethods;
 
 
-public struct TextInfo(HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, HashSet<HashSet<string>> altFonts, bool foreignWriting = false)
+public class TextInfo
 {
-    public bool ForeignWriting { get; set; } = foreignWriting;
-    public HashSet<string> Fonts { get; set; } = fonts;
-    public HashSet<HashSet<string>> AltFonts { get; set; } = altFonts;
-    public HashSet<string> TextColors { get; set; } = textColors;
-    public HashSet<string> BgColors { get; set; } = bgColors;
+    public bool ForeignWriting { get; set; }
+    public HashSet<string> Fonts { get; set; }
+    public HashSet<HashSet<string>> AltFonts { get; set; }
+    public HashSet<string> TextColors { get; set; }
+    public HashSet<string> BgColors { get; set; }
+
+
+    public TextInfo()
+    {
+        ForeignWriting = false;
+        Fonts = [];
+        AltFonts = [];
+        TextColors = [];
+        BgColors = [];
+    }
 }
 
 

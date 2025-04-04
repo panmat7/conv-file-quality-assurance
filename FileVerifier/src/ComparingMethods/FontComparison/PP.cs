@@ -12,6 +12,8 @@ using System.Drawing;
 using ColorMine.ColorSpaces;
 using System.Diagnostics;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Presentation;
+using System.Globalization;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -45,11 +47,7 @@ public static class PPFontExtraction
     /// <returns></returns>
     public static TextInfo? GetTextInfoPP(string src)
     {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
+        var textInfo = new TextInfo();
 
         var doc = PresentationDocument.Open(src, false);
         if (doc is null) return null;
@@ -76,159 +74,247 @@ public static class PPFontExtraction
 
             // Check the default fonts
             var fontScheme = themePart?.Theme?.ThemeElements?.FontScheme;
-            if (fontScheme == null) return null;
+            var fontSchemeXml = XElement.Parse(fontScheme?.OuterXml ?? "");
+            var defFonts = MSOffice.GetDefaultFontsFromScheme(fontSchemeXml);
+            if (defFonts == null) return null;
+            var majFonts = defFonts.Value.major;
+            var minFonts = defFonts.Value.minor;
 
 
             // Go through each shape
             var shapes = slidePart.Slide.Descendants<PP.Shape>();
             foreach (PP.Shape shape in shapes)
             {
-                // Get fill if present
-                var fill = shape.ShapeProperties?.GetFirstChild<SolidFill>();
-                var bgColor = fill?.RgbColorModelHex?.Val?.Value ?? GetSchemeColor(fill?.SchemeColor, colorDic);
-                if (!string.IsNullOrEmpty(bgColor))
-                {
-                    bgColors.Add(bgColor);
-                }
-
-                var textBody = shape.TextBody;
-                if (textBody == null) continue;
-
-                // Get the placeholder shape
-                var phShape = shape.NonVisualShapeProperties?.ApplicationNonVisualDrawingProperties?.PlaceholderShape;
-                var phType = phShape?.Type?.Value;
-                var phIndex = phShape?.Index?.Value;
-                var placeholderShape = slideLayout?.ShapeTree?.Descendants<PP.Shape>().FirstOrDefault(s =>
-                {
-                    var ph = s.NonVisualShapeProperties?.ApplicationNonVisualDrawingProperties?.PlaceholderShape;
-
-                    var sameIndex = phIndex != null && ph?.Index?.Value == phIndex;
-                    var sameType = phType != null && ph?.Type?.Value == phType;
-
-                    return sameIndex || sameType;
-                });
-
-                // Go through each paragraph
-                var paragraphs = textBody.Descendants<Paragraph>();
-                if (paragraphs == null) continue;
-                foreach (var paragraph in paragraphs)
-                {
-                    var pProp = paragraph.ParagraphProperties;
-                    int? lvl = pProp?.Level?.Value;
-
-                    bool hasLevel = (lvl != null);
-                    bool phHasNonBullet = placeholderShape?.TextBody?.Descendants<Paragraph>().Any(p => p.ParagraphProperties?.Level is null) ?? true;
-                    bool isExplicitlyNotBullet = paragraph.Descendants<NoBullet>().Any();
-                    bool hasExplicitBullet = paragraph.Descendants<CharacterBullet>().Any() ||
-                        paragraph.Descendants<AutoNumberedBullet>().Any() || paragraph.Descendants<BulletFont>().Any();
-
-                    bool isBullet = (hasExplicitBullet || !phHasNonBullet || hasLevel) && !isExplicitlyNotBullet;
-
-                    // Check the style properties for the placeholder shape
-                    StyleProperties sldLayoutStyle;
-                    if (placeholderShape != null)
-                    {
-                        var listStyle = placeholderShape?.TextBody?.ListStyle;
-                        var listStyleXml = XElement.Parse(listStyle?.OuterXml ?? "");
-                        sldLayoutStyle = GetDefaultStyle(listStyleXml, colorDic, lvl);
-                    }
-                    else
-                    {
-                        sldLayoutStyle = new StyleProperties();
-                    }
-
-                    // Check the slide master for default style properties
-                    StyleProperties sldMasterStyle;
-                    if (phType == PP.PlaceholderValues.Title || phType == PP.PlaceholderValues.CenteredTitle)
-                    {
-                        var titleStyle = slideMasterPart?.SlideMaster.Descendants<PP.TitleStyle>().FirstOrDefault();
-                        var titleStyleXml = XElement.Parse(titleStyle?.OuterXml ?? "");
-                        sldMasterStyle = GetDefaultStyle(titleStyleXml, colorDic, lvl);
-                    }
-                    else
-                    {
-                        var bodyStyle = slideMasterPart?.SlideMaster.Descendants<PP.BodyStyle>().FirstOrDefault();
-                        var bodyStyleXml = XElement.Parse(bodyStyle?.OuterXml ?? "");
-                        sldMasterStyle = GetDefaultStyle(bodyStyleXml, colorDic, lvl);
-                    }
-
-
-                    // Check bullet properties
-                    if (isBullet)
-                    {
-                        // Check bullet font
-                        var buFont = pProp?.GetFirstChild<BulletFont>()?.Typeface?.Value ?? sldLayoutStyle.buFont ?? sldMasterStyle.buFont;
-                        if (!string.IsNullOrEmpty(buFont)) fonts.Add(FontComparison.NormalizeFontName(buFont));
-
-                        // Check bullet color
-                        var buColor = pProp?.GetFirstChild<BulletColor>();
-                        var buHex = GetBulletColor(buColor, colorDic) ?? sldLayoutStyle.buColor ?? sldMasterStyle.buColor;
-                        if (!string.IsNullOrEmpty(buHex)) textColors.Add(buHex);
-                    }
-
-
-                    // Check each run
-                    var runs = paragraph?.Descendants<Run>();
-                    if (runs == null) continue;
-                    foreach (var run in runs)
-                    {
-                        var runProp = run.RunProperties;
-
-                        // Check marking
-                        var highlightCol = runProp?.GetFirstChild<Highlight>()?
-                            .GetFirstChild<RgbColorModelHex>()?.Val?.Value;
-                        if (highlightCol != null) bgColors.Add(highlightCol);
-
-                        if (string.IsNullOrWhiteSpace(run.InnerText)) continue;
-
-                        // Check text color
-                        var solidFill = runProp?.GetFirstChild<SolidFill>();
-                        var textHex = GetSolidFillColor(solidFill, colorDic);
-                        var textColor = textHex ?? sldLayoutStyle.textColor ?? sldMasterStyle.textColor;
-                        if (textColor != null) textColors.Add(textColor);
-
-
-                        // Get fonts
-                        (var foreignChars, var classifications) = GetFontClassifications(run.InnerText);
-
-                        if (foreignChars) foreignWriting = true;
-
-
-                        var rLatinFont = runProp?.GetFirstChild<LatinFont>()?.Typeface?.Value;
-                        var rEaFont = runProp?.GetFirstChild<EastAsianFont>()?.Typeface?.Value;
-                        var rCsFont = runProp?.GetFirstChild<ComplexScriptFont>()?.Typeface?.Value;
-
-                        foreach (var classification in classifications)
-                        {
-                            var usedFont = classification switch
-                            {
-                                "latin" => rLatinFont ?? sldLayoutStyle.latinFont ?? sldMasterStyle.latinFont,
-                                "ea" => rEaFont ?? sldLayoutStyle.eaFont ?? sldMasterStyle.eaFont,
-                                "cs" => rCsFont ?? sldLayoutStyle.csFont ?? sldMasterStyle.csFont,
-                                _ => null,
-                            };
-                            if (usedFont == null) continue;
-
-                            var lang = runProp?.Language?.Value;
-
-                            /// TODO: Sjekk font
-                        }
-                    }
-                }
+                CheckShape(shape, slideMasterPart, slideLayout, colorDic, minFonts, majFonts, textInfo);
             }
         }
 
-
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
+
+
+
+    /// <summary>
+    /// Check a shape
+    /// </summary>
+    /// <param name="shape"></param>
+    /// <param name="slideMasterPart"></param>
+    /// <param name="slideLayout"></param>
+    /// <param name="colorDic"></param>
+    /// <param name="minFonts"></param>
+    /// <param name="majFonts"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckShape(PP.Shape shape, SlideMasterPart? slideMasterPart, CommonSlideData? slideLayout, Dictionary<string, string> colorDic, 
+        Dictionary<string, string> minFonts, Dictionary<string, string> majFonts, TextInfo textInfo)
+    {
+        // Get fill if present
+        var fill = shape.ShapeProperties?.GetFirstChild<SolidFill>();
+        var bgColor = fill?.RgbColorModelHex?.Val?.Value ?? GetSchemeColor(fill?.SchemeColor, colorDic);
+        if (!string.IsNullOrEmpty(bgColor))
+        {
+            textInfo.BgColors.Add(bgColor);
+        }
+
+        var textBody = shape.TextBody;
+        if (textBody == null) return;
+
+        // Get the placeholder shape
+        var phShape = shape.NonVisualShapeProperties?.ApplicationNonVisualDrawingProperties?.PlaceholderShape;
+        var phType = phShape?.Type?.Value;
+        var phIndex = phShape?.Index?.Value;
+        var placeholderShape = slideLayout?.ShapeTree?.Descendants<PP.Shape>().FirstOrDefault(s =>
+        {
+            var ph = s.NonVisualShapeProperties?.ApplicationNonVisualDrawingProperties?.PlaceholderShape;
+
+            var sameIndex = phIndex != null && ph?.Index?.Value == phIndex;
+            var sameType = phType != null && ph?.Type?.Value == phType;
+
+            return sameIndex || sameType;
+        });
+
+        // Go through each paragraph
+        var paragraphs = textBody.Descendants<Paragraph>();
+        if (paragraphs == null) return;
+        foreach (var paragraph in paragraphs)
+        {
+            CheckParagraph(paragraph, placeholderShape, slideMasterPart, phType, colorDic, minFonts, majFonts, textInfo);
+        }
+    }
+
+
+    /// <summary>
+    /// Check a paragraph
+    /// </summary>
+    /// <param name="paragraph"></param>
+    /// <param name="placeholderShape"></param>
+    /// <param name="slideMasterPart"></param>
+    /// <param name="phType"></param>
+    /// <param name="colorDic"></param>
+    /// <param name="minFonts"></param>
+    /// <param name="majFonts"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckParagraph(Paragraph paragraph, PP.Shape? placeholderShape, SlideMasterPart? slideMasterPart, PlaceholderValues? phType, 
+        Dictionary<string, string> colorDic, Dictionary<string, string> minFonts, Dictionary<string, string> majFonts, TextInfo textInfo)
+    {
+        var pProp = paragraph.ParagraphProperties;
+        int? lvl = pProp?.Level?.Value;
+
+        bool hasLevel = (lvl != null);
+        bool phHasNonBullet = placeholderShape?.TextBody?.Descendants<Paragraph>().Any(p => p.ParagraphProperties?.Level is null) ?? true;
+        bool isExplicitlyNotBullet = paragraph.Descendants<NoBullet>().Any();
+        bool hasExplicitBullet = paragraph.Descendants<CharacterBullet>().Any() ||
+            paragraph.Descendants<AutoNumberedBullet>().Any() || paragraph.Descendants<BulletFont>().Any();
+
+        bool isBullet = (hasExplicitBullet || !phHasNonBullet || hasLevel) && !isExplicitlyNotBullet;
+
+        // Check the style properties for the placeholder shape
+        StyleProperties sldLayoutStyle;
+        if (placeholderShape != null)
+        {
+            var listStyle = placeholderShape?.TextBody?.ListStyle;
+            var listStyleXml = XElement.Parse(listStyle?.OuterXml ?? "");
+            sldLayoutStyle = GetDefaultStyle(listStyleXml, colorDic, lvl);
+        }
+        else
+        {
+            sldLayoutStyle = new StyleProperties();
+        }
+
+        // Check the slide master for default style properties
+        StyleProperties sldMasterStyle;
+        if (phType == PP.PlaceholderValues.Title || phType == PP.PlaceholderValues.CenteredTitle)
+        {
+            var titleStyle = slideMasterPart?.SlideMaster.Descendants<PP.TitleStyle>().FirstOrDefault();
+            var titleStyleXml = XElement.Parse(titleStyle?.OuterXml ?? "");
+            sldMasterStyle = GetDefaultStyle(titleStyleXml, colorDic, lvl);
+        }
+        else
+        {
+            var bodyStyle = slideMasterPart?.SlideMaster.Descendants<PP.BodyStyle>().FirstOrDefault();
+            var bodyStyleXml = XElement.Parse(bodyStyle?.OuterXml ?? "");
+            sldMasterStyle = GetDefaultStyle(bodyStyleXml, colorDic, lvl);
+        }
+
+
+        // Check bullet properties
+        if (isBullet)
+        {
+            // Check bullet font
+            var buFont = pProp?.GetFirstChild<BulletFont>()?.Typeface?.Value ?? sldLayoutStyle.buFont ?? sldMasterStyle.buFont;
+            if (!string.IsNullOrEmpty(buFont)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(buFont));
+
+            // Check bullet color
+            var buColor = pProp?.GetFirstChild<BulletColor>();
+            var buHex = GetBulletColor(buColor, colorDic) ?? sldLayoutStyle.buColor ?? sldMasterStyle.buColor;
+            if (!string.IsNullOrEmpty(buHex)) textInfo.TextColors.Add(buHex);
+        }
+
+
+        // Check each run
+        var runs = paragraph?.Descendants<Run>();
+        if (runs == null) return;
+        foreach (var run in runs)
+        {
+            CheckRun(run, majFonts, minFonts, colorDic, sldLayoutStyle, sldMasterStyle, textInfo);
+        }
+    }
+
+
+    /// <summary>
+    /// Check a run
+    /// </summary>
+    /// <param name="run"></param>
+    /// <param name="majFonts"></param>
+    /// <param name="minFonts"></param>
+    /// <param name="colorDic"></param>
+    /// <param name="sldLayoutStyle"></param>
+    /// <param name="sldMasterStyle"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckRun(Run run, Dictionary<string, string> majFonts, Dictionary<string, string> minFonts,
+        Dictionary<string, string> colorDic, StyleProperties sldLayoutStyle, StyleProperties sldMasterStyle,
+        TextInfo textInfo)
+    {
+        var runProp = run.RunProperties;
+
+        // Check marking
+        var highlightCol = runProp?.GetFirstChild<Highlight>()?
+            .GetFirstChild<RgbColorModelHex>()?.Val?.Value;
+        if (highlightCol != null) textInfo.BgColors.Add(highlightCol);
+
+        if (string.IsNullOrWhiteSpace(run.InnerText)) return;
+
+        // Check text color
+        var solidFill = runProp?.GetFirstChild<SolidFill>();
+        var textHex = GetSolidFillColor(solidFill, colorDic);
+        var textColor = textHex ?? sldLayoutStyle.textColor ?? sldMasterStyle.textColor;
+        if (textColor != null) textInfo.TextColors.Add(textColor);
+
+
+        // Get fonts
+        (var foreignChars, var classifications) = GetFontClassifications(run.InnerText);
+        if (foreignChars) textInfo.ForeignWriting = true;
+
+
+        var rLatinFont = runProp?.GetFirstChild<LatinFont>()?.Typeface?.Value;
+        var rEaFont = runProp?.GetFirstChild<EastAsianFont>()?.Typeface?.Value;
+        var rCsFont = runProp?.GetFirstChild<ComplexScriptFont>()?.Typeface?.Value;
+
+        foreach (var classification in classifications)
+        {
+            var font = classification switch
+            {
+                "latin" => rLatinFont ?? sldLayoutStyle.latinFont ?? sldMasterStyle.latinFont,
+                "ea" => rEaFont ?? sldLayoutStyle.eaFont ?? sldMasterStyle.eaFont,
+                "cs" => rCsFont ?? sldLayoutStyle.csFont ?? sldMasterStyle.csFont,
+                _ => null,
+            };
+            if (string.IsNullOrEmpty(font)) continue;
+
+            var lang = runProp?.Language?.Value;
+
+            if (font.First() == '+') // A default font
+            {
+                var fontThemeParts = font.Split('-');
+                var type = fontThemeParts.FirstOrDefault(); // Minor or major
+                var fontDic = type switch
+                {
+                    "+mj" => majFonts,
+                    "+mn" => minFonts,
+                    _ => null,
+                };
+                if (fontDic == null) continue;
+
+                var script = ScriptCodes.GetScript(lang);
+                if (script != null)
+                {
+                    var fontUsed = fontDic.GetValueOrDefault(script);
+                    if (!string.IsNullOrEmpty(fontUsed)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(fontUsed));
+                }
+                else
+                {
+                    var scriptType = fontThemeParts.ElementAtOrDefault(1);
+                    if (scriptType == null) continue;
+
+                    scriptType = scriptType == "lt" ? "latin" : scriptType;
+                    var fontUsed = fontDic.GetValueOrDefault(scriptType);
+                    if (!string.IsNullOrEmpty(fontUsed)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(fontUsed));
+                }
+            }
+            else // Specific font
+            {
+                textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
+            }
+        }
+    }
+
 
 
     private static (bool foreignChars, HashSet<string> classifications) GetFontClassifications(string txt)
     {
         var foreignChars = FontComparison.IsForeign(txt);
-
         var classifications = new HashSet<string>();
+
+        /// TODO
 
         return (foreignChars, classifications);
     }

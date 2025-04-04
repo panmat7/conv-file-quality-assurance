@@ -18,24 +18,16 @@ public static class HtmlBasedFontExtraction
     /// <returns></returns>
     public static TextInfo? GetTextInfoEml(string src)
     {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
-
         var message = MimeMessage.Load(src);
 
         var htmlBody = message.HtmlBody;
         if (htmlBody != null)
         {
-            var textInfo = GetTextInfoHtml(htmlBody, true);
-            return textInfo;
+            return GetTextInfoHtml(htmlBody, true);
         }
         else
         {
-            var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
-            return textInfo;
+            return new TextInfo();
         }
     }
 
@@ -46,12 +38,7 @@ public static class HtmlBasedFontExtraction
     /// <returns></returns>
     public static TextInfo? GetTextInfoHtml(string src, bool isContent = false, bool includeAltFonts = true)
     {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
-
+        var textInfo = new TextInfo();
 
         var doc = new HtmlDocument();
 
@@ -65,13 +52,13 @@ public static class HtmlBasedFontExtraction
         }
 
         var allNodes = doc.DocumentNode.ChildNodes;
-        foreignWriting = allNodes.Any(n => FontComparison.IsForeign(n.InnerText));
+        textInfo.ForeignWriting = allNodes.Any(n => FontComparison.IsForeign(n.InnerText));
 
         var fontNodes = doc.DocumentNode.SelectNodes("//font[@face]") ?? Enumerable.Empty<HtmlNode>();
         foreach (var node in fontNodes)
         {
             var font = node.Attributes["face"].Value;
-            fonts.Add(FontComparison.NormalizeFontName(font));
+            textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
         }
 
         var styledNodes = doc.DocumentNode.SelectNodes("//*[@style]") ?? Enumerable.Empty<HtmlNode>();
@@ -94,24 +81,23 @@ public static class HtmlBasedFontExtraction
                 switch(name)
                 {
                     case "font-family":
-                        GetFontFromFontFamilyAttribute(value, includeAltFonts, fonts, altFonts);
+                        GetFontFromFontFamilyAttribute(value, includeAltFonts, textInfo);
                         break;
 
                     case "color":
                         var txtHex = GetHex(value);
-                        if (txtHex != null) textColors.Add(txtHex);
+                        if (txtHex != null) textInfo.TextColors.Add(txtHex);
                         break;
 
                     case "background-color":
                     case "background":
                         var bgHex = GetHex(value);
-                        if (bgHex != null) bgColors.Add(bgHex);
+                        if (bgHex != null) textInfo.BgColors.Add(bgHex);
                         break;
                 }
             }
         }
 
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
 
@@ -125,12 +111,12 @@ public static class HtmlBasedFontExtraction
     /// <param name="includeAltFonts"></param>
     /// <param name="fonts"></param>
     /// <param name="altFonts"></param>
-    private static void GetFontFromFontFamilyAttribute(string attributeValue, bool includeAltFonts, HashSet<string> fonts, HashSet<HashSet<string>> altFonts)
+    private static void GetFontFromFontFamilyAttribute(string attributeValue, bool includeAltFonts, TextInfo textInfo)
     {
         var styleFonts = attributeValue.Split(',');
         if (styleFonts.Length == 1 || (!includeAltFonts && styleFonts.Length >= 1))
         {
-            fonts.Add(FontComparison.NormalizeFontName(styleFonts[0]));
+            textInfo.Fonts.Add(FontComparison.NormalizeFontName(styleFonts[0]));
         }
         else if (styleFonts.Length > 1 && includeAltFonts)
         {
@@ -139,7 +125,7 @@ public static class HtmlBasedFontExtraction
             {
                 fontChoices.Add(FontComparison.NormalizeFontName(font));
             }
-            altFonts.Add(fontChoices);
+            textInfo.AltFonts.Add(fontChoices);
         }
     }
 

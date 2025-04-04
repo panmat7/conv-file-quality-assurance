@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,11 +18,7 @@ public static class RtfFontExtraction
     /// <returns></returns>
     public static TextInfo? GetTextInfoRTF(string src)
     {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
+        var textInfo = new TextInfo();
 
         var doc = new RTFDomDocument();
         doc.Load(src);
@@ -32,20 +29,19 @@ public static class RtfFontExtraction
             {
                 if (r is RTFDomText txt)
                 {
-                    CheckText(txt, fonts, textColors, bgColors, ref foreignWriting);
+                    CheckText(txt, textInfo);
                 }
                 else if (r is RTFDomField f)
                 {
                     var texts = f.Elements.OfType<RTFDomElementContainer>().SelectMany(ec => f.Elements.OfType<RTFDomText>());
                     foreach (var fTxt in texts)
                     {
-                        CheckText(fTxt, fonts, textColors, bgColors, ref foreignWriting);
+                        CheckText(fTxt, textInfo);
                     }
                 }
             }
         }
 
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
 
@@ -58,16 +54,16 @@ public static class RtfFontExtraction
     /// <param name="textColors"></param>
     /// <param name="bgColors"></param>
     /// <param name="foreignWriting"></param>
-    private static void CheckText(RTFDomText txt, HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, ref bool foreignWriting)
+    private static void CheckText(RTFDomText txt, TextInfo textInfo)
     {
         var fontName = FontComparison.NormalizeFontName(txt.Format.FontName);
         var textHex = FontComparison.GetHex(txt.Format.TextColor);
         var bgHex = FontComparison.GetHex(txt.Format.BackColor);
 
-        if (!foreignWriting && FontComparison.IsForeign(txt.Text)) foreignWriting = true;
+        if (!textInfo.ForeignWriting && FontComparison.IsForeign(txt.Text)) textInfo.ForeignWriting = true;
 
-        fonts.Add(fontName);
-        textColors.Add(textHex);
-        bgColors.Add(bgHex);
+        textInfo.Fonts.Add(fontName);
+        textInfo.TextColors.Add(textHex);
+        textInfo.BgColors.Add(bgHex);
     }
 }

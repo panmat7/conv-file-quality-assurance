@@ -16,15 +16,10 @@ public static class PdfFontExtraction
     /// <returns></returns>
     public static TextInfo? GetTextInfoPdf(string src)
     {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
+        var textInfo = new TextInfo();
 
         var doc = UglyToad.PdfPig.PdfDocument.Open(src);
         var pages = doc.GetPages();
-
         
         // Go through each character
         foreach (var letter in pages.SelectMany(p => p.Letters))
@@ -34,14 +29,14 @@ public static class PdfFontExtraction
 
             // Get the font
             string font = letter.Font.Name;
-            fonts.Add(FontComparison.NormalizeFontName(font));
+            textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
 
             // Get the color of the letter
             var hex = GetColor(letter.Color);
-            if (hex != null) textColors.Add(hex);
+            if (hex != null) textInfo.TextColors.Add(hex);
 
             // Check for foreign writing
-            if (!foreignWriting && FontComparison.IsForeign(letter.Value)) foreignWriting = true;
+            if (!textInfo.ForeignWriting && FontComparison.IsForeign(letter.Value)) textInfo.ForeignWriting = true;
         }
 
 
@@ -49,10 +44,9 @@ public static class PdfFontExtraction
         foreach (var path in pages.SelectMany(p => p.Paths))
         {
             var hex = GetColor(path.FillColor);
-            if (hex != null) bgColors.Add(hex);
+            if (hex != null) textInfo.BgColors.Add(hex);
         }
 
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
 

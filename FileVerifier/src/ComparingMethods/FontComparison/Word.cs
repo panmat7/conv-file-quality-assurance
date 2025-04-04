@@ -14,11 +14,7 @@ public static class WordFontExtraction
 {
     public static TextInfo? GetTextInfoWord(string src)
     {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
+        var textInfo = new TextInfo();
 
         WordprocessingDocument doc = WordprocessingDocument.Open(src, false);
         var mainDocPart = doc.MainDocumentPart;
@@ -45,13 +41,13 @@ public static class WordFontExtraction
             string? pColor = p.ParagraphProperties?.Shading?.Fill;
             if (pColor != null)
             {
-                bgColors.Add(pColor);
+                textInfo.BgColors.Add(pColor);
             }
 
             // Go through each run
             foreach (var run in p.Elements<Run>())
             {
-                CheckRun(run, themeFontLang, fontTable, majFonts, minFonts, fonts, textColors, bgColors, ref foreignWriting);
+                CheckRun(run, themeFontLang, fontTable, majFonts, minFonts, textInfo);
             }
         }
 
@@ -67,11 +63,10 @@ public static class WordFontExtraction
             var hex = style.StyleRunProperties?.Color?.Val?.Value;
             if (hex != null)
             {
-                textColors.Add(hex);
+                textInfo.TextColors.Add(hex);
             }
         }
 
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
 
@@ -89,7 +84,7 @@ public static class WordFontExtraction
     /// <param name="bgColors"></param>
     /// <param name="foreignWriting"></param>
     private static void CheckRun(Run run, ThemeFontLanguages themeFontLang, Fonts fontTable, Dictionary<string, string> majFonts, Dictionary<string, string> minFonts,
-        HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, ref bool foreignWriting)
+        TextInfo textInfo)
     {
         var runProperties = run.RunProperties;
 
@@ -97,27 +92,27 @@ public static class WordFontExtraction
         // Check hightlight color
         var highlightCol = runProperties?.Highlight?.Val;
         var hex = MSOffice.GetHighlightColor(highlightCol);
-        if (hex != null) bgColors.Add(hex);
+        if (hex != null) textInfo.BgColors.Add(hex);
 
         if (string.IsNullOrWhiteSpace(run.InnerText)) return;
 
         // Check text color
         string? textCol = runProperties?.Color?.Val?.Value;
-        textColors.Add(textCol ?? "000000");
+        textInfo.TextColors.Add(textCol ?? "000000");
 
         // Check shading color
         string? shadingCol = runProperties?.Shading?.Fill;
         if (shadingCol != null)
         {
-            bgColors.Add(shadingCol);
+            textInfo.BgColors.Add(shadingCol);
         }
 
         // Font
         (var runFonts, var fw) = GetFontsFromRun(run, themeFontLang, fontTable, majFonts, minFonts);
-        if (fw) foreignWriting = true;
+        if (fw) textInfo.ForeignWriting = true;
         if (runFonts != null) foreach (var font in runFonts)
         {
-            if (!string.IsNullOrEmpty(font)) fonts.Add(FontComparison.NormalizeFontName(font));
+            if (!string.IsNullOrEmpty(font)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
         }
     }
 

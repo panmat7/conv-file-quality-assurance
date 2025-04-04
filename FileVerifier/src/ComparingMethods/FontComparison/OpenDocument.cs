@@ -75,11 +75,7 @@ public static class ODFontExtraction
     /// <returns></returns>
     public static TextInfo? GetTextInfoODF(string src)
     {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
+        var textInfo = new TextInfo();
 
         if (ExtractDocuments(src) is not (XDocument contentDoc, XDocument stylesDoc)) return null;
 
@@ -110,7 +106,7 @@ public static class ODFontExtraction
         var paragraphs = contentDoc.Descendants().Where(e => e.Name.LocalName == "p");
         foreach (var p in paragraphs)
         {
-            CheckElement(p, "paragraph", contentStyles, defaultParagraphProperties, defaultParagraphTextProperties, fonts, textColors, bgColors, ref foreignWriting);
+            CheckElement(p, "paragraph", contentStyles, defaultParagraphProperties, defaultParagraphTextProperties, textInfo);
         }
 
 
@@ -118,7 +114,7 @@ public static class ODFontExtraction
         var cells = contentDoc.Descendants().Where(e => e.Name.LocalName == "table-cell");
         foreach (var cell in cells)
         {
-            CheckElement(cell, "table-cell", contentStyles, defaultCellProperties, defaultCellTextProperties, fonts, textColors, bgColors, ref foreignWriting);
+            CheckElement(cell, "table-cell", contentStyles, defaultCellProperties, defaultCellTextProperties, textInfo);
         }
 
         
@@ -126,14 +122,14 @@ public static class ODFontExtraction
         var frames = contentDoc.Descendants().Where(e => e.Name.LocalName == "frame");
         foreach (var frame in frames)
         {
-            CheckElement(frame, "graphic", contentStyles, null, defaultParagraphTextProperties, fonts, textColors, bgColors, ref foreignWriting);
+            CheckElement(frame, "graphic", contentStyles, null, defaultParagraphTextProperties, textInfo);
         }
 
         // Check every span
         var textSpans = contentDoc.Descendants().Where(e => e.Name.LocalName == "span");
         foreach (var span in textSpans)
         {
-            CheckElement(span, null, contentStyles, null, defaultParagraphTextProperties, fonts, textColors, bgColors, ref foreignWriting);
+            CheckElement(span, null, contentStyles, null, defaultParagraphTextProperties, textInfo);
         }
 
 
@@ -153,11 +149,9 @@ public static class ODFontExtraction
             if (itemStyle == null) continue;
 
             var textProperties = itemStyle.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-            ReadStyleProperties(textProperties, null, null, fonts, textColors, bgColors, true);
+            ReadStyleProperties(textProperties, null, null, textInfo, true);
         }
 
-
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
     
@@ -175,7 +169,7 @@ public static class ODFontExtraction
     /// <param name="bgColors"></param>
     /// <param name="foreignWriting"></param>
     private static void CheckElement(XElement element, string? elementName, XElement contentStyles, XElement? defaultElementProperties, XElement? defaultTextProperties,
-        HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, ref bool foreignWriting)
+        TextInfo textInfo)
     {
         var style = GetStyle(element, contentStyles);
         if (style == null) return;
@@ -184,7 +178,7 @@ public static class ODFontExtraction
         if (elementName != null)
         {
             var elementStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == $"{elementName}-properties");
-            ReadStyleProperties(elementStyleProperties, defaultElementProperties, null, null, null, bgColors);
+            ReadStyleProperties(elementStyleProperties, defaultElementProperties, null, textInfo);
         }
 
         var txt = element.Value;
@@ -192,9 +186,9 @@ public static class ODFontExtraction
 
         // Check text properties
         var textStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-        ReadStyleProperties(textStyleProperties, defaultTextProperties, txt, fonts, textColors, bgColors);
+        ReadStyleProperties(textStyleProperties, defaultTextProperties, txt, textInfo);
 
-        if (!foreignWriting && FontComparison.IsForeign(txt)) foreignWriting = true;
+        if (!textInfo.ForeignWriting && FontComparison.IsForeign(txt)) textInfo.ForeignWriting = true;
     }
 
 
@@ -207,7 +201,7 @@ public static class ODFontExtraction
     /// <param name="fonts"></param>
     /// <param name="textColors"></param>
     /// <param name="bgColors"></param>
-    private static void ReadStyleProperties(XElement? p, XElement? d, string? text, HashSet<string>? fonts, HashSet<string>? textColors, HashSet<string>? bgColors, bool isBullet = false)
+    private static void ReadStyleProperties(XElement? p, XElement? d, string? text, TextInfo textInfo, bool isBullet = false)
     {
         if (p == null && d == null) return;
 
@@ -219,14 +213,18 @@ public static class ODFontExtraction
 
         // Check the background color
         var bgHex = ODGetHex(attrBgColor?.Value);
-        if (bgHex != null) bgColors?.Add(bgHex);
+        if (bgHex != null) textInfo.BgColors?.Add(bgHex);
 
-        // Check the text color
-        var txtHex = ODGetHex(attrTextColor?.Value);
-        if (txtHex != null) textColors?.Add(txtHex);
 
-        // Check the font
-        if (fonts != null) ReadFontsFromSyleProperties(text, isBullet, p, d, fonts);
+        if (text != null)
+        {
+            // Check the text color
+            var txtHex = ODGetHex(attrTextColor?.Value);
+            if (txtHex != null) textInfo.TextColors?.Add(txtHex);
+
+            // Check the font
+            ReadFontsFromSyleProperties(text, isBullet, p, d, textInfo);
+        }
     }
 
 
@@ -238,7 +236,7 @@ public static class ODFontExtraction
     /// <param name="properties"></param>
     /// <param name="defaultProperties"></param>
     /// <param name="fonts"></param>
-    private static void ReadFontsFromSyleProperties(string? text, bool isBullet, XElement? properties, XElement? defaultProperties, HashSet<string> fonts)
+    private static void ReadFontsFromSyleProperties(string? text, bool isBullet, XElement? properties, XElement? defaultProperties, TextInfo textInfo)
     {
         if (!isBullet && text != null)
         {
@@ -269,7 +267,7 @@ public static class ODFontExtraction
                     defaultProperties?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value;
                 if (font != null)
                 {
-                    fonts.Add(FontComparison.NormalizeFontName(font));
+                    textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
                 }
             }
         }
@@ -279,7 +277,7 @@ public static class ODFontExtraction
                 defaultProperties?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value;
             if (font != null)
             {
-                fonts.Add(FontComparison.NormalizeFontName(font));
+                textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
             }
         }
     }
