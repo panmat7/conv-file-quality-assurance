@@ -543,7 +543,7 @@ public static class ComperingMethods
             using var reader = new StreamReader(contentXml.Open());
             var content = reader.ReadToEnd();
 
-            return Regex.Matches(content, "<draw:page ").Count;
+            return Regex.Matches(content, "<draw:page ", RegexOptions.None, TimeSpan.FromSeconds(2)).Count;
         }
         catch { return null; }
     }
