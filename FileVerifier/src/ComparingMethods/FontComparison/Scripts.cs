@@ -14,7 +14,26 @@ namespace AvaloniaDraft.ComparingMethods;
 /// </summary>
 public static class ScriptCodes
 {
-    public static readonly ImmutableDictionary<string, Dictionary<string, string>> Scripts = new Dictionary<string, Dictionary<string, string>>() {
+    /// <summary>
+    /// Get the script of a language
+    /// </summary>
+    /// <param name="code">Two letter iso code (xx) or locale code (xx-YY)</param>
+    /// <returns></returns>
+    public static string? GetScript(string? code)
+    {
+        if (string.IsNullOrEmpty(code)) return null;
+
+        var codeParts = code.Split('-');
+        var lang = codeParts.FirstOrDefault() ?? "";
+        var region = codeParts.ElementAtOrDefault(1) ?? "";
+
+        var langScripts = Scripts.GetValueOrDefault(lang);
+        if (langScripts == null) return null;
+
+        return langScripts.GetValueOrDefault(region);
+    }
+
+    private static readonly ImmutableDictionary<string, Dictionary<string, string>> Scripts = new Dictionary<string, Dictionary<string, string>>() {
             { "aa", new Dictionary<string, string> { { "", "Latn"} } },
             { "ab", new Dictionary<string, string> { { "", "Cyrl"} } },
             { "abq", new Dictionary<string, string> { { "", "Cyrl"} } },

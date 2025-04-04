@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,9 +11,13 @@ namespace AvaloniaDraft.ComparingMethods;
 
 public static class MSOffice
 {
-    public static string? GetOfficeColorFromName(string colorName)
+    public static string? GetHighlightColor(EnumValue<HighlightColorValues>? color)
     {
-        return colorName switch
+        var colorString = (color?.Value is HighlightColorValues c) ? ((IEnumValue)c).Value : null;
+        if (string.IsNullOrEmpty(colorString)) return null;
+
+
+        return colorString switch
         {
             "yellow" => "FFFF00",
             "green" => "00FF00",

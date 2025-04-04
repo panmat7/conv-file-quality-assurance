@@ -76,6 +76,18 @@ public static class WordFontExtraction
     }
 
 
+    /// <summary>
+    /// Check a run
+    /// </summary>
+    /// <param name="run"></param>
+    /// <param name="themeFontLang"></param>
+    /// <param name="fontTable"></param>
+    /// <param name="majFonts"></param>
+    /// <param name="minFonts"></param>
+    /// <param name="fonts"></param>
+    /// <param name="textColors"></param>
+    /// <param name="bgColors"></param>
+    /// <param name="foreignWriting"></param>
     private static void CheckRun(Run run, ThemeFontLanguages themeFontLang, Fonts fontTable, Dictionary<string, string> majFonts, Dictionary<string, string> minFonts,
         HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, ref bool foreignWriting)
     {
@@ -84,24 +96,14 @@ public static class WordFontExtraction
 
         // Check hightlight color
         var highlightCol = runProperties?.Highlight?.Val;
-        if (highlightCol != null)
-        {
-            var hex = MSOffice.GetOfficeColorFromName(highlightCol);
-            if (hex != null) bgColors.Add(hex);
-        }
+        var hex = MSOffice.GetHighlightColor(highlightCol);
+        if (hex != null) bgColors.Add(hex);
 
         if (string.IsNullOrWhiteSpace(run.InnerText)) return;
 
         // Check text color
         string? textCol = runProperties?.Color?.Val?.Value;
-        if (textCol != null)
-        {
-            textColors.Add(textCol);
-        }
-        else
-        {
-            textColors.Add("000000"); // Default black
-        }
+        textColors.Add(textCol ?? "000000");
 
         // Check shading color
         string? shadingCol = runProperties?.Shading?.Fill;
@@ -111,7 +113,7 @@ public static class WordFontExtraction
         }
 
         // Font
-        (var runFonts, var fw) = GetFontWordRun(run, themeFontLang, fontTable, majFonts, minFonts);
+        (var runFonts, var fw) = GetFontsFromRun(run, themeFontLang, fontTable, majFonts, minFonts);
         if (fw) foreignWriting = true;
         if (runFonts != null) foreach (var font in runFonts)
         {
@@ -129,7 +131,7 @@ public static class WordFontExtraction
     /// <param name="major"></param>
     /// <param name="minor"></param>
     /// <returns></returns>
-    private static (List<string?>? fonts, bool foreignWriting) GetFontWordRun(Run r, ThemeFontLanguages themeFontLang, Fonts? fontTable, Dictionary<string, string> major, Dictionary<string, string> minor)
+    private static (List<string?>? fonts, bool foreignWriting) GetFontsFromRun(Run r, ThemeFontLanguages themeFontLang, Fonts? fontTable, Dictionary<string, string> major, Dictionary<string, string> minor)
     {
         var txt = r.InnerText;
 
@@ -263,25 +265,14 @@ public static class WordFontExtraction
     /// <returns></returns>
     private static string? GetThemeFont(Dictionary<string, string> themeLangs, string? theme, Dictionary<string, string> major, Dictionary<string, string> minor)
     {
+        string? font;
+
         var classification = theme?.Substring("m**or".Count());
         var dic = (theme?.Contains("major") ?? false) ? major : minor;
         themeLangs.TryGetValue(classification?.ToLower() ?? "", out var lang);
 
-        string? font = null;
-        string? script = null;
-
         // Get the language's corresponding script
-        if (!string.IsNullOrEmpty(lang))
-        {
-            var langParts = lang.Split("-");
-            if (ScriptCodes.Scripts.TryGetValue(langParts[0], out var languageScripts))
-            {
-                string key = "";
-                if (langParts.Length == 2) key = langParts[1];
-
-                script = languageScripts.GetValueOrDefault(key) ?? languageScripts.GetValueOrDefault("");
-            }
-        }
+        var script = ScriptCodes.GetScript(lang);
 
         // Get the correct font for the script
         if (!string.IsNullOrEmpty(script))
@@ -298,7 +289,6 @@ public static class WordFontExtraction
                 _ => null,
             };
         }
-
 
         return font;
     }
