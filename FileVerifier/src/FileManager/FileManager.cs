@@ -441,8 +441,17 @@ public sealed class FileManager
     /// </summary>
     private void WriteProgressToConsole(object? state)
     {
-        var msg = $"Files completed: {_filePairs.Count(p => p.Done)}/{_filePairs.Count}, " +
-            $@"time elapsed: {(DateTime.Now - _startTime):hh\:mm\:ss}";
+        var filesDone = _filePairs.Count(p => p.Done);
+        var time = DateTime.Now - _startTime;
+        var estimate = TimeSpan.Zero;
+
+        if (filesDone > 0)
+        {
+            estimate = (time / filesDone) * (filesDone - _filePairs.Count); 
+        }
+        
+        var msg = $"Files completed: {filesDone}/{_filePairs.Count}, " +
+            $@"time elapsed: {time:hh\:mm\:ss}. Estimated time to completion: {estimate:hh\:mm\:ss}";
         UiControlService.Instance.AppendToConsole(msg);
     }
     

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
@@ -155,6 +156,53 @@ public static class XLSXPipelines
                     GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: res);
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, true);
+            }
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            {
+                if(oImages.Count != nImages.Count)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                        comments: ["Could not preform the metadata check due to the two files having different number of images.",
+                            "This test was preformed on an extracted image."]);
+                else
+                {
+                    var res = ComperingMethods.ComparExtractedImageMetadata(oImages, nImages);
+
+                    if (res == null)
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                            comments: ["Error while checking the metadata of extracted images.",
+                                "This test was preformed on an extracted image."]);
+                    else
+                    {
+                        var failedCount = res.Value.Item1;
+                        var errCount = res.Value.Item2;
+                        var errorFound = res.Value.Item3;
+                    
+                        //Nothing wrong
+                        if(failedCount == 0 && errCount == 0 && !errorFound.Any())
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, true,
+                                comments: ["This test was preformed on an extracted image."]);
+                    
+                        //No failures
+                        else if(failedCount == 0)
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                                errors: errorFound.ToList(),
+                                comments: [$"One or more of the following errors are present in {errCount} of {nImages.Count} images.",
+                                    "This test was preformed on an extracted image."]);
+                        //No errors
+                        else if (errCount == 0)
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                                comments: [$"Could not check {failedCount} of {nImages.Count} images.",
+                                    "This test was preformed on an extracted image."]);
+                        //Failures and errors (very bad)
+                        else
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                                errors: errorFound.ToList(),
+                                comments: [$"Could not check {failedCount} of {nImages.Count} images.",
+                                    $"One or more of the following errors are present in {errCount} of {nImages.Count} images.",
+                                    "This test was preformed on an extracted image."]);
+                    }
+                }
             }
             
             ImageExtraction.DisposeMagickImages(oImages);
