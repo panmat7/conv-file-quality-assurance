@@ -55,7 +55,7 @@ public static class WordFontExtraction
             }
         }
 
-        var styles = mainDocPart?.StyleDefinitionsPart?.Styles?.Descendants<DocumentFormat.OpenXml.Wordprocessing.Style>();
+        var styles = mainDocPart?.StyleDefinitionsPart?.Styles?.Descendants<Style>();
         if (styles == null) return null;
 
         // Hyperlink colors are only stored in styles, so check there
@@ -71,7 +71,7 @@ public static class WordFontExtraction
             }
         }
 
-        TextInfo textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
+        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
 
@@ -134,6 +134,7 @@ public static class WordFontExtraction
     private static (List<string?>? fonts, bool foreignWriting) GetFontsFromRun(Run r, ThemeFontLanguages themeFontLang, Fonts? fontTable, Dictionary<string, string> major, Dictionary<string, string> minor)
     {
         var txt = r.InnerText;
+        if (fontTable == null) return (null, FontComparison.IsForeign(txt));
 
         var rPr = r.RunProperties;
         if (rPr == null) return (null, FontComparison.IsForeign(txt));
@@ -329,7 +330,7 @@ public static class WordFontExtraction
     /// <returns></returns>
     private static (HashSet<string> classifications, bool foreignWriting) GetFontClassifications(string txt, bool csRef, bool eaHint, bool langIsZH, bool fontIsBig5orGB2312)
     {
-        if (string.IsNullOrWhiteSpace(txt)) return (null, false);
+        if (string.IsNullOrWhiteSpace(txt)) return ([], false);
 
         bool foreignChars = false;
 

@@ -71,9 +71,9 @@ public static class MSOffice
         }
 
         // Make sure to contain defaults
-        if (!dic.ContainsKey("Latin")) dic.Add("Latin", "");
-        if (!dic.ContainsKey("EastAsia")) dic.Add("EastAsia", "");
-        if (!dic.ContainsKey("ComplexScript")) dic.Add("ComplexScript", "");
+        dic.TryAdd("Latin", "");
+        dic.TryAdd("EastAsia", "");
+        dic.TryAdd("ComplexScript", "");
 
         return dic;
     }

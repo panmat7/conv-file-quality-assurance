@@ -26,7 +26,7 @@ namespace AvaloniaDraft.Views;
 
 public partial class ReportView : UserControl
 {
-    private Logger.Logger Logger;
+    private readonly Logger.Logger Logger;
     private List<Expander> AllResultExpanders;
     private List<Expander> ResultExpanders;
 
@@ -61,13 +61,13 @@ public partial class ReportView : UserControl
         {
             Title = "Select JSON report",
             AllowMultiple = false,
-            FileTypeFilter = new[]
-            {
+            FileTypeFilter =
+            [
                 new FilePickerFileType("JSON file")
                 {
-                    Patterns = new[] { "*.json" }
+                    Patterns = ["*.json"]
                 }
-            }
+            ]
         });
 
         if (result != null && result.Count > 0)
@@ -140,7 +140,7 @@ public partial class ReportView : UserControl
             var match = true;
             foreach (var keyWord in keyWords)
             {
-                if (!text.ToLower().Contains(keyWord))
+                if (!text.Contains(keyWord, StringComparison.CurrentCultureIgnoreCase))
                 {
                     match = false;
                     break;
@@ -168,8 +168,10 @@ public partial class ReportView : UserControl
 
     private Expander CreateComparisonResultExpander(Logger.Logger.ComparisonResult result)
     {
-        var expander = new Expander();
-        expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+        var expander = new Expander
+        {
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch
+        };
 
         var stackPanel = new StackPanel();
         var passOrFail = result.Pass ? "PASS" : "FAIL";
@@ -209,8 +211,10 @@ public partial class ReportView : UserControl
 
     private Expander CreateTestResultExpander(Logger.Logger.TestResult result)
     {
-        var expander = new Expander();
-        expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
+        var expander = new Expander
+        {
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch
+        };
 
         var stackPanel = new StackPanel();
 
@@ -237,7 +241,7 @@ public partial class ReportView : UserControl
         }
 
         // Errors
-        if (result.Errors.Any()) stackPanel.Children.Add(new TextBlock()
+        if (result.Errors.Count > 0) stackPanel.Children.Add(new TextBlock()
         {
             Text = "",
 

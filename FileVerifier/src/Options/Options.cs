@@ -35,11 +35,13 @@ public class Options
     public double SizeComparisonThreshold { get; set; }
     public double PbpComparisonThreshold { get; set; }
 
-    public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; }
-    public Dictionary<string, bool> MethodsEnabled { get; set; }
+    public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; } = new();
+    public Dictionary<string, bool> MethodsEnabled { get; set; } = new();
 
     public int? SpecifiedThreadCount { get; set; }
     public bool IgnoreUnsupportedFileType { get; set; }
+
+    private JsonSerializerOptions? SerializerOptions;
 
 
     /// <summary>
@@ -47,6 +49,8 @@ public class Options
     /// </summary>
     public void Initialize()
     {
+        SerializerOptions = null;
+
         SetDirPath();
         Profile = SettingsProfile.Default;
 
@@ -299,15 +303,9 @@ public class Options
 
             if (File.Exists(src))
             {
-                var seralizerOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                };
-
                 var jsonString = File.ReadAllText(src);
 
-                var o = JsonSerializer.Deserialize<Options>(jsonString, seralizerOptions);
+                var o = JsonSerializer.Deserialize<Options>(jsonString, GetJsonSerializerOptions());
                 if (o is Options opt)
                 {
                     this.FileFormatsEnabled = opt.FileFormatsEnabled;
@@ -327,5 +325,19 @@ public class Options
         {
             throw new Exception("Failed to load settings", ex);
         }
+    }
+
+
+    /// <summary>
+    /// Get JSON serializer options
+    /// </summary>
+    /// <returns></returns>
+    private JsonSerializerOptions GetJsonSerializerOptions()
+    {
+        return SerializerOptions ?? new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
     }
 }

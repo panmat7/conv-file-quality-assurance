@@ -15,22 +15,13 @@ using System.Threading.Tasks;
 namespace AvaloniaDraft.ComparingMethods;
 
 
-public struct TextInfo
+public struct TextInfo(HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, HashSet<HashSet<string>> altFonts, bool foreignWriting = false)
 {
-    public bool ForeignWriting { get; set; }
-    public HashSet<string> Fonts { get; set; }
-    public HashSet<HashSet<string>> AltFonts { get; set; }
-    public HashSet<string> TextColors { get; set; }
-    public HashSet<string> BgColors { get; set; }
-
-    public TextInfo(HashSet<string> fonts, HashSet<string> textColors, HashSet<string> bgColors, HashSet<HashSet<string>> altFonts, bool foreignWriting = false)
-    {
-        this.Fonts = fonts;
-        this.TextColors = textColors;
-        this.BgColors = bgColors;
-        this.AltFonts = altFonts;
-        this.ForeignWriting = foreignWriting;
-    }
+    public bool ForeignWriting { get; set; } = foreignWriting;
+    public HashSet<string> Fonts { get; set; } = fonts;
+    public HashSet<HashSet<string>> AltFonts { get; set; } = altFonts;
+    public HashSet<string> TextColors { get; set; } = textColors;
+    public HashSet<string> BgColors { get; set; } = bgColors;
 }
 
 
@@ -52,10 +43,10 @@ public struct FontComparisonResult
 
     public FontComparisonResult()
     {
-        Pass = false;
+        Pass = true;
         ContainsForeignCharacters = false;
 
-        Errors = new List<Error>();
+        Errors = [];
 
         FontsOnlyInOriginal = [];
         FontsOnlyInConverted = [];
@@ -77,7 +68,6 @@ public static partial class FontComparison
     public static FontComparisonResult CompareFiles(FilePair fp)
     {
         var result = new FontComparisonResult();
-        result.Pass = true;
 
         // Make sure there were no issues reading the original file
         var oti = GetTextInfo(fp.OriginalFilePath, fp.OriginalFileFormat);
@@ -131,7 +121,7 @@ public static partial class FontComparison
 
         // Check if text colors are the same
         var textColorsOnlyInOriginal = CompareColors(ot.TextColors, nt.TextColors);
-        if (textColorsOnlyInOriginal.Any())
+        if (textColorsOnlyInOriginal.Count > 0)
         {
             result.TextColorsNotConverted = true;
             result.TextColorsOnlyInOriginal = textColorsOnlyInOriginal;
@@ -140,7 +130,7 @@ public static partial class FontComparison
 
         // Check if background colors are the same
         var bgColorsOnlyInOriginal = CompareColors(ot.BgColors, nt.BgColors);
-        if (bgColorsOnlyInOriginal.Any())
+        if (bgColorsOnlyInOriginal.Count > 0)
         {
             result.BgColorsNotConverted = true;
             result.BgColorsOnlyInOriginal = bgColorsOnlyInOriginal;

@@ -25,7 +25,7 @@ public static class PdfFontExtraction
         var doc = UglyToad.PdfPig.PdfDocument.Open(src);
         var pages = doc.GetPages();
 
-
+        
         // Go through each character
         foreach (var letter in pages.SelectMany(p => p.Letters))
         {
@@ -38,7 +38,7 @@ public static class PdfFontExtraction
 
             // Get the color of the letter
             var hex = GetColor(letter.Color);
-            if (hex != null) bgColors.Add(hex);
+            if (hex != null) textColors.Add(hex);
 
             // Check for foreign writing
             if (!foreignWriting && FontComparison.IsForeign(letter.Value)) foreignWriting = true;
@@ -69,16 +69,15 @@ public static class PdfFontExtraction
         try
         {
             var color = col.ToRGBValues();
-            if (color is (double r, double g, double b) rgb)
+            if (color is (double, double, double) rgb)
             {
                 return FontComparison.GetHex(rgb);
             }
+            return null;
         }
         catch
         {
             return null;
         }
-
-        return null;
     }
 }

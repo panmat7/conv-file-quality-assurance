@@ -10,6 +10,8 @@ using System.Xml.Linq;
 using System.Drawing;
 
 using ColorMine.ColorSpaces;
+using System.Diagnostics;
+using DocumentFormat.OpenXml;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -76,8 +78,6 @@ public static class PPFontExtraction
             var fontScheme = themePart?.Theme?.ThemeElements?.FontScheme;
             if (fontScheme == null) return null;
 
-            /// TODO: ADD A MAP FOR DEFAULT FONTS
-
 
             // Go through each shape
             var shapes = slidePart.Slide.Descendants<PP.Shape>();
@@ -110,7 +110,8 @@ public static class PPFontExtraction
 
                 // Go through each paragraph
                 var paragraphs = textBody.Descendants<Paragraph>();
-                foreach (Paragraph paragraph in paragraphs)
+                if (paragraphs == null) continue;
+                foreach (var paragraph in paragraphs)
                 {
                     var pProp = paragraph.ParagraphProperties;
                     int? lvl = pProp?.Level?.Value;
@@ -152,10 +153,9 @@ public static class PPFontExtraction
                     }
 
 
+                    // Check bullet properties
                     if (isBullet)
                     {
-                        /// TODO: Sett i egen funksjon (GetBulletProperties())
-
                         // Check bullet font
                         var buFont = pProp?.GetFirstChild<BulletFont>()?.Typeface?.Value ?? sldLayoutStyle.buFont ?? sldMasterStyle.buFont;
                         if (!string.IsNullOrEmpty(buFont)) fonts.Add(FontComparison.NormalizeFontName(buFont));
@@ -169,6 +169,7 @@ public static class PPFontExtraction
 
                     // Check each run
                     var runs = paragraph?.Descendants<Run>();
+                    if (runs == null) continue;
                     foreach (var run in runs)
                     {
                         var runProp = run.RunProperties;
@@ -207,6 +208,8 @@ public static class PPFontExtraction
                                 _ => null,
                             };
                             if (usedFont == null) continue;
+
+                            var lang = runProp?.Language?.Value;
 
                             /// TODO: Sjekk font
                         }
@@ -312,16 +315,16 @@ public static class PPFontExtraction
             {
                 var baseColor = ColorTranslator.FromHtml("#" + colorDic[scheme]);
 
-                var lumMod = schemeClr.Descendants().FirstOrDefault(e => e.Name.LocalName == "lumMod")?.Attributes().FirstOrDefault(a => a.Name.LocalName == "val")?.Value;
-                var lumOff = schemeClr.Descendants().FirstOrDefault(e => e.Name.LocalName == "lumOff")?.Attributes().FirstOrDefault(a => a.Name.LocalName == "val")?.Value;
-                var tint = schemeClr.Descendants().FirstOrDefault(e => e.Name.LocalName == "tint")?.Attributes().FirstOrDefault(a => a.Name.LocalName == "val")?.Value;
+                var lumModStr = schemeClr.Descendants().FirstOrDefault(e => e.Name.LocalName == "lumMod")?.Attributes().FirstOrDefault(a => a.Name.LocalName == "val")?.Value;
+                var lumOffStr = schemeClr.Descendants().FirstOrDefault(e => e.Name.LocalName == "lumOff")?.Attributes().FirstOrDefault(a => a.Name.LocalName == "val")?.Value;
+                var tintStr = schemeClr.Descendants().FirstOrDefault(e => e.Name.LocalName == "tint")?.Attributes().FirstOrDefault(a => a.Name.LocalName == "val")?.Value;
 
 
-                var lumModInt = int.Parse(lumMod ?? "0");
-                var lumOffInt = int.Parse(lumOff ?? "0");
-                var tintInt = int.Parse(tint ?? "0");
+                var lumMod = GetFractionValue(lumModStr);
+                var lumOff = GetFractionValue(lumOffStr);
+                var tint = GetFractionValue(tintStr);
 
-                (int r, int g, int b) = AdjustColor((baseColor.R, baseColor.G, baseColor.B), lumModInt, lumOffInt, tintInt);
+                (int r, int g, int b) = AdjustColor((baseColor.R, baseColor.G, baseColor.B), lumMod, lumOff, tint);
                 hex = FontComparison.GetHex((r, g, b));
 
                 return hex;
@@ -331,6 +334,34 @@ public static class PPFontExtraction
         return null;
     }
 
+
+    /// <summary>
+    /// Get a fraction normalized to a 0-1 value
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    private static double? GetFractionValue(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return null;
+
+        try
+        {
+            if (value.Last() == '%')
+            {
+                value = value.Remove(value.Length - 1);
+                return double.Parse(value)/100.0;
+            }
+            else
+            {
+                double f = 1.0f / 100000.0f; // Factor
+                return double.Parse(value) * f;
+            }
+        } 
+        catch
+        {
+            return null;
+        }
+    }
 
     /// <summary>
     /// Get the colors of a slide
@@ -372,14 +403,16 @@ public static class PPFontExtraction
     /// <param name="colorScheme"></param>
     /// <param name="colorIndex"></param>
     /// <returns></returns>
-    private static string? GetMappedColor(ColorScheme colorScheme, string? colorIndex)
+    private static string? GetMappedColor(ColorScheme colorScheme, EnumValue<ColorSchemeIndexValues>? colorIndex)
     {
+        var colorIndexString = (colorIndex?.Value is ColorSchemeIndexValues c) ? 
+            ((IEnumValue)c).Value : null;
+        if (colorIndexString == null) return null;
+
         const string black = "000000";
         const string white = "FFFFFF";
 
-        if (colorIndex == null) return black;
-
-        return colorIndex switch
+        return colorIndexString switch
         {
             "accent1" => colorScheme.Accent1Color?.RgbColorModelHex?.Val ?? black,
             "accent2" => colorScheme.Accent2Color?.RgbColorModelHex?.Val ?? black,
@@ -431,23 +464,24 @@ public static class PPFontExtraction
     /// <returns></returns>
     private static string? GetSchemeColor(SchemeColor? schemeCol, Dictionary<string, string> colorDic)
     {
-        if (schemeCol != null)
+        var scheme = (schemeCol?.Val?.Value is SchemeColorValues c) ?
+            ((IEnumValue)c).Value : null;
+
+        if (schemeCol != null && scheme != null && colorDic.TryGetValue(scheme, out var baseColorHex))
         {
-            var scheme = schemeCol.Val;
+            var lumModInt = schemeCol.GetFirstChild<LuminanceModulation>()?.Val?.Value;
+            var lumOffInt = schemeCol.GetFirstChild<LuminanceOffset>()?.Val?.Value;
+            var tintInt = schemeCol.GetFirstChild<Tint>()?.Val?.Value;
 
-            if (colorDic.ContainsKey(scheme))
-            {
-                var baseColorHex = colorDic[scheme];
-                var lumMod = schemeCol.GetFirstChild<LuminanceModulation>()?.Val?.Value;
-                var lumOff = schemeCol.GetFirstChild<LuminanceOffset>()?.Val?.Value;
-                var tint = schemeCol.GetFirstChild<Tint>()?.Val?.Value;
+            var lumMod = GetFractionValue(lumModInt?.ToString());
+            var lumOff = GetFractionValue(lumOffInt?.ToString());
+            var tint = GetFractionValue(tintInt?.ToString());
 
-                var color = ColorTranslator.FromHtml("#" + baseColorHex);
+            var color = ColorTranslator.FromHtml("#" + baseColorHex);
 
-                (int r, int g, int b) = AdjustColor((color.R, color.G, color.B), lumMod, lumOff, tint);
-                var hex = FontComparison.GetHex((r, g, b));
-                return hex;
-            }
+            (int r, int g, int b) = AdjustColor((color.R, color.G, color.B), lumMod, lumOff, tint);
+            var hex = FontComparison.GetHex((r, g, b));
+            return hex;
         }
         return null;
     }
@@ -460,34 +494,32 @@ public static class PPFontExtraction
     /// <param name="rgb">The RGB values of the color</param>
     /// <param name="lumMod">Luminance modulation</param>
     /// <param name="lumOff">Luminance offset</param>
-    /// <param name="tint">Luminance offset</param>
+    /// <param name="tint">Tint</param>
     /// <returns></returns>
-    private static (int, int, int) AdjustColor((int r, int g, int b) rgb, int? lumMod, int? lumOff, int? tint)
+    private static (int, int, int) AdjustColor((int r, int g, int b) rgb, double? lumMod, double? lumOff, double? tint)
     {
-        float f = 1.0f / 100000.0f; // Factor
-
         var rgbCol = new Rgb { R = rgb.r, B = rgb.b, G = rgb.g };
+
+        // Apply tint
+        if (tint is double dTint)
+        {
+            var whiteProportion = 1.0 - dTint;
+            rgbCol.R = rgbCol.R * dTint + 255 * whiteProportion;
+            rgbCol.G = rgbCol.G * dTint + 255 * whiteProportion;
+            rgbCol.B = rgbCol.B * dTint + 255 * whiteProportion;
+        }
+
         var hslCol = rgbCol.To<ColorMine.ColorSpaces.Hsl>();
 
         // Apply luminance
-        var lum = false;
-        if (lumMod is int lMod && lMod != 0)
+        if (lumMod is double dLMod)
         {
-            hslCol.L *= lMod * f;
-            lum = true;
+            hslCol.L *= dLMod;
         }
-        if (lumOff is int lOff && lOff != 0)
+        if (lumOff is double dLOff)
         {
-            hslCol.L += lOff * f * 100;
-            lum = true;
+            hslCol.L += dLOff * 100;
         }
-
-        // Apply tint
-        if (!lum && tint is int tintInt && tintInt != 0)
-        {
-            // TODO
-        }
-
         var newRgb = hslCol.ToRgb();
 
         return ((int)Math.Round(newRgb.R), (int)Math.Round(newRgb.G), (int)Math.Round(newRgb.B));
@@ -505,7 +537,7 @@ public static class PPFontExtraction
     {
         if (bulletColor == null) return null;
 
-        string? hex = null;
+        string? hex;
 
         var rgbCol = bulletColor?.GetFirstChild<RgbColorModelHex>();
         if (rgbCol != null)

@@ -13,7 +13,7 @@ namespace AvaloniaDraft.ComparingMethods;
 
 public static class ODFontExtraction
 {
-    private static List<(int start, int end)> CjkRanges =
+    private static readonly List<(int start, int end)> CjkRanges =
     [
             (0x4E00, 0x9FFF),  // CJK Unified Ideographs
             (0x3400, 0x4DBF),  // CJK Unified Ideographs Extension A
@@ -292,19 +292,12 @@ public static class ODFontExtraction
     /// <returns></returns>
     private static string? ODGetHex(string? col)
     {
-        if (col == null) return null;
+        if (string.IsNullOrEmpty(col)) return null;
         string? hex = null;
 
-        if (col != "transparent")
+        if (col[0] == '#')
         {
-            if (col[0] == '#')
-            {
-                hex = col.Substring(1).ToUpper(); // Remove the '#'
-            }
-            else
-            {
-                //hex = GetOfficeColorFromName(col);
-            }
+            hex = col.Substring(1).ToUpper(); // Remove the '#'
         }
 
         return hex;
