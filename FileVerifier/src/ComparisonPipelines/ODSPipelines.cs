@@ -34,13 +34,12 @@ public static class ODSPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
             Error error;
 
             var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
             
-            e.AddRange(ComperingMethods.CompareFonts(pair));
+            ComperingMethods.CompareFonts(pair);
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
@@ -55,7 +54,6 @@ public static class ODSPipelines
                             ErrorType.FileError
                         );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 } else if ((bool)res)
                 {
                     //For now only printing to console
@@ -66,7 +64,6 @@ public static class ODSPipelines
                             ErrorType.FileError
                         );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else
                 {
@@ -94,7 +91,6 @@ public static class ODSPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -107,7 +103,6 @@ public static class ODSPipelines
                             ErrorType.Metadata
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
@@ -135,7 +130,6 @@ public static class ODSPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -148,7 +142,6 @@ public static class ODSPipelines
                             ErrorType.Visual
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
@@ -173,10 +166,6 @@ public static class ODSPipelines
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, true);
             }
-            
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
             
             ImageExtraction.DisposeMagickImages(oImages);
             

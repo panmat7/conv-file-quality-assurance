@@ -35,7 +35,6 @@ public static class EmlPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
             Error error;
             
             var oImages = ImageExtraction.ExtractImagesFromEml(pair.OriginalFilePath);
@@ -61,7 +60,6 @@ public static class EmlPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -74,7 +72,6 @@ public static class EmlPipelines
                             ErrorType.Metadata
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
@@ -82,15 +79,10 @@ public static class EmlPipelines
                 }
             }
             
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
+            ComperingMethods.CompareFonts(pair);
             
             ImageExtraction.DisposeMagickImages(oImages);
             
-
-            e.AddRange(ComperingMethods.CompareFonts(pair));
-
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

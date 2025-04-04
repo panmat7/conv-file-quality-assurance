@@ -32,13 +32,12 @@ public static class XLSXPipelines
     private static void XlsxToPdfPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
-        List<Error> e = [];
         Error error;
 
         var oImages = ImageExtraction.ExtractImagesFromXlsx(pair.OriginalFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
         
-        e.AddRange(ComperingMethods.CompareFonts(pair));
+        ComperingMethods.CompareFonts(pair);
         
         BasePipeline.ExecutePipeline(() =>
         {
@@ -55,7 +54,6 @@ public static class XLSXPipelines
                         ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 } else if ((bool)res)
                 {
                     error =  new Error(
@@ -65,7 +63,6 @@ public static class XLSXPipelines
                             ErrorType.FileError
                         );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else
                 {
@@ -93,7 +90,6 @@ public static class XLSXPipelines
                             ErrorType.Metadata
                         );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -106,7 +102,6 @@ public static class XLSXPipelines
                             ErrorType.Metadata
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
@@ -134,7 +129,6 @@ public static class XLSXPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -147,7 +141,6 @@ public static class XLSXPipelines
                             ErrorType.Visual
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
@@ -163,10 +156,6 @@ public static class XLSXPipelines
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, true);
             }
-            
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
             
             ImageExtraction.DisposeMagickImages(oImages);
             

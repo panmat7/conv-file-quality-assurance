@@ -117,7 +117,6 @@ public sealed class FileManager
     private readonly List<Thread> _threads = [];
     
     //Progress reporting
-    private Timer? _timer = null;
     private DateTime _startTime;
     
     public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
@@ -257,7 +256,7 @@ public sealed class FileManager
     {
         var maxThreads = GlobalVariables.Options.SpecifiedThreadCount ?? 8;
         _startTime = DateTime.Now;
-        _timer = new Timer(WriteProgressToConsole, null, (int)TimeSpan.FromMinutes(5).TotalMilliseconds, 
+        var timer = new Timer(WriteProgressToConsole, null, (int)TimeSpan.FromMinutes(5).TotalMilliseconds, 
             (int)TimeSpan.FromMinutes(5).TotalMilliseconds);
         
         //Continuing until done with all files
@@ -298,8 +297,7 @@ public sealed class FileManager
     
         AwaitThreads(); //Awaiting all remaining threads
         UiControlService.Instance.AppendToConsole("\n" + $@"Verification completed in {(DateTime.Now - _startTime):hh\:mm\:ss}." + "\n");
-        _timer.Dispose();
-        _timer = null;
+        timer.Dispose();
     }
     
     /// <summary>
@@ -436,12 +434,6 @@ public sealed class FileManager
         {
             Console.WriteLine($"{file}");
         }
-        
-        
-        foreach (KeyValuePair<string, Tuple<string, int>> kvp in pronomFormat)
-        {
-            UiControlService.Instance.OverwriteConsoleOutput($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
-        }
     }
     
     /// <summary>
@@ -463,18 +455,27 @@ public sealed class FileManager
 
         foreach (var pair in _filePairs)
         {
-            var oCode = FormatCodes.AllCodes
-                .First(c => c.FormatCodes.Contains(pair.OriginalFileFormat))
-                .PronomCodes.FirstOrDefault() ?? "unknown";
-            var nCode = FormatCodes.AllCodes
-                .First(c => c.FormatCodes.Contains(pair.NewFileFormat))
-                .PronomCodes.FirstOrDefault() ?? "unknown";
+            try
+            {
+                var oCode = FormatCodes.AllCodes
+                    .First(c => c.PronomCodes.Contains(pair.OriginalFileFormat))
+                    .FormatCodes.FirstOrDefault() ?? "unk.";
+                var nCode = FormatCodes.AllCodes
+                    .First(c => c.PronomCodes.Contains(pair.NewFileFormat))
+                    .FormatCodes.FirstOrDefault() ?? "unk.";
 
-            var key = $"{oCode}-{nCode}";
-            if (!pairs.TryAdd(key, 1))
-                pairs[key] += 1;
+                var key = $"{oCode} - {nCode}";
+                if (!pairs.TryAdd(key, 1))
+                    pairs[key] += 1;
+            }
+            catch
+            {
+                var key = "unk.-unk.";
+                if (!pairs.TryAdd(key, 1))
+                    pairs[key] += 1;
+            }
         }
         
-        return string.Join("\n", pairs.Select(pair => $"{pair.Key}: {pair.Value}"));
+        return string.Join("\n", pairs.Select(pair => $"{pair.Key}:  {pair.Value}"));
     }
 }

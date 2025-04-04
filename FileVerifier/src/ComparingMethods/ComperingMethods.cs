@@ -11,8 +11,10 @@ using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using Emgu.CV.Aruco;
 using ICSharpCode.SharpZipLib.Zip;
+using ImageMagick;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using UglyToad.PdfPig.Content;
 using ColorType = AvaloniaDraft.Helpers.ColorType;
 using ZipArchive = SharpCompress.Archives.Zip.ZipArchive;
 using ZipFile = System.IO.Compression.ZipFile;
@@ -283,6 +285,96 @@ public static class ComperingMethods
         errors.AddRange(originalStandardized.GetMissingAdditionalValues(newStandardized));
         
         return errors;
+    }
+
+    public static (int, int, List<Error>)? ComparExtractedImageMetadata(List<MagickImage> oImages, List<MagickImage> nImages)
+    {
+        var failedCount = 0;
+        var errCount = 0;
+        HashSet<Error> errorFound = new();
+            
+        for (int i = 0; i < nImages.Count; i++)
+        {
+            var oImg = ImageExtraction.SaveExtractedMagickImageToDisk(oImages[i], oImages[i].Format);
+            var nImg = ImageExtraction.SaveExtractedMagickImageToDisk(nImages[i], nImages[i].Format);
+    
+            if (oImg == null || nImg == null)
+            {
+                failedCount++;
+                continue;
+            }
+    
+            var tempPair = new FilePair(
+                oImg.Value.Item1, oImg.Value.Item2,
+                nImg.Value.Item1, nImg.Value.Item2
+            );
+    
+            var errors = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
+            if(errors == null) { failedCount++; continue; }
+            if(errors.Count > 0) { errors.ForEach(err => errorFound.Add(err)); errCount++; }
+        } 
+        
+        return (failedCount, errCount, errorFound.ToList());
+    }
+    
+    public static (int, int, List<Error>)? ComparExtractedImageMetadata(List<MagickImage> oImages, List<IPdfImage> nImages)
+    {
+        var failedCount = 0;
+        var errCount = 0;
+        HashSet<Error> errorFound = new();
+            
+        for (int i = 0; i < nImages.Count; i++)
+        {
+            var oImg = ImageExtraction.SaveExtractedMagickImageToDisk(oImages[i], oImages[i].Format);
+            var nImg = ImageExtraction.SaveExtractedIPdfImageToDisk(nImages[i]);
+    
+            if (oImg == null || nImg == null)
+            {
+                failedCount++;
+                continue;
+            }
+    
+            var tempPair = new FilePair(
+                oImg.Value.Item1, oImg.Value.Item2,
+                nImg.Value.Item1, nImg.Value.Item2
+            );
+    
+            var errors = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
+            if(errors == null) { failedCount++; continue; }
+            if(errors.Count > 0) { errors.ForEach(err => errorFound.Add(err)); errCount++; }
+        } 
+        
+        return (failedCount, errCount, errorFound.ToList());
+    }
+    
+    public static (int, int, List<Error>)? ComparExtractedImageMetadata(List<IPdfImage> oImages, List<IPdfImage> nImages)
+    {
+        var failedCount = 0;
+        var errCount = 0;
+        HashSet<Error> errorFound = new();
+            
+        for (int i = 0; i < nImages.Count; i++)
+        {
+            var oImg = ImageExtraction.SaveExtractedIPdfImageToDisk(oImages[i]);
+            var nImg = ImageExtraction.SaveExtractedIPdfImageToDisk(nImages[i]);
+    
+            if (oImg == null || nImg == null)
+            {
+                failedCount++;
+                continue;
+            }
+    
+            var tempPair = new FilePair(
+                oImg.Value.Item1, oImg.Value.Item2,
+                nImg.Value.Item1, nImg.Value.Item2
+            );
+    
+            var errors = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
+            if(errors == null) { failedCount++; continue; }
+            if(errors.Count > 0) { errors.ForEach(err => errorFound.Add(err)); errCount++; }
+        } 
+        
+        return (failedCount, errCount, errorFound.ToList());
     }
 
     /// <summary>

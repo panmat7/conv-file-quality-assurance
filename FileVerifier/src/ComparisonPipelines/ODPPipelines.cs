@@ -34,13 +34,12 @@ public static class OdpPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
             Error error;
 
             var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
 
-            e.AddRange(ComperingMethods.CompareFonts(pair));
+            ComperingMethods.CompareFonts(pair);
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {
@@ -55,7 +54,6 @@ public static class OdpPipelines
                             ErrorType.FileError
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case > 0:
                         error = new Error(
@@ -66,7 +64,6 @@ public static class OdpPipelines
                             $"{diff}"
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     default:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
@@ -87,7 +84,6 @@ public static class OdpPipelines
                             ErrorType.FileError
                         );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 } else if ((bool)res)
                 {
                     error = new Error(
@@ -97,7 +93,6 @@ public static class OdpPipelines
                             ErrorType.FileError
                         );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else
                 {
@@ -124,7 +119,6 @@ public static class OdpPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 if (!exceptionOccurred && res)
                 {
@@ -135,7 +129,6 @@ public static class OdpPipelines
                         ErrorType.Visual
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Animations.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else
                 {
@@ -163,7 +156,6 @@ public static class OdpPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -176,7 +168,6 @@ public static class OdpPipelines
                             ErrorType.Metadata
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
@@ -204,7 +195,6 @@ public static class OdpPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -217,17 +207,12 @@ public static class OdpPipelines
                             ErrorType.Visual
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
                         break;
                 }
             }
-            
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
             
             ImageExtraction.DisposeMagickImages(oImages);
             

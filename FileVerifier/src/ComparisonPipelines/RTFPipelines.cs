@@ -35,13 +35,12 @@ public static class RtfPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
             Error error;
             
             var oImages = ImageExtraction.ExtractImagesFromDocx(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
 
-            e.AddRange(ComperingMethods.CompareFonts(pair));
+            ComperingMethods.CompareFonts(pair);
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
@@ -56,7 +55,6 @@ public static class RtfPipelines
                         ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 } else if ((bool)res)
                 {
                     //For now only printing to console
@@ -67,7 +65,6 @@ public static class RtfPipelines
                         ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else
                 {
@@ -95,7 +92,6 @@ public static class RtfPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -108,7 +104,6 @@ public static class RtfPipelines
                             ErrorType.Metadata
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
@@ -137,7 +132,6 @@ public static class RtfPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -150,7 +144,6 @@ public static class RtfPipelines
                             ErrorType.Visual
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
@@ -171,7 +164,6 @@ public static class RtfPipelines
                             ErrorType.FileError
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case > 0:
                         error = new Error(
@@ -182,17 +174,12 @@ public static class RtfPipelines
                             $"{pageDiff}"
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     default:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
                         break;
                 }
             }
-            
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
             
             ImageExtraction.DisposeMagickImages(oImages);
 

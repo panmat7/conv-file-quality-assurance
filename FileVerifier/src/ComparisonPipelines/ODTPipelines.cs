@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
@@ -34,13 +35,12 @@ public static class ODTPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
             Error error;
 
             var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(pair.OriginalFilePath);
             var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
             
-            e.AddRange(ComperingMethods.CompareFonts(pair));
+            ComperingMethods.CompareFonts(pair);
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {
@@ -55,7 +55,6 @@ public static class ODTPipelines
                             ErrorType.FileError
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case > 0:
                         error = new Error(
@@ -66,7 +65,6 @@ public static class ODTPipelines
                             $"{diff}"
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     default:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
@@ -87,7 +85,6 @@ public static class ODTPipelines
                         ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 } else if ((bool)res)
                 {
                     //For now only printing to console
@@ -98,7 +95,6 @@ public static class ODTPipelines
                         ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                    e.Add(error);
                 }
                 else
                 {
@@ -131,7 +127,6 @@ public static class ODTPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -144,7 +139,6 @@ public static class ODTPipelines
                             ErrorType.Metadata
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
@@ -173,7 +167,6 @@ public static class ODTPipelines
                         ErrorType.Metadata
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                    e.Add(error);
                 }
 
                 switch (exceptionOccurred)
@@ -186,7 +179,6 @@ public static class ODTPipelines
                             ErrorType.Visual
                         );
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                        e.Add(error);
                         break;
                     case false when res:
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
@@ -194,9 +186,52 @@ public static class ODTPipelines
                 }
             }
             
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            {
+                if(oImages.Count != nImages.Count)
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                        comments: ["Could not preform the metadata check due to the two files having different number of images.",
+                            "This test was preformed on an extracted image."]);
+                else
+                {
+                    var res = ComperingMethods.ComparExtractedImageMetadata(oImages, nImages);
+
+                    if (res == null)
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                            comments: ["Error while checking the metadata of extracted images.",
+                                "This test was preformed on an extracted image."]);
+                    else
+                    {
+                        var failedCount = res.Value.Item1;
+                        var errCount = res.Value.Item2;
+                        var errorFound = res.Value.Item3;
+                    
+                        //Nothing wrong
+                        if(failedCount == 0 && errCount == 0 && !errorFound.Any())
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, true,
+                                comments: ["This test was preformed on an extracted image."]);
+                    
+                        //No failures
+                        else if(failedCount == 0)
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                                errors: errorFound.ToList(),
+                                comments: [$"One or more of the following errors are present in {errCount} of {nImages.Count} images.",
+                                    "This test was preformed on an extracted image."]);
+                        //No errors
+                        else if (errCount == 0)
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                                comments: [$"Could not check {failedCount} of {nImages.Count} images.",
+                                    "This test was preformed on an extracted image."]);
+                        //Failures and errors (very bad)
+                        else
+                            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+                                errors: errorFound.ToList(),
+                                comments: [$"Could not check {failedCount} of {nImages.Count} images.",
+                                    $"One or more of the following errors are present in {errCount} of {nImages.Count} images.",
+                                    "This test was preformed on an extracted image."]);
+                    }
+                }
+            }
             
             ImageExtraction.DisposeMagickImages(oImages);
             

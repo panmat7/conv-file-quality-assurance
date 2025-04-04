@@ -213,14 +213,14 @@ public static class ImagePipelines
             
             //Converting the image to bytes encoded to correct format
             var nImage = nImages[0];
-            var tempFile = ImageExtraction.SaveExtractedImageToDisk(nImage, oImage.Format);
+            var tempFile = ImageExtraction.SaveExtractedMagickImageToDisk(nImage, oImage.Format);
             FilePair? pairWithTemp = null;
     
             if (tempFile != null)
             {
                 pairWithTemp = new FilePair(
                     pair.OriginalFilePath, pair.OriginalFileFormat,
-                    tempFile.Value.Item1, tempFile.Value.Item2
+                    tempFile.Value.Item1, "fmt/12" //Assuming format code
                 );
             }
             else
@@ -307,7 +307,9 @@ public static class ImagePipelines
                         )
                     ]);
                     
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: [
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, 
+                        comments: ["This test was preformed on an extracted image."],
+                        errors: [
                         new Error(
                             "Could not read metadata",
                             "There occurred an error when trying to read the metadata of the image file.",
@@ -318,10 +320,13 @@ public static class ImagePipelines
                 }
                 else if (res.Count > 0)
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: res);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, 
+                        comments: ["This test was preformed on an extracted image."],
+                        errors: res);
                 }
                 else
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Metadata.Name, true);
+                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Metadata.Name, true,
+                    comments: ["This test was preformed on an extracted image."]);
             }
     
             if(GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name) && pairWithTemp != null)
@@ -358,6 +363,8 @@ public static class ImagePipelines
                 }
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, true);
+                
+                if(tempFile != null) TempFiles.DeleteTemporaryFile(tempFile.Value.Item1);
             }
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

@@ -189,7 +189,7 @@ public partial class HomeView : UserControl
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var errWindow = new ErrorWindow(
-                    "Duplicate file names in the input or output folder! Ensure all files have unique names, matching their converted counterpart."
+                    "Duplicate file names in the folder containing converted files! Ensure all files have unique names, matching their original counterpart."
                 );
                 errWindow.ShowDialog((this.VisualRoot as Window)!);
             });
@@ -207,7 +207,7 @@ public partial class HomeView : UserControl
         }
         GlobalVariables.FileManager.GetSiegfriedFormats();
         GlobalVariables.FileManager.WritePairs();
-        AppendConsole(GlobalVariables.FileManager.GetPairFormats());
+        OverwriteConsole("The following pairs were formed:\n" + GlobalVariables.FileManager.GetPairFormats());
     }
 
     private void SetFileCount(int count)
@@ -254,10 +254,13 @@ public partial class HomeView : UserControl
 
     private void OverwriteConsole(string? message)
     {
-        Console.Text = null;
+        Dispatcher.UIThread.Post(() =>
+        {
+            Console.Text = null;
 
-        if (message != null)
-            AppendConsole(message);
+            if (message != null)
+                AppendConsole(message);
+        });
     }
 }
 
