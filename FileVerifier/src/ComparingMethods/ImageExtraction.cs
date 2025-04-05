@@ -505,14 +505,16 @@ public static class ImageExtraction
         return images;
     }
     
+    /// <summary>
+    /// Extracts all images from a .xlsx file to disk
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="outputDirectory"></param>
     public static void ExtractImagesFromXlsxToDisk(string filePath, string outputDirectory)
     {
-        var imageNames = GetNonAnchoredImagesFromXlsx(filePath);
-
         using var zip = ZipFile.OpenRead(filePath);
-
-        foreach (var entry in zip.Entries
-                     .Where(e => e.FullName.StartsWith("xl/media/", StringComparison.OrdinalIgnoreCase) && imageNames.Contains(Path.GetFileName(e.FullName))))
+        
+        foreach (var entry in zip.Entries.Where(e => e.FullName.StartsWith("xl/media/", StringComparison.OrdinalIgnoreCase)))
         {
             var outputPath = Path.Combine(outputDirectory, Path.GetFileName(entry.FullName));
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);

@@ -5,6 +5,7 @@ using System.Linq;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using ImageMagick;
+using ImageMagick.Formats;
 using UglyToad.PdfPig.Content;
 
 // NOTE: COLOR PROFILE COMPARISON WILL NOT WORK CORRECTLY WHEN IMAGES ARE IN DIFFERENT ORDER BETWEEN ORIGINAL AND NEW
@@ -126,9 +127,28 @@ public static class ColorProfileComparison
     
         for (var i = 0; i < oFiles.Length; i++)
         {
-            using var oImage = new MagickImage(oFiles[i]);
-            using var nImage = new MagickImage(nFiles[i]);
-    
+            // Get the file format
+            var oFormatInfo = MagickFormatInfo.Create(oFiles[i]);
+            var nFormatInfo = MagickFormatInfo.Create(nFiles[i]);
+            
+            var oSettings = CreateFormatSpecificSettings(oFormatInfo?.Format);
+            var nSettings = CreateFormatSpecificSettings(nFormatInfo?.Format);
+            
+            using var oImage = new MagickImage(oFiles[i], oSettings);
+            
+            using var nImage = new MagickImage(nFiles[i], nSettings);
+
+            var oInfo = new MagickImageInfo(oFiles[i]);
+            var nInfo = new MagickImageInfo(nFiles[i]);
+            
+            Console.WriteLine($"Comparing {oFiles[i]} with {nFiles[i]}");
+            Console.WriteLine("Original color profile:");
+            Console.WriteLine(oInfo.ColorSpace);
+            Console.WriteLine(oImage.GetColorProfile()?.Description);
+            Console.WriteLine("New color profile:");
+            Console.WriteLine(nInfo.ColorSpace);
+            Console.WriteLine(nImage.GetColorProfile()?.Description);
+        
             if (!CompareColorProfiles(oImage, nImage))
             {
                 return false;
@@ -159,5 +179,21 @@ public static class ColorProfileComparison
             _ => nProfile != null && // If the profiles are different it means loss of data
                  oProfile.Equals(nProfile)
         };
+    }
+    
+    private static MagickReadSettings CreateFormatSpecificSettings(MagickFormat? format)
+    {
+        var settings = new MagickReadSettings();
+
+        switch (format)
+        {
+            case MagickFormat.Png:
+                settings.Defines = new PngReadDefines { PreserveiCCP = true };
+                break;
+            default:
+                // do nothing
+                break;
+        }
+        return settings;
     }
 }
