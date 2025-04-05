@@ -110,7 +110,12 @@ public static class TransparencyComparison
             using var oImage = new MagickImage(oFiles[i]);
             using var nImage = new MagickImage(nFiles[i]);
             
-            if (!CheckNonPdfImageTransparency(oImage) && nImage.IsOpaque)
+            var oImageHasTransparency = CheckNonPdfImageTransparency(oImage);
+            var nImageHasTransparency = CheckNonPdfImageTransparency(nImage);
+            
+            Console.WriteLine($"Pair {i + 1}: Original Image Transparency = {oImageHasTransparency}, New Image Transparency = {nImageHasTransparency}");
+            
+            if (!(oImageHasTransparency && nImageHasTransparency))
             {
                 return false;
             }

@@ -36,6 +36,7 @@ public static class XLSXPipelines
         Error error;
 
         var oImages = ImageExtraction.ExtractImagesFromXlsx(pair.OriginalFilePath);
+        var imagesOverCells = ImageExtraction.GetNonAnchoredImagesFromXlsx(pair.OriginalFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
         
         e.AddRange(ComperingMethods.CompareFonts(pair));
@@ -80,7 +81,7 @@ public static class XLSXPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.XlsxToPdfColorProfileComparison(oImages, nImages, imagesOverCells);
                 }
                 catch (Exception)
                 {

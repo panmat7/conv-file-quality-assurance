@@ -494,12 +494,13 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
     [Test]
     public void TestEmailWithOneMissingProfileDisk()
     {
-        var oFilePath = Path.Combine(TestFileDirectory, "Transparency", "correct_transparency.docx");
-        var nFilePath = Path.Combine(TestFileDirectory, "Transparency", "correct_transparency.pdf");
+        var oFilePath = Path.Combine(TestFileDirectory, "Mail", "email-with-one-missing-profile.eml");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "email-with-one-missing-profile.pdf");
 
-        ImageExtraction.ExtractImagesFromDocxToDisk(oFilePath, TestExtractionODirectory);
+        ImageExtraction.ExtractImagesFromEmlToDisk(oFilePath, TestExtractionODirectory);
         ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
-        
+        try
+        {
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
@@ -510,17 +511,17 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
     
             var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
             Assert.That(result, Is.True); // Two files with same color profiles should pass
-        
-        // finally
-        // {
-        //     ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-        //     ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
-        //     Assert.Multiple(() =>
-        //     {
-        //         Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
-        //         Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
-        //     });
-        // }
+        }
+        finally
+        {
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
     }
 
     [Test]
@@ -659,6 +660,39 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
         var result = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
         Assert.That(result, Is.True);
     }
+    
+    [Test]
+    public void TestSuccessDisk()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "rtf_with_two_images_of_different_profile.rtf");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_two_images_of_different_profile.pdf");
+
+        ImageExtraction.ExtractImagesFromRtfToDisk(oFilePath, TestExtractionODirectory);
+        ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
+        try
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
+                Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
+            });
+    
+            var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
+            Assert.That(result, Is.True); // Two files with same color profiles should pass
+        }
+        finally
+        {
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
+    }
 
     [Test]
     public void TestFail()
@@ -671,6 +705,53 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
         
         var result = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
         Assert.That(result, Is.False);
+        
+        ImageExtraction.DisposeMagickImages(oImages);
+        Assert.That(oImages, Has.All.Matches<MagickImage>(img => 
+        {
+            try
+            {
+                _ = img.Width;
+                return false;
+            }
+            catch (ObjectDisposedException)
+            {
+                return true;
+            }
+        }));
+    }
+    
+    [Test]
+    public void TestFailDisk()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "rtf_with_two_images_of_different_profile.rtf");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "word_with_two_images_of_same_profile.pdf");
+
+        ImageExtraction.ExtractImagesFromRtfToDisk(oFilePath, TestExtractionODirectory);
+        ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
+        try
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
+                Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
+            });
+    
+            var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
+            Assert.That(result, Is.True); // Two files with same color profiles should pass
+        }
+        finally
+        {
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
     }
 }
 
@@ -683,7 +764,7 @@ public class XlsxToPdfColorProfileComparison : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_one_missing_profile_in_cells.xlsx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_one_missing_profile_in_cells.pdf");
 
-        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var oImages = ImageExtraction.ExtractImagesFromXlsx(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         var imagesOverCells = ImageExtraction.GetNonAnchoredImagesFromXlsx(oFilePath);
         
@@ -697,7 +778,7 @@ public class XlsxToPdfColorProfileComparison : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_one_missing_profile_over_cells.xlsx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_one_missing_profile_over_cells.pdf");
 
-        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var oImages = ImageExtraction.ExtractImagesFromXlsx(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         var imagesOverCells = ImageExtraction.GetNonAnchoredImagesFromXlsx(oFilePath);
         
@@ -711,7 +792,7 @@ public class XlsxToPdfColorProfileComparison : TestBase
         var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_two_images_of_different_profile_over_cells.xlsx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_two_images_of_different_profile_over_cells.pdf");
 
-        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var oImages = ImageExtraction.ExtractImagesFromXlsx(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         var imagesOverCells = ImageExtraction.GetNonAnchoredImagesFromXlsx(oFilePath);
         
@@ -720,12 +801,45 @@ public class XlsxToPdfColorProfileComparison : TestBase
     }
     
     [Test]
+    public void TestDifferentProfileOverAndInCellsDisk()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_two_images_of_different_profile_over_cells.xlsx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_two_images_of_different_profile_over_cells.pdf");
+
+        ImageExtraction.ExtractImagesFromXlsxToDisk(oFilePath, TestExtractionODirectory);
+        ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
+        try
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
+                Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
+            });
+    
+            var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
+            Assert.That(result, Is.True); // Two files with same color profiles should pass
+        }
+        finally
+        {
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
+    }
+    
+    [Test]
     public void TestSameProfileInCells()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "Spreadsheet", "excel_with_two_images_of_same_profile_in_cells.xlsx");
         var nFilePath = Path.Combine(TestFileDirectory, "PDF", "excel_with_two_images_of_same_profile_in_cells.pdf");
 
-        var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(oFilePath);
+        var oImages = ImageExtraction.ExtractImagesFromXlsx(oFilePath);
         var nImages = ImageExtraction.GetNonDuplicatePdfImages(nFilePath);
         var imagesOverCells = ImageExtraction.GetNonAnchoredImagesFromXlsx(oFilePath);
         

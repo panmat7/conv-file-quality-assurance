@@ -11,7 +11,8 @@ using AvaloniaDraft.Helpers;
 using MimeKit;
 using UglyToad.PdfPig.Content;
 using RtfDomParser;
-using UglyToad.PdfPig.Tokens;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -97,48 +98,32 @@ public static class ImageExtraction
         return magickImages;
     }
     
+    /// <summary>
+    /// This function extracts all images inside a pdf to disk.
+    /// Based on the code from https://stackoverflow.com/questions/26774740/extract-image-from-pdf-using-c-sharp
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="outputDirectory"></param>
     public static void ExtractImagesFromPdfToDisk(string filePath, string outputDirectory)
     {
-        var imageHashes = new HashSet<string>();
-        using var pdfDocument = PdfDocument.Open(filePath);
-        foreach (var page in pdfDocument.GetPages())
+        using var document = PdfDocument.Open(filePath);
+        foreach (var page in document.GetPages())
         {
-            var images = page.GetImages().ToList();
-            foreach (var image in images)
+            foreach (var pdfImage in page.GetImages())
             {
-                var hash = Convert.ToBase64String(MD5.HashData(image.RawBytes.ToArray()));
-                if (!imageHashes.Add(hash)) continue;
-
-                MagickImage magickImage;
-                if (image.TryGetPng(out var pngBytes))
-                {
-                    magickImage = new MagickImage(pngBytes);
-                }
-                else
-                {
-                    magickImage = new MagickImage(image.RawBytes);
-                }
-
-                // Check for transparency mask
-                if (image.ImageDictionary.ContainsKey(NameToken.Smask) || image.ImageDictionary.ContainsKey(NameToken.Mask))
-                {
-                    var maskToken = image.ImageDictionary.ContainsKey(NameToken.Smask)
-                        ? image.ImageDictionary.Data[NameToken.Smask]
-                        : image.ImageDictionary.Data[NameToken.Mask];
-
-                    if (maskToken is StreamToken maskStreamToken)
-                    {
-                        var maskBytes = maskStreamToken.Data.ToArray();
-                        using var maskImage = new MagickImage(maskBytes);
-                        maskImage.Negate(); // Invert the mask to match the alpha channel expectations
-                        magickImage.Composite(maskImage, CompositeOperator.CopyAlpha);
-                    }
-                }
-
+                var bytes = TryGetImage(pdfImage);
+                using var mem = new MemoryStream(bytes);
+                using var img = Image.Load(mem);
+                
                 var outputPath = Path.Combine(outputDirectory, $"{Guid.NewGuid()}.png");
-                magickImage.Write(outputPath);
-                magickImage.Dispose();
+                img.Save(outputPath, new PngEncoder());
             }
+        }
+        byte[] TryGetImage(IPdfImage image)
+        {
+            if (image.TryGetPng(out var bytes))
+                return bytes;
+            return image.TryGetBytesAsMemory(out var iroBytes) ? iroBytes.ToArray() : image.RawBytes.ToArray();
         }
     }
     
