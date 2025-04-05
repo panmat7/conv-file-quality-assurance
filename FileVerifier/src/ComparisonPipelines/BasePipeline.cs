@@ -88,29 +88,34 @@ public static class BasePipeline
         return null;
     }
 
-    public static (string, string) CreateTempFoldersForImages()
+    public static string CreateTempFolderForImages()
     {
         var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
-    
-        var tempODirectory = fileSystem?.Path.Combine(fileSystem.Path.GetTempPath(), fileSystem.Path.GetRandomFileName());
-        var tempNDirectory = fileSystem?.Path.Combine(fileSystem.Path.GetTempPath(), fileSystem.Path.GetRandomFileName());
-
-        if (tempODirectory == null) return (string.Empty, string.Empty);
-        fileSystem?.Directory.CreateDirectory(tempODirectory);
-        if (tempNDirectory == null) return (string.Empty, string.Empty);
-        fileSystem?.Directory.CreateDirectory(tempNDirectory);
-
-        return (tempODirectory, tempNDirectory);
+        var tempDirectory = fileSystem?.Path.Combine(fileSystem.Path.GetTempPath(), fileSystem.Path.GetRandomFileName());
+        if (tempDirectory == null) return string.Empty;
+        fileSystem?.Directory.CreateDirectory(tempDirectory);
+        return tempDirectory;
     }
     
-    public static void DeleteTempFolders(string tempODirectory, string tempNDirectory)
+    public static (string, string) CreateTempFoldersForImages()
+    {
+        var tempFolder1 = CreateTempFolderForImages();
+        var tempFolder2 = CreateTempFolderForImages();
+        return (tempFolder1, tempFolder2);
+    }
+
+    public static void DeleteTempFolder(string tempDirectory)
     {
         var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
         if (fileSystem == null) return;
         
-        if (fileSystem.Directory.Exists(tempODirectory))
-            fileSystem.Directory.Delete(tempODirectory, true);
-        if (fileSystem.Directory.Exists(tempNDirectory))
-            fileSystem.Directory.Delete(tempNDirectory, true);
+        if (fileSystem.Directory.Exists(tempDirectory))
+            fileSystem.Directory.Delete(tempDirectory, true);
+    }
+    
+    public static void DeleteTempFolders(string tempODirectory, string tempNDirectory)
+    {
+        DeleteTempFolder(tempODirectory);
+        DeleteTempFolder(tempNDirectory);
     }
 }

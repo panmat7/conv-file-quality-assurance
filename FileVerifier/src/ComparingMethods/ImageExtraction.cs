@@ -669,6 +669,32 @@ public static class ImageExtraction
         }
     }
     
+    public static string GetExpectedPronomFromImage(MagickFormat oFormat)
+    {
+        string expectedPronom; //Note that this might not be the exact code, but it should serve to distinguish format group.
+        switch (oFormat)
+        {
+            case MagickFormat.Png:
+                expectedPronom = FormatCodes.PronomCodesPNG.FormatCodes[0];
+                break;
+            case MagickFormat.Jpeg:
+                expectedPronom = FormatCodes.PronomCodesJPEG.FormatCodes[0];
+                break;
+            case MagickFormat.Gif:
+                expectedPronom = FormatCodes.PronomCodesGIF.FormatCodes[0];
+                break;
+            case MagickFormat.Tiff:
+                expectedPronom = FormatCodes.PronomCodesTIFF.FormatCodes[0];
+                break;
+            case MagickFormat.Bmp:
+                expectedPronom = FormatCodes.PronomCodesBMP.FormatCodes[0];
+                break;
+            default:
+                return null;
+        }
+        return expectedPronom;
+    }
+    
     /// <summary>
     /// Disposes of all magick images after use
     /// </summary>

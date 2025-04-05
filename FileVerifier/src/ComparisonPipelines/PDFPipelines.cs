@@ -37,8 +37,9 @@ public static class PdfPipelines
             List<Error> e = [];
             Error error;
 
-            var oImages = ImageExtraction.GetNonDuplicatePdfImages(pair.OriginalFilePath);
-            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+            var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
+            ImageExtraction.ExtractImagesFromPdfToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
           
             e.AddRange(ComperingMethods.CompareFonts(pair));
             int? pageDiff = null;
@@ -113,7 +114,10 @@ public static class PdfPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.PdfToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.CompareColorProfilesFromDisk(
+                        tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2
+                    );
                 }
                 catch (Exception)
                 {
@@ -155,7 +159,10 @@ public static class PdfPipelines
 
                 try
                 {
-                    res = TransparencyComparison.PdfToPdfTransparencyComparison(oImages, nImages);
+                    res = TransparencyComparison.CompareTransparencyInImagesOnDisk(
+                        tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2
+                    );
                 }
                 catch (Exception)
                 {
@@ -259,6 +266,8 @@ public static class PdfPipelines
             UiControlService.Instance.AppendToConsole(
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
+            
+            BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

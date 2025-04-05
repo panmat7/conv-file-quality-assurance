@@ -37,8 +37,9 @@ public static class PptxPipelines
             List<Error> e = [];
             Error error;
 
-            var oImages = ImageExtraction.ExtractImagesFromXmlBasedPowerPoint(pair.OriginalFilePath);
-            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+            var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
+            ImageExtraction.ExtractImagesFromXmlBasedPowerPointToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
 
             e.AddRange(ComperingMethods.CompareFonts(pair));
             
@@ -151,7 +152,10 @@ public static class PptxPipelines
 
                 try
                 {
-                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
+                    res = ColorProfileComparison.CompareColorProfilesFromDisk(
+                        tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2
+                    );
                 }
                 catch (Exception)
                 {
@@ -192,7 +196,10 @@ public static class PptxPipelines
 
                 try
                 {
-                    res = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
+                    res = TransparencyComparison.CompareTransparencyInImagesOnDisk(
+                        tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2
+                    );
                 }
                 catch (Exception)
                 {
@@ -230,7 +237,7 @@ public static class PptxPipelines
                 $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
                 e.GenerateErrorString() + "\n\n");
             
-            ImageExtraction.DisposeMagickImages(oImages);
+            BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

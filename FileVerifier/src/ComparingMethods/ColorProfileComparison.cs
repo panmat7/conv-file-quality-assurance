@@ -135,19 +135,7 @@ public static class ColorProfileComparison
             var nSettings = CreateFormatSpecificSettings(nFormatInfo?.Format);
             
             using var oImage = new MagickImage(oFiles[i], oSettings);
-            
             using var nImage = new MagickImage(nFiles[i], nSettings);
-
-            var oInfo = new MagickImageInfo(oFiles[i]);
-            var nInfo = new MagickImageInfo(nFiles[i]);
-            
-            Console.WriteLine($"Comparing {oFiles[i]} with {nFiles[i]}");
-            Console.WriteLine("Original color profile:");
-            Console.WriteLine(oInfo.ColorSpace);
-            Console.WriteLine(oImage.GetColorProfile()?.Description);
-            Console.WriteLine("New color profile:");
-            Console.WriteLine(nInfo.ColorSpace);
-            Console.WriteLine(nImage.GetColorProfile()?.Description);
         
             if (!CompareColorProfiles(oImage, nImage))
             {
@@ -181,7 +169,7 @@ public static class ColorProfileComparison
         };
     }
     
-    private static MagickReadSettings CreateFormatSpecificSettings(MagickFormat? format)
+    public static MagickReadSettings CreateFormatSpecificSettings(MagickFormat? format)
     {
         var settings = new MagickReadSettings();
 

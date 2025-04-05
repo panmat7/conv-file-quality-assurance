@@ -91,7 +91,6 @@ public static class EmlPipelines
                 e.GenerateErrorString() + "\n\n");
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
-            
 
             e.AddRange(ComperingMethods.CompareFonts(pair));
 
