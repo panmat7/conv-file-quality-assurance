@@ -286,93 +286,202 @@ public static class ComperingMethods
         
         return errors;
     }
+    
+    /// <summary>
+    /// Compares metadata of images extracted in MagickImage format.
+    /// </summary>
+    /// <param name="oImages">List of images in the original file.</param>
+    /// <param name="nImages">List of images in the new file.</param>
+    /// <returns>
+    /// The count of how many times metadata extraction failed, the count of how many images had errors and a list of 
+    /// each distinct error encountered. 
+    /// </returns>
+    public static (int, int, List<Error>)? CompareExtractedImageMetadata(List<MagickImage> oImages, List<MagickImage> nImages)
+    {
+        var failedCount = 0;
+        var errCount = 0;
+        HashSet<Error> errorFound = new();
+        List<string> paths = new();
 
-    public static (int, int, List<Error>)? ComparExtractedImageMetadata(List<MagickImage> oImages, List<MagickImage> nImages)
-    {
-        var failedCount = 0;
-        var errCount = 0;
-        HashSet<Error> errorFound = new();
-            
-        for (int i = 0; i < nImages.Count; i++)
+        try
         {
-            var oImg = ImageExtraction.SaveExtractedMagickImageToDisk(oImages[i], oImages[i].Format);
-            var nImg = ImageExtraction.SaveExtractedMagickImageToDisk(nImages[i], nImages[i].Format);
-    
-            if (oImg == null || nImg == null)
+            for (int i = 0; i < nImages.Count; i++)
             {
-                failedCount++;
-                continue;
+                var oImg = ImageExtraction.SaveExtractedMagickImageToDisk(oImages[i], oImages[i].Format);
+                var nImg = ImageExtraction.SaveExtractedMagickImageToDisk(nImages[i], nImages[i].Format);
+
+                if (oImg == null || nImg == null)
+                {
+                    failedCount++;
+                    continue;
+                }
+
+                paths.Add(oImg.Value.Item1);
+                paths.Add(nImg.Value.Item1);
+
+                var tempPair = new FilePair(
+                    oImg.Value.Item1, oImg.Value.Item2,
+                    nImg.Value.Item1, nImg.Value.Item2
+                );
+
+                var errors = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
+
+                if (errors == null)
+                {
+                    failedCount++;
+                    continue;
+                }
+
+                if (errors.Count > 0)
+                {
+                    errors.ForEach(err => errorFound.Add(err));
+                    errCount++;
+                }
             }
-    
-            var tempPair = new FilePair(
-                oImg.Value.Item1, oImg.Value.Item2,
-                nImg.Value.Item1, nImg.Value.Item2
-            );
-    
-            var errors = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
-            if(errors == null) { failedCount++; continue; }
-            if(errors.Count > 0) { errors.ForEach(err => errorFound.Add(err)); errCount++; }
-        } 
+        }
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            foreach (var file in paths)
+            {
+                TempFiles.DeleteTemporaryFile(file);
+            }
+        }
         
         return (failedCount, errCount, errorFound.ToList());
     }
     
-    public static (int, int, List<Error>)? ComparExtractedImageMetadata(List<MagickImage> oImages, List<IPdfImage> nImages)
+    /// <summary>
+    /// Compares metadata of images extracted in MagickImage and IPdfImage formats.
+    /// </summary>
+    /// <param name="oImages">List of images in the original file.</param>
+    /// <param name="nImages">List of images in the new file.</param>
+    /// <returns>
+    /// The count of how many times metadata extraction failed, the count of how many images had errors and a list of 
+    /// each distinct error encountered. 
+    /// </returns>
+    public static (int, int, List<Error>)? CompareExtractedImageMetadata(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
         var failedCount = 0;
         var errCount = 0;
         HashSet<Error> errorFound = new();
-            
-        for (int i = 0; i < nImages.Count; i++)
+        List<string> paths = new();
+
+        try
         {
-            var oImg = ImageExtraction.SaveExtractedMagickImageToDisk(oImages[i], oImages[i].Format);
-            var nImg = ImageExtraction.SaveExtractedIPdfImageToDisk(nImages[i]);
-    
-            if (oImg == null || nImg == null)
+            for (int i = 0; i < nImages.Count; i++)
             {
-                failedCount++;
-                continue;
+                var oImg = ImageExtraction.SaveExtractedMagickImageToDisk(oImages[i], oImages[i].Format);
+                var nImg = ImageExtraction.SaveExtractedIPdfImageToDisk(nImages[i]);
+
+                if (oImg == null || nImg == null)
+                {
+                    failedCount++;
+                    continue;
+                }
+                
+                paths.Add(oImg.Value.Item1);
+                paths.Add(nImg.Value.Item1);
+
+                var tempPair = new FilePair(
+                    oImg.Value.Item1, oImg.Value.Item2,
+                    nImg.Value.Item1, nImg.Value.Item2
+                );
+
+                var errors = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
+                if (errors == null)
+                {
+                    failedCount++;
+                    continue;
+                }
+
+                if (errors.Count > 0)
+                {
+                    errors.ForEach(err => errorFound.Add(err));
+                    errCount++;
+                }
             }
-    
-            var tempPair = new FilePair(
-                oImg.Value.Item1, oImg.Value.Item2,
-                nImg.Value.Item1, nImg.Value.Item2
-            );
-    
-            var errors = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
-            if(errors == null) { failedCount++; continue; }
-            if(errors.Count > 0) { errors.ForEach(err => errorFound.Add(err)); errCount++; }
-        } 
+        }
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            foreach (var file in paths)
+            {
+                TempFiles.DeleteTemporaryFile(file);
+            }
+        }
         
         return (failedCount, errCount, errorFound.ToList());
     }
     
-    public static (int, int, List<Error>)? ComparExtractedImageMetadata(List<IPdfImage> oImages, List<IPdfImage> nImages)
+    /// <summary>
+    /// Compares metadata of images extracted in IPdfImage format.
+    /// </summary>
+    /// <param name="oImages">List of images in the original file.</param>
+    /// <param name="nImages">List of images in the new file.</param>
+    /// <returns>
+    /// The count of how many times metadata extraction failed, the count of how many images had errors and a list of 
+    /// each distinct error encountered. 
+    /// </returns>
+    public static (int, int, List<Error>)? CompareExtractedImageMetadata(List<IPdfImage> oImages, List<IPdfImage> nImages)
     {
         var failedCount = 0;
         var errCount = 0;
         HashSet<Error> errorFound = new();
-            
-        for (int i = 0; i < nImages.Count; i++)
+        List<string> paths = new();
+
+        try
         {
-            var oImg = ImageExtraction.SaveExtractedIPdfImageToDisk(oImages[i]);
-            var nImg = ImageExtraction.SaveExtractedIPdfImageToDisk(nImages[i]);
-    
-            if (oImg == null || nImg == null)
+            for (int i = 0; i < nImages.Count; i++)
             {
-                failedCount++;
-                continue;
+                var oImg = ImageExtraction.SaveExtractedIPdfImageToDisk(oImages[i]);
+                var nImg = ImageExtraction.SaveExtractedIPdfImageToDisk(nImages[i]);
+
+                if (oImg == null || nImg == null)
+                {
+                    failedCount++;
+                    continue;
+                }
+                
+                paths.Add(oImg.Value.Item1);
+                paths.Add(nImg.Value.Item1);
+
+                var tempPair = new FilePair(
+                    oImg.Value.Item1, oImg.Value.Item2,
+                    nImg.Value.Item1, nImg.Value.Item2
+                );
+
+                var errors = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
+                if (errors == null)
+                {
+                    failedCount++;
+                    continue;
+                }
+
+                if (errors.Count > 0)
+                {
+                    errors.ForEach(err => errorFound.Add(err));
+                    errCount++;
+                }
             }
-    
-            var tempPair = new FilePair(
-                oImg.Value.Item1, oImg.Value.Item2,
-                nImg.Value.Item1, nImg.Value.Item2
-            );
-    
-            var errors = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
-            if(errors == null) { failedCount++; continue; }
-            if(errors.Count > 0) { errors.ForEach(err => errorFound.Add(err)); errCount++; }
-        } 
+        }
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            foreach (var file in paths)
+            {
+                TempFiles.DeleteTemporaryFile(file);
+            }
+        }
         
         return (failedCount, errCount, errorFound.ToList());
     }

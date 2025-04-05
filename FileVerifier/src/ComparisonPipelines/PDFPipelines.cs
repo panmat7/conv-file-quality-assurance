@@ -265,7 +265,7 @@ public static class PdfPipelines
                             "This test was preformed on an extracted image."]);
                 else
                 {
-                    var res = ComperingMethods.ComparExtractedImageMetadata(oImages, nImages);
+                    var res = ComperingMethods.CompareExtractedImageMetadata(oImages, nImages);
 
                     if (res == null)
                         GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
