@@ -142,7 +142,6 @@ public static class ColorProfileComparison
                 return false;
             }
         }
-    
         return true;
     }
     

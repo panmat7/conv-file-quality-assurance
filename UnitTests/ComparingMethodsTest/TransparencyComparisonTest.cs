@@ -67,7 +67,7 @@ public class GeneralDocsToPdfTransparencyComparisonTest : TestBase
             });
     
             var result = TransparencyComparison.CompareTransparencyInImagesOnDisk(TestExtractionODirectory, TestExtractionNDirectory);
-            Assert.That(result, Is.True); // Two files with same color profiles should pass
+            Assert.That(result, Is.True);
         }
         finally
         {

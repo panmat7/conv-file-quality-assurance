@@ -111,14 +111,17 @@ public static class TransparencyComparison
             using var nImage = new MagickImage(nFiles[i]);
             
             var oImageHasTransparency = CheckNonPdfImageTransparency(oImage);
+            
             var nImageHasTransparency = CheckNonPdfImageTransparency(nImage);
+
+            Console.WriteLine("Original file:");
+            Console.WriteLine(oImageHasTransparency);
+                
+            Console.WriteLine("New file:");
+            Console.WriteLine(nImageHasTransparency);
             
-            Console.WriteLine($"Pair {i + 1}: Original Image Transparency = {oImageHasTransparency}, New Image Transparency = {nImageHasTransparency}");
-            
-            if (!(oImageHasTransparency && nImageHasTransparency))
-            {
-                return false;
-            }
+            if (oImageHasTransparency == nImageHasTransparency) continue;
+            return false;
         }
     
         return true;
@@ -144,6 +147,22 @@ public static class TransparencyComparison
     /// <returns></returns>
     private static bool CheckNonPdfImageTransparency(MagickImage image)
     {
-        return image.HasAlpha && image.GetPixels().Any(pixel => pixel.ToColor()!.A < 255);
+        using var pixels = image.GetPixels();
+        if (!image.HasAlpha)
+            return false;
+
+        var values = pixels.GetValues();
+        var channels = (int)image.ChannelCount;
+        var compValue = image.Depth == 16 ? 65535 : 255;
+        
+        
+        if (values == null) return false;
+        for (var i = 3; i < values.Length; i += channels)
+        {
+            if (values[i] < compValue)
+                return true;
+        }
+
+        return false;
     }
 }
