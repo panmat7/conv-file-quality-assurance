@@ -113,12 +113,6 @@ public static class TransparencyComparison
             var oImageHasTransparency = CheckNonPdfImageTransparency(oImage);
             
             var nImageHasTransparency = CheckNonPdfImageTransparency(nImage);
-
-            Console.WriteLine("Original file:");
-            Console.WriteLine(oImageHasTransparency);
-                
-            Console.WriteLine("New file:");
-            Console.WriteLine(nImageHasTransparency);
             
             if (oImageHasTransparency == nImageHasTransparency) continue;
             return false;
