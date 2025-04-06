@@ -26,21 +26,4 @@ public class ExtractedImageMetadataTest
         
         throw new Exception("Failed to find project directory \"conv-file-quality-assurance\"");
     }
-    
-    [Test]
-    public void CompareExtractedImageMetadataTest()
-    {
-        var PDF = @"C:\Users\kaczm\Documents\bachelor\ds\test\extTest.pdf";
-        var DOCX = @"C:\Users\kaczm\Documents\bachelor\ds\test\extTest.docx";
-        var ODT = _testFileDirectory + "/TestDocuments/Image8Pages.odt";
-        
-        var imgPDF = ImageExtraction.GetNonDuplicatePdfImages(PDF);
-        var imgODT = ImageExtraction.ExtractImagesFromOpenDocuments(ODT);
-        var imgDOCX = ImageExtraction.ExtractImagesFromDocx(DOCX);
-
-        var pair = new FilePair();
-        
-        ExtractedImageMetadata.CompareExtractedImages(pair, imgDOCX, imgPDF);
-        
-    }
 }
