@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -98,6 +99,22 @@ public class Error
         }
         
         return string.Empty;
+    }
+    
+    //Used for object comparison
+    public override bool Equals(object obj)
+    {
+        if (obj is Error error)
+        {
+            return Name.Equals(error.Name) && Description.Equals(error.Description) && Severity.Equals(error.Severity)
+                && ErrorType.Equals(error.ErrorType);
+        }
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Name, Description, Severity, ErrorType);
     }
 }
 

@@ -52,7 +52,7 @@ public static class ImageExtraction
         foreach (var page in pdfDocument.GetPages())
         {
             var images = page.GetImages().ToList();
-    
+            
             // Only extract images that are not already in the hash set
             extractedImages.AddRange(from image in images
                 let hash = ComputeHash(image.RawBytes)
@@ -537,6 +537,7 @@ public static class ImageExtraction
             }
                 
             var path = TempFiles.CreateTemporaryFile(ms.ToArray(), tempDirs.Item2);
+            
 
             if (path == null) return null;
 

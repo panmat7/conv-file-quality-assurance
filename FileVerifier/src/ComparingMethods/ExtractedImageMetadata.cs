@@ -140,8 +140,8 @@ public static class ExtractedImageMetadata
         //No failures
         else if(failedCount == 0)
             GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
-                errors: errorFound.ToList(),
-                comments: [$"One or more of the following errors are present in {errCount} of {imgCount} images.",
+                errors: errorFound,
+                comments: [$"One or more of the following errors are present in {errCount} of {imgCount} image pairs.",
                     "This test was preformed on an extracted image."]);
         //No errors
         else if (errCount == 0)
@@ -152,9 +152,9 @@ public static class ExtractedImageMetadata
         //Failures and errors (very bad)
         else
             GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
-                errors: errorFound.ToList(),
+                errors: errorFound,
                 comments: [$"Could not check {failedCount} of {imgCount} images.",
-                    $"One or more of the following errors are present in {errCount} of {imgCount} images.",
+                    $"One or more of the following errors are present in {errCount} of {imgCount} image pairs.",
                     "This test was preformed on an extracted image."]);
     }
     
@@ -172,7 +172,7 @@ public static class ExtractedImageMetadata
     {
         var failedCount = 0;
         var errCount = 0;
-        HashSet<Error> errorFound = new();
+        List<Error> errorFound = new();
         List<string> paths = new();
 
         try
@@ -206,7 +206,7 @@ public static class ExtractedImageMetadata
 
                 if (errors.Count > 0)
                 {
-                    errors.ForEach(err => errorFound.Add(err));
+                    errorFound.AddRange(errors.Distinct().ToList());
                     errCount++;
                 }
             }
@@ -223,7 +223,7 @@ public static class ExtractedImageMetadata
             }
         }
         
-        return (failedCount, errCount, errorFound.ToList());
+        return (failedCount, errCount, errorFound.Distinct().ToList());
     }
     
     /// <summary>

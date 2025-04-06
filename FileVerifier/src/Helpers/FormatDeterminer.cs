@@ -12,32 +12,32 @@ public static class FormatDeterminer
     private static readonly Dictionary<string, string[][]> SignatureTable = new()
     {
         {
-            "jpeg",
+            ".jpeg",
             [
                 ["FF", "D8", "FF"],
             ]
         },
         {
-            "gif",
+            ".gif",
             [
                 ["47", "49", "46", "38", "37", "61"],
                 ["47", "49", "46", "38", "39", "61"]
             ]
         },
         {
-            "png",
+            ".png",
             [
                 ["89", "50", "4E", "47", "0D", "0A", "1A", "0A"]
             ]
         },
         {
-            "bmp",
+            ".bmp",
             [
                 ["42", "4D"]
             ]
         },
         {
-            "tiff",
+            ".tiff",
             [
                 ["49", "49", "2A", "00"],
                 ["4D", "4D", "00", "2A"]
@@ -64,7 +64,7 @@ public static class FormatDeterminer
             if (!match) continue;
             
             //If not jpeg - can return, if jpeg - need to check for jpeg end signature
-            if (entry.Key != "jpeg")
+            if (entry.Key != ".jpeg")
                 return entry.Key;
             
             var nToLastByte = imageData[^2].ToString("X2");
