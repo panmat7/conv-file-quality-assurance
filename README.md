@@ -1,12 +1,30 @@
 # conv-file-quality-assurance
 This application performs quality checks on files mostly for files converted from a fileformat to an archival format. 
 
-## Features
+## Comparing methods
+* Size:
+
+* Pixel by pixel: 
+
+* Color Space: 
+
+* Fonts:
+
+* Number of pages:
+
+* Animations: 
+
+
+
 
 ## Supported file formats
 
+![alt text](https://github.com/panmat7/conv-file-quality-assurance/blob/pbp/SupportedFileFormats.png?raw=true)
+
+## Supported comparison methods
+
 ![alt text](https://github.com/panmat7/conv-file-quality-assurance/blob/pbp/SupportedComparisonMethods.png?raw=true)
-![alt text](https://github.com/panmat7/conv-file-quality-assurance/blob/pbp/SupportedComparisonMethods.png?raw=true)
+
 
 
 
@@ -17,10 +35,7 @@ This application performs quality checks on files mostly for files converted fro
 git clone https://github.com/panmat7/conv-file-quality-assurance.git
 ```
 3. Build and run the application
-```sh
-cd conv-file-quality-assurance
-dotnet build
-```
+
 ### Dependencies Windows
 - .NET 8+
 - Siegfried 
@@ -31,6 +46,7 @@ dotnet build
 ## Installation Ubuntu 22.04
 1. Install Siegfried from their website (https://www.itforarchivists.com/)
 2. Install Emgu.cv (https://www.emgu.com/wiki/index.php/Download_And_Installation)
+    - If you can't run the Point by point comparison, check for missing dependencies (https://www.emgu.com/wiki/index.php/Download_And_Installation#System.DllNotFoundException)
 3. Install ExifTool (https://exiftool.org/install.html#Unix)
 
 4. Clone the repository 
