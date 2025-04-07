@@ -1,19 +1,14 @@
 ﻿using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.IO;
+
 
 namespace UnitTests.ComparingMethodsTest
 {
     [TestFixture]
     public class PbpMagickTest
     {
-        private string _testFileDirectory;
+        private string _testFileDirectory = "";
         
-        private string _path1;
-        private string _path2;
 
         [SetUp]
         public void Setup()
@@ -49,7 +44,7 @@ namespace UnitTests.ComparingMethodsTest
             get
             {
                 var curDir = Directory.GetCurrentDirectory();
-                string basePath = null;
+                string basePath = "";
 
                 while (!string.IsNullOrEmpty(curDir))
                 {
