@@ -408,6 +408,70 @@ public static class DocumentVisualOperations
     }
 
     /// <summary>
+    /// Determine whether a segment is relevant for pixel-to-pixel comparison based on histogram analysis.
+    /// </summary>
+    /// <param name="seg">Segment to be considered.</param>
+    /// <returns>True/False, null if an error occured.</returns>
+    public static bool? DetermineSegmentRelevanceHistogram(byte[] seg)
+    {
+        try
+        {
+            var img = new Mat();
+            CvInvoke.Imdecode(seg, ImreadModes.Unchanged, img);
+
+            using var grayImg = img.ToImage<Gray, byte>();
+            
+            var pixels = new float[grayImg.Width * grayImg.Height];
+
+            for (var i = 0; i < grayImg.Height; i++)
+            {
+                for (var j = 0; j < grayImg.Width; j++)
+                {
+                    // Get the grayscale pixel value directly (no need for R, G, B averaging)
+                    pixels[i * grayImg.Width + j] = (float)grayImg[i, j].Intensity;
+                }
+            }
+
+            const int bins = 64;
+            var hist = new int[bins];
+            var normalizedHist = new float[bins];
+
+            foreach (var p in pixels)
+            {
+                var index = (int)(p / 256f * bins);
+                hist[index]++;
+            }
+
+            for (var i = 0; i < hist.Length; i++)
+                normalizedHist[i] = hist[i] / (float)pixels.Length;
+            
+
+            var peaks = new List<int>();
+
+            for (var i = 1; i < hist.Length - 1; i++)
+            {
+                if(normalizedHist[i] > normalizedHist[i - 1] && normalizedHist[i] > normalizedHist[i + 1] && normalizedHist[i] > 0.3) 
+                    peaks.Add(i);
+            }
+            
+            if(normalizedHist[0] > .3f && normalizedHist[0] > normalizedHist[1]) peaks.Add(0);
+            if(normalizedHist[^1] > .3f && normalizedHist[^1] > normalizedHist[^2]) peaks.Add(normalizedHist.Length-1);
+            
+            CvInvoke.Imshow("img", img);
+            CvInvoke.WaitKey(0);
+            CvInvoke.DestroyAllWindows();
+
+            if (peaks.Count == 1 && normalizedHist[peaks[0]] > 0.5f) return false; //Mostly one color, oftentimes text on white background
+
+            return true;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Creates an error list from marked pages.
     /// </summary>
     /// <param name="errorPages">List of hashsets containing pages for each error.</param>

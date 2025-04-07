@@ -342,7 +342,7 @@ public static class ComperingMethods
                 errorPages[1].Add(pageIndex + pageStart ?? 0);
             
             //Point by point
-            if (!GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name)) continue;
+            if (GlobalVariables.Options == null || !GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name)) continue;
 
             var visualSegCompRes = VisualSegmentComparison(
                 oPage: pagesOriginal[pageIndex],
@@ -361,7 +361,18 @@ public static class ComperingMethods
             
         return DocumentVisualOperations.WriteErrors(errorPages);
     }
-
+    
+    /// <summary>
+    /// Preforms the visual point by point comparison between segments on a page.
+    /// </summary>
+    /// <param name="oPage">Original page.</param>
+    /// <param name="oRects">Segments extracted from the original page.</param>
+    /// <param name="nPage">New page.</param>
+    /// <param name="nRects">Segments extracted from the new page.</param>
+    /// <returns>
+    /// A tuple of bools, first representing if an error occured and second if the comparison failed for at least
+    /// one of the segments.
+    /// </returns>
     private static Tuple<bool, bool>? VisualSegmentComparison(byte[] oPage, List<System.Drawing.Rectangle> oRects, byte[] nPage,
         List<System.Drawing.Rectangle> nRects)
     {
