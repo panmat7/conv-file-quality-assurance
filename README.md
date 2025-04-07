@@ -5,7 +5,8 @@ This application performs quality checks on files mostly for files converted fro
 
 ## Supported file formats
 
-
+![alt text](https://github.com/panmat7/conv-file-quality-assurance/blob/pbp/SupportedComparisonMethods.png?raw=true)
+![alt text](https://github.com/panmat7/conv-file-quality-assurance/blob/pbp/SupportedComparisonMethods.png?raw=true)
 
 
 
@@ -15,7 +16,11 @@ This application performs quality checks on files mostly for files converted fro
 ```sh
 git clone https://github.com/panmat7/conv-file-quality-assurance.git
 ```
-3. Run the application
+3. Build and run the application
+```sh
+cd conv-file-quality-assurance
+dotnet build
+```
 ### Dependencies Windows
 - .NET 8+
 - Siegfried 
@@ -27,6 +32,16 @@ git clone https://github.com/panmat7/conv-file-quality-assurance.git
 1. Install Siegfried from their website (https://www.itforarchivists.com/)
 2. Install Emgu.cv (https://www.emgu.com/wiki/index.php/Download_And_Installation)
 3. Install ExifTool (https://exiftool.org/install.html#Unix)
+
+4. Clone the repository 
+```sh
+git clone https://github.com/panmat7/conv-file-quality-assurance.git
+```
+5. Build and run the application
+```sh
+cd conv-file-quality-assurance
+dotnet build
+```
 
 ### Dependencies Ubuntu
 - .NET 8+
