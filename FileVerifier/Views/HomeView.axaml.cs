@@ -60,15 +60,14 @@ public partial class HomeView : UserControl
                     InputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     InputButton.Content = "Selected";
                     GlobalVariables.Paths.OriginalFilesPath = InputPath;
-                    GlobalVariables.Paths.SavePaths();
                     break;
                 case "OutputButton":
                     OutputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     OutputButton.Content = "Selected";
                     GlobalVariables.Paths.NewFilesPath = OutputPath;
-                    GlobalVariables.Paths.SavePaths();
                     break;
             }
+            GlobalVariables.Paths.SavePaths();
         }
         else
         {
