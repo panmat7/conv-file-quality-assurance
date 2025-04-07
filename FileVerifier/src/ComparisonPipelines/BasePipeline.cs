@@ -129,8 +129,7 @@ public static class BasePipeline
             
         try
         {
-            res = TransparencyComparison.CompareTransparencyInImagesOnDisk(tempFolder,
-                tempFolder2);
+            res = TransparencyComparison.CompareTransparencyInImagesOnDisk(tempFolder, tempFolder2);
         }
         catch (Exception er)
         {
@@ -161,6 +160,49 @@ public static class BasePipeline
                 break;
             case false when res:
                 GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
+                break;
+        }
+    }
+
+    public static void CheckColorProfiles(string tempFolder, string tempFolder2, FilePair pair, List<Error> e)
+    {
+        var res = false;
+        var exceptionOccurred = false;
+        Error error;
+
+        try
+        {
+            res = ColorProfileComparison.CompareColorProfilesFromDisk(tempFolder, tempFolder2);
+        }
+        catch (Exception er)
+        {
+            Console.WriteLine(er);
+            exceptionOccurred = true;
+            error = new Error(
+                "Error comparing color profiles across images",
+                "There occurred an error while extracting and comparing " +
+                "color profiles in the images.",
+                ErrorSeverity.High,
+                ErrorType.Metadata
+            );
+            GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+            e.Add(error);
+        }
+
+        switch (exceptionOccurred)
+        {
+            case false when !res:
+                error = new Error(
+                    "Mismatching color profile",
+                    "The color profile in the new file does not match the original in at least one image.",
+                    ErrorSeverity.Medium,
+                    ErrorType.Metadata
+                );
+                GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                e.Add(error);
+                break;
+            case false when res:
+                GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
                 break;
         }
     }
