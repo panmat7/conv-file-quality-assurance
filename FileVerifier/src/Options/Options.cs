@@ -278,7 +278,7 @@ public class Options
         }
         catch (Exception ex)
         {
-            throw new Exception("Failed to save settings", ex);
+            Console.WriteLine($"Error trying to save settings: {ex}");
         }
     }
 
@@ -321,7 +321,7 @@ public class Options
         }
         catch (Exception ex)
         {
-            throw new Exception("Failed to load settings", ex);
+            Console.WriteLine($"Error trying to load settings: {ex}");
         }
     }
 }
