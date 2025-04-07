@@ -75,22 +75,28 @@ public static class PbpComparisonMagick
                 var pixel1 = oImage.GetPixel(x, y).ToColor();
                 var pixel2 = nImage.GetPixel(x, y).ToColor();
 
-                double L1 = pixel1.R;
-                double A1 = pixel1.G;
-                double B1 = pixel1.B;
+                if (pixel1 != null)
+                {
+                    double l1 = pixel1.R;
+                    double a1 = pixel1.G;
+                    double b1 = pixel1.B;
 
-                double L2 = pixel2.R;
-                double A2 = pixel2.G;
-                double B2 = pixel2.B;
+                    if (pixel2 != null)
+                    {
+                        double l2 = pixel2.R;
+                        double a2 = pixel2.G;
+                        double b2 = pixel2.B;
 
-                // Euclidean distance formula
-                double distance = Math.Sqrt(
-                    Math.Pow(L1 - L2, 2) +
-                    Math.Pow(A1 - A2, 2) +
-                    Math.Pow(B1 - B2, 2)
-                );
+                        // Euclidean distance formula
+                        double distance = Math.Sqrt(
+                            Math.Pow(l1 - l2, 2) +
+                            Math.Pow(a1 - a2, 2) +
+                            Math.Pow(b1 - b2, 2)
+                        );
 
-                totalDistance += distance;
+                        totalDistance += distance;
+                    }
+                }
             }
         }
 
