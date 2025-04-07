@@ -101,10 +101,20 @@ public partial class HomeView : UserControl
 
     private async void Start_OnClick(object? sender, RoutedEventArgs e)
     {
-        StartVerificationProcess();
+        try
+        {
+            await StartVerificationProcess();
+        }
+        catch (Exception)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow =
+                    new ErrorWindow("An error occured when starting the verification process.");
+                errWindow.ShowDialog((VisualRoot as Window)!);
+            });
+        }
     }
-
-    
 
     private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
     {
@@ -143,7 +153,7 @@ public partial class HomeView : UserControl
             {
                 if (AutoStartVerification)
                 {
-                    StartVerificationProcess();
+                    await StartVerificationProcess();
                     AutoStartVerification = false;
                 }
                 else if (GlobalVariables.FileManager != null)
@@ -165,44 +175,46 @@ public partial class HomeView : UserControl
         AutoStartVerification = e;
     }
 
-    private async void StartVerificationProcess()
+    private Task StartVerificationProcess()
     {
-        try
+        return Task.Run(async () =>
         {
-            if (Working || GlobalVariables.FileManager == null) return;
-        
-            Working = true;
-        
-            StartButton.IsEnabled = false;
-            LoadButton.IsEnabled = false;
-        
-            OverwriteConsole(null);
-
-            GlobalVariables.Logger.Start();
-
-            await Task.Run(() =>
+            try
             {
-                GlobalVariables.FileManager.StartVerification();
-            });
-        
-            LoadButton.IsEnabled = true;
-
-
-            GlobalVariables.Logger.Finish();
-            GlobalVariables.Logger.SaveReport();
-            Trace.WriteLine("Finished");
-
-            Working = false;
-        }
-        catch (Exception)
-        {
-            Dispatcher.UIThread.InvokeAsync(() =>
+                if (Working || GlobalVariables.FileManager == null) return;
+            
+                Working = true;
+            
+                StartButton.IsEnabled = false;
+                LoadButton.IsEnabled = false;
+            
+                OverwriteConsole(null);
+    
+                GlobalVariables.Logger.Start();
+    
+                await Task.Run(() =>
+                {
+                    GlobalVariables.FileManager.StartVerification();
+                });
+            
+                LoadButton.IsEnabled = true;
+    
+                GlobalVariables.Logger.Finish();
+                GlobalVariables.Logger.SaveReport();
+                Trace.WriteLine("Finished");
+    
+                Working = false;
+            }
+            catch (Exception)
             {
-                var errWindow =
-                    new ErrorWindow("An error occured when starting the verification process.");
-                errWindow.ShowDialog((VisualRoot as Window)!);
-            });
-        }
+                Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    var errWindow =
+                        new ErrorWindow("An error occured when starting the verification process.");
+                    errWindow.ShowDialog((VisualRoot as Window)!);
+                });
+            }
+        });
     }
     
     private void PerformBackgroundWork()

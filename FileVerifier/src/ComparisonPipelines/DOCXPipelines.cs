@@ -42,6 +42,9 @@ public static class DocxPipelines
             ImageExtraction.ExtractImagesFromDocxToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
             ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
             
+            var equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                tempFoldersForImages.Item2);
+            
             e.AddRange(ComperingMethods.CompareFonts(pair));
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))

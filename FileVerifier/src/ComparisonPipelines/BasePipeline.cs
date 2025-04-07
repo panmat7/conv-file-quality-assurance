@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO.Abstractions;
+using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 
@@ -104,7 +106,7 @@ public static class BasePipeline
         return (tempFolder1, tempFolder2);
     }
 
-    public static void DeleteTempFolder(string tempDirectory)
+    private static void DeleteTempFolder(string tempDirectory)
     {
         var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
         if (fileSystem == null) return;
@@ -117,5 +119,49 @@ public static class BasePipeline
     {
         DeleteTempFolder(tempODirectory);
         DeleteTempFolder(tempNDirectory);
+    }
+
+    public static void CheckTransparency(string tempFolder, string tempFolder2, FilePair pair, List<Error> e)
+    {
+        var res = false;
+        var exceptionOccurred = false;
+        Error error;
+            
+        try
+        {
+            res = TransparencyComparison.CompareTransparencyInImagesOnDisk(tempFolder,
+                tempFolder2);
+        }
+        catch (Exception er)
+        {
+            Console.WriteLine(er);
+            exceptionOccurred = true;
+            error = new Error(
+                "Error comparing transparency across images",
+                "There occurred an error while comparing transparency" +
+                " of the images.",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            );
+            GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+            e.Add(error);
+        }
+            
+        switch (exceptionOccurred)
+        {
+            case false when !res:
+                error = new Error(
+                    "Difference of transparency detected in images contained in the docx",
+                    "The images contained in the docx and pdf files did not pass Transparency comparison.",
+                    ErrorSeverity.Medium,
+                    ErrorType.Visual
+                );
+                GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                e.Add(error);
+                break;
+            case false when res:
+                GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
+                break;
+        }
     }
 }

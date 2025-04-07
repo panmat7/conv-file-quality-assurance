@@ -103,7 +103,7 @@ public static class TransparencyComparison
         if (oFiles.Length == 0 && nFiles.Length == 0) return true;
     
         // If the number of files in the folders differ, return false
-        if (oFiles.Length != nFiles.Length) return false;
+        if (oFiles.Length != nFiles.Length) throw new InvalidOperationException("The number of files in the folders differ.");
     
         for (var i = 0; i < oFiles.Length; i++)
         {

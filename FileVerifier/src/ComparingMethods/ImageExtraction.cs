@@ -716,4 +716,12 @@ public static class ImageExtraction
             File.Delete(file);
         }
     }
+
+    public static bool CheckIfEqualNumberOfImages(string dir1, string dir2)
+    {
+        var oFiles = Directory.GetFiles(dir1);
+        var nFiles = Directory.GetFiles(dir2);
+        
+        return oFiles.Length == nFiles.Length;
+    }
 }
