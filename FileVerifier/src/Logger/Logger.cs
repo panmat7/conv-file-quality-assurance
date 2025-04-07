@@ -203,12 +203,11 @@ public class Logger
         try
         {
             string jsonString = JsonSerializer.Serialize(this);
-
             File.WriteAllText(path, jsonString);
         }
         catch (Exception ex)
         {
-            throw new Exception("Failed to save log", ex);
+            Console.WriteLine($"Error trying to save report: {ex}");
         }
     }
 
@@ -240,7 +239,7 @@ public class Logger
         }
         catch (Exception ex)
         {
-            throw new Exception("Failed to load log", ex);
+            Console.WriteLine($"Error trying to load log: {ex}");
         }
     }
 }

@@ -34,6 +34,8 @@ public partial class HomeView : UserControl
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
         DataContext = new SettingsViewModel();
+
+        LoadPaths();
     }
 
     private async void InputButton_OnClick(object? sender, RoutedEventArgs e)
@@ -57,10 +59,14 @@ public partial class HomeView : UserControl
                 case "InputButton":
                     InputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     InputButton.Content = "Selected";
+                    GlobalVariables.Paths.OriginalFilesPath = InputPath;
+                    GlobalVariables.Paths.SavePaths();
                     break;
                 case "OutputButton":
                     OutputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     OutputButton.Content = "Selected";
+                    GlobalVariables.Paths.NewFilesPath = OutputPath;
+                    GlobalVariables.Paths.SavePaths();
                     break;
             }
         }
@@ -69,6 +75,27 @@ public partial class HomeView : UserControl
             //TODO: Please select folder message
         }
     }
+
+
+    private void LoadPaths()
+    {
+        GlobalVariables.Paths.LoadPaths();
+        var oPath = GlobalVariables.Paths.OriginalFilesPath;
+        var nPath = GlobalVariables.Paths.NewFilesPath;
+
+        if (oPath != null)
+        {
+            InputPath = oPath;
+            InputButton.Content = "Selected";
+        }
+
+        if (nPath != null)
+        {
+            OutputPath = nPath;
+            OutputButton.Content = "Selected";
+        }
+    }
+
 
     private void InputButton_OnPointerEntered(object? sender, PointerEventArgs e)
     {
