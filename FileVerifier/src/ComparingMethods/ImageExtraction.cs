@@ -106,15 +106,18 @@ public static class ImageExtraction
     /// <param name="outputDirectory"></param>
     public static void ExtractImagesFromPdfToDisk(string filePath, string outputDirectory)
     {
+        var imageHashes = new HashSet<string>();
         using var document = PdfDocument.Open(filePath);
         foreach (var page in document.GetPages())
         {
             foreach (var pdfImage in page.GetImages())
             {
                 var bytes = TryGetImage(pdfImage);
+                var hash = ComputeHash(bytes);
+                if (!imageHashes.Add(hash)) continue;
                 using var mem = new MemoryStream(bytes);
                 using var img = Image.Load(mem);
-                
+                    
                 var outputPath = Path.Combine(outputDirectory, $"{Guid.NewGuid()}.png");
                 img.Save(outputPath, new PngEncoder());
             }
@@ -719,8 +722,20 @@ public static class ImageExtraction
 
     public static bool CheckIfEqualNumberOfImages(string dir1, string dir2)
     {
-        var oFiles = Directory.GetFiles(dir1);
-        var nFiles = Directory.GetFiles(dir2);
+        var oFiles = Directory.GetFiles(dir1).ToArray();
+        var nFiles = Directory.GetFiles(dir2).ToArray();
+
+        foreach (var VARIABLE in oFiles)
+        {
+            Console.WriteLine(VARIABLE);
+        }
+        Console.WriteLine(oFiles.Length);
+        Console.WriteLine("__________________________");
+        foreach (var VARIABLE in nFiles)
+        {
+            Console.WriteLine(VARIABLE);
+        }
+        Console.WriteLine(nFiles.Length);
         
         return oFiles.Length == nFiles.Length;
     }

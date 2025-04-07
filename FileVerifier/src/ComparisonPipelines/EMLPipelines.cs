@@ -42,47 +42,28 @@ public static class EmlPipelines
             ImageExtraction.ExtractImagesFromEmlToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
             ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
             
+            // Some checks will be skipped if the number of images is not equal
+            var equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                tempFoldersForImages.Item2);
+            
             if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
-                var res = false;
-                var exceptionOccurred = false;
-
-                try
+                if (equalNumberOfImages)
                 {
-                    res = ColorProfileComparison.CompareColorProfilesFromDisk(
-                        tempFoldersForImages.Item1,
-                        tempFoldersForImages.Item2
-                    );
+                    BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2, pair, e);
                 }
-                catch (Exception)
+                else
                 {
-                    exceptionOccurred = true;
                     error = new Error(
-                        "Error comparing color profiles in eml contained images",
-                        "There occurred an error while extracting and comparing " +
-                        "color profiles of the images contained in the eml.",
+                        "Unequal number of images",
+                        "The comparison of color profiles could not be performed " +
+                        "because the number of images in the original and new file is different.",
                         ErrorSeverity.High,
-                        ErrorType.Metadata
+                        ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
                     e.Add(error);
-                }
-
-                switch (exceptionOccurred)
-                {
-                    case false when !res:
-                        error = new Error(
-                            "Mismatching color profile",
-                            "The color profile in the new file does not match the original on at least one image.",
-                            ErrorSeverity.Medium,
-                            ErrorType.Metadata
-                        );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                        e.Add(error);
-                        break;
-                    case false when res:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
-                        break;
                 }
             }
             

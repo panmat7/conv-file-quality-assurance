@@ -105,8 +105,9 @@ public partial class HomeView : UserControl
         {
             await StartVerificationProcess();
         }
-        catch (Exception)
+        catch (Exception err)
         {
+            System.Console.WriteLine(err);
             Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var errWindow =
@@ -182,32 +183,38 @@ public partial class HomeView : UserControl
             try
             {
                 if (Working || GlobalVariables.FileManager == null) return;
-            
+
                 Working = true;
-            
-                StartButton.IsEnabled = false;
-                LoadButton.IsEnabled = false;
-            
-                OverwriteConsole(null);
-    
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    StartButton.IsEnabled = false;
+                    LoadButton.IsEnabled = false;
+                    OverwriteConsole(null);
+                });
+
                 GlobalVariables.Logger.Start();
-    
+
                 await Task.Run(() =>
                 {
                     GlobalVariables.FileManager.StartVerification();
                 });
-            
-                LoadButton.IsEnabled = true;
-    
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    LoadButton.IsEnabled = true;
+                });
+
                 GlobalVariables.Logger.Finish();
                 GlobalVariables.Logger.SaveReport();
                 Trace.WriteLine("Finished");
-    
+
                 Working = false;
             }
-            catch (Exception)
+            catch (Exception err)
             {
-                Dispatcher.UIThread.InvokeAsync(() =>
+                System.Console.WriteLine(err);
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     var errWindow =
                         new ErrorWindow("An error occured when starting the verification process.");
