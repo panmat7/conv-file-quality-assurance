@@ -724,18 +724,6 @@ public static class ImageExtraction
     {
         var oFiles = Directory.GetFiles(dir1).ToArray();
         var nFiles = Directory.GetFiles(dir2).ToArray();
-
-        foreach (var VARIABLE in oFiles)
-        {
-            Console.WriteLine(VARIABLE);
-        }
-        Console.WriteLine(oFiles.Length);
-        Console.WriteLine("__________________________");
-        foreach (var VARIABLE in nFiles)
-        {
-            Console.WriteLine(VARIABLE);
-        }
-        Console.WriteLine(nFiles.Length);
         
         return oFiles.Length == nFiles.Length;
     }
