@@ -53,7 +53,7 @@ public static class ImagePipelines
             //Check options if this check is enabled.
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
+                var res = ComperingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {
@@ -136,7 +136,7 @@ public static class ImagePipelines
 
             if(GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name))
             {
-                var acceptance = 0.5; //Read from options later ?
+                var acceptance = GlobalVariables.Options.PbpComparisonThreshold;
 
                 var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
 
@@ -241,7 +241,7 @@ public static class ImagePipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
+                var res = ComperingMethods.CheckFileSizeDifference(pair);
     
                 if (res == null)
                 {

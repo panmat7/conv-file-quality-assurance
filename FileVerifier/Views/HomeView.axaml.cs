@@ -1,12 +1,9 @@
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.OpenGL.Surfaces;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using AvaloniaDraft.Helpers;
@@ -16,7 +13,7 @@ namespace AvaloniaDraft.Views;
 
 public partial class HomeView : UserControl
 {
-    private bool AutoStartVerification { get; set; } = false;
+    private bool AutoStartVerification { get; set; }
     
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
@@ -213,6 +210,8 @@ public partial class HomeView : UserControl
         try
         {
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+            GlobalVariables.FileManager.GetSiegfriedFormats();
+            GlobalVariables.FileManager.FilterOutDisabledFileFormats();
             SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
         }
         catch (InvalidOperationException err)
@@ -236,7 +235,6 @@ public partial class HomeView : UserControl
             });
             return;
         }
-        GlobalVariables.FileManager.GetSiegfriedFormats();
         GlobalVariables.FileManager.WritePairs();
     }
 

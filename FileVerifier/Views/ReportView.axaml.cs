@@ -15,12 +15,12 @@ using Avalonia.Controls.Shapes;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using System.Linq;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
 using System.Diagnostics;
 using Avalonia.VisualTree;
 using System.Collections.Generic;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Avalonia.Input;
+using Avalonia.Media.Immutable;
 
 namespace AvaloniaDraft.Views;
 
@@ -38,14 +38,15 @@ public partial class ReportView : UserControl
         AllResultExpanders = [];
         ResultExpanders = [];
 
-        if (GlobalVariables.Logger.Finished)
+        if (GlobalVariables.Logger.HasFinished())
         {
             Logger = GlobalVariables.Logger;
             CreateElements();
             DisplayReport();
-        } 
+        }
         else
         {
+            LoadCurrentReportButton.IsEnabled = false;
             Logger = new Logger.Logger();
             Logger.Initialize();
         }
@@ -75,7 +76,12 @@ public partial class ReportView : UserControl
             var json = result[0];
             var path = json.Path.AbsolutePath;
 
-            Logger.ImportJSON(path);
+            var tempLogger = new Logger.Logger();
+            tempLogger.Initialize();
+            tempLogger.ImportJSON(path);
+
+            Logger = tempLogger;
+
             CreateElements();
             DisplayReport();
         }
@@ -85,10 +91,18 @@ public partial class ReportView : UserControl
         }
     }
 
+
+    private void LoadCurrentReport(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Logger = GlobalVariables.Logger;
+        CreateElements();
+        DisplayReport();
+    }
+
     private void CreateElements()
     {
-        AllResultExpanders = [];
-        ResultExpanders = [];
+        AllResultExpanders.Clear();
+        ResultExpanders.Clear();
 
         ReportSummary.Text = $"{Logger.FileComparisonsFailed}/{Logger.FileComparisonCount} file comparisons failed";
         foreach (var result in Logger.Results)
@@ -166,7 +180,7 @@ public partial class ReportView : UserControl
     }
 
 
-    private Expander CreateComparisonResultExpander(Logger.Logger.ComparisonResult result)
+    private Expander CreateComparisonResultExpander(Logger.ComparisonResult result)
     {
         var expander = new Expander();
         expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
@@ -192,7 +206,9 @@ public partial class ReportView : UserControl
 
         passText.Text = $"Passed: {(result.Pass ? "Yes" : "No")}";
 
-        testSummary.Text = $"Tests ({result.TestsPassed}/{result.TotalTests} passed) :";
+        var totalTests = result.Tests.Count;
+        var testsPassed = result.Tests.Where(t => t.Value.Pass).Count();
+        testSummary.Text = $"Tests ({testsPassed}/{totalTests} passed)";
         expander.Content = stackPanel;
 
         var oFile = System.IO.Path.GetFileName(result.FilePair.OriginalFilePath);
@@ -207,8 +223,9 @@ public partial class ReportView : UserControl
     }
 
 
-    private Expander CreateTestResultExpander(Logger.Logger.TestResult result)
+    private Expander CreateTestResultExpander(Logger.TestResult result)
     {
+        var maxTextboxWidth = 500;
         var expander = new Expander();
         expander.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch;
 
@@ -226,23 +243,132 @@ public partial class ReportView : UserControl
             Foreground = Brushes.White,
         });
 
-        // Comments
-        if (result.Comments != null) foreach (var comment in result.Comments)
-        {
-            stackPanel.Children.Add(new TextBlock()
-            {
-                Text = comment,
-                Foreground = Brushes.White,
-            });
-        }
 
         // Errors
-        if (result.Errors.Any()) stackPanel.Children.Add(new TextBlock()
+        if (result.Errors != null && result.Errors.Any())
         {
-            Text = "",
+            var errorsContainer = new Border
+            {
+                BorderThickness = new Thickness(2),
+                BorderBrush = Brushes.Gray,
+                Background = Brushes.Black,
+                Padding = new Thickness(5),
+                Margin = new Thickness(5),
+            };
 
-            Foreground = Brushes.White,
-        });
+            var errorsStackPanel = new StackPanel();
+            errorsStackPanel.Children.Add(new TextBlock
+            {
+                Text = "Errors:",
+                Foreground = Brushes.White
+            });
+            errorsContainer.Child = errorsStackPanel;
+            stackPanel.Children.Add(errorsContainer);
+
+            // List errors in order of severity
+            foreach (var err in result.Errors.OrderByDescending(e => e.Severity))
+            {
+                var errTypeString = err.ErrorType switch
+                {
+                    ErrorType.Unset => "Unset",
+                    ErrorType.Metadata => "Metadata",
+                    ErrorType.Visual => "Visual",
+                    ErrorType.KnownErrorSource => "Known error source",
+                    ErrorType.FileError => "File error",
+                    _ => null,
+                };
+                if (errTypeString == null) continue;
+
+                (var errCol, var errSeverityString) = err.Severity switch
+                {
+                    ErrorSeverity.Unset => (Brushes.Gray, "Unset"),
+                    ErrorSeverity.Low => (Brushes.Yellow, "Low"),
+                    ErrorSeverity.Medium => (Brushes.Orange, "Medium"),
+                    ErrorSeverity.High => (Brushes.Red, "High"),
+                    ErrorSeverity.Internal => (Brushes.Black, "Internal"),
+                    _ => (null, null),
+                };
+                if (errCol == null || errSeverityString == null) continue;
+
+
+                var errStackPanel = new StackPanel();
+                errStackPanel.Orientation = Avalonia.Layout.Orientation.Horizontal;
+                errorsStackPanel.Children.Add(errStackPanel);
+
+                errStackPanel.Children.Add(new Ellipse
+                {
+                    Width = 30,
+                    Height = 30,
+                    Fill = errCol,
+                    Stroke = Brushes.White,
+                    StrokeThickness = 1,
+                });
+                errStackPanel.Children.Add(new Border
+                {
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = Brushes.Gray,
+                    Padding = new Thickness(5),
+                    Margin = new Thickness(5),
+                    Child = new TextBlock
+                    {
+                        Text = $"{err.Name}: {err.Description}\nType: {errTypeString}\nSeverity: {errSeverityString}",
+                        MaxWidth = maxTextboxWidth - 44,
+                        Width = maxTextboxWidth - 44,
+                        TextWrapping = TextWrapping.Wrap,
+                        Foreground = Brushes.White
+                    }
+                });
+            }
+        }
+
+
+        // Comments
+        if (result.Comments != null && result.Comments.Any())
+        {
+            var commentsContainer = new Border
+            {
+                BorderThickness = new Thickness(2),
+                BorderBrush = Brushes.Gray,
+                Background = Brushes.Black,
+                Padding = new Thickness(5),
+                Margin = new Thickness(5),
+            };
+
+            var commentsStackPanel = new StackPanel
+            {
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+            };
+            commentsStackPanel.Children.Add(new TextBlock
+            {
+                Text = "Comments:",
+                Foreground = Brushes.White
+            });
+            commentsContainer.Child = commentsStackPanel;
+            stackPanel.Children.Add(commentsContainer);
+
+
+            foreach (var comment in result.Comments)
+            {
+
+                commentsStackPanel.Children.Add(new Border
+                {
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = Brushes.Gray,
+                    Background = Brushes.Black,
+                    Padding = new Thickness(5),
+                    Margin = new Thickness(5),
+                    MaxWidth = maxTextboxWidth,
+                    Width = maxTextboxWidth,
+                    Child = new TextBlock
+                    {
+                        Text = comment,
+                        MaxWidth = maxTextboxWidth,
+                        TextWrapping = TextWrapping.Wrap,
+                        Foreground = Brushes.White
+                    }
+                });
+            }
+        }
 
 
         expander.Content = stackPanel;
