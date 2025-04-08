@@ -26,10 +26,9 @@ namespace AvaloniaDraft.Views;
 
 public partial class ReportView : UserControl
 {
-    private readonly Logger.Logger Logger;
+    private Logger.Logger Logger;
     private List<Expander> AllResultExpanders;
     private List<Expander> ResultExpanders;
-
 
     public ReportView()
     {
