@@ -32,8 +32,10 @@ public static class ComperingMethods
     /// <param name="files">The two files to be compared</param>
     /// <param name="toleranceValue">The values </param>
     /// <returns>True/false whether the difference is too large. Null means that the size could not have been gotten.</returns>
-    public static bool? CheckFileSizeDifference(FilePair files, double toleranceValue)
+    public static bool? CheckFileSizeDifference(FilePair files, double? toleranceValue = null)
     {
+        toleranceValue ??= (GlobalVariables.Options.SizeComparisonThreshold / 100.0);
+
         try
         {
             var originalSize = new FileInfo(files.OriginalFilePath).Length;

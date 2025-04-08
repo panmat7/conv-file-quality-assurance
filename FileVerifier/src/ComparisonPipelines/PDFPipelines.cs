@@ -38,8 +38,13 @@ public static class PdfPipelines
             List<Error> e = [];
             Error error;
 
-            var oImages = ImageExtraction.GetNonDuplicatePdfImages(pair.OriginalFilePath);
-            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+            var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
+            ImageExtraction.ExtractImagesFromPdfToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
+            
+            // Some checks will be skipped if the number of images is not equal
+            var equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                tempFoldersForImages.Item2);
           
             e.AddRange(ComperingMethods.CompareFonts(pair));
             int? pageDiff = null;
@@ -78,7 +83,7 @@ public static class PdfPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
+                var res = ComperingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {
@@ -109,84 +114,43 @@ public static class PdfPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
-                var res = false;
-                var exceptionOccurred = false;
-
-                try
+                if (equalNumberOfImages)
                 {
-                    res = ColorProfileComparison.PdfToPdfColorProfileComparison(oImages, nImages);
+                    BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2, pair, e);
                 }
-                catch (Exception)
+                else
                 {
-                    exceptionOccurred = true;
                     error = new Error(
-                        "Error comparing color profiles in pdf contained images",
-                        "There occurred an error while extracting and comparing " +
-                        "color profiles of the images contained in the pdf.",
+                        "Unequal number of images",
+                        "The comparison of color profiles could not be performed " +
+                        "because the number of images in the original and new file is different.",
                         ErrorSeverity.High,
-                        ErrorType.Metadata
+                        ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
                     e.Add(error);
                 }
-
-                switch (exceptionOccurred)
-                {
-                    case false when !res:
-                        error = new Error(
-                            "Mismatching color profile",
-                            "The color profile in the new file does not match the original on at least one image.",
-                            ErrorSeverity.Medium,
-                            ErrorType.Metadata
-                        );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                        e.Add(error);
-                        break;
-                    case false when res:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
-                        break;
-                }
-                
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
             {
-                var res = false;
-                var exceptionOccurred = false;
-
-                try
+                if (equalNumberOfImages)
                 {
-                    res = TransparencyComparison.PdfToPdfTransparencyComparison(oImages, nImages);
+                    BasePipeline.CheckTransparency(tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2, pair, e);
                 }
-                catch (Exception)
+                else
                 {
-                    exceptionOccurred = true;
                     error = new Error(
-                        "Error comparing transparency in pdf contained images",
-                        "There occurred an error while comparing transparency" +
-                        " of the images contained in the pdf.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Metadata
+                        "Unequal number of images",
+                        "The comparison of transparency could not be performed " +
+                        "because the number of images in the original and new file is different.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
                     e.Add(error);
-                }
-
-                switch (exceptionOccurred)
-                {
-                    case false when !res:
-                        error = new Error(
-                            "Difference of transparency detected in images contained in the pdf",
-                            "The images contained in the pdf and pdf files did not pass Transparency comparison.",
-                            ErrorSeverity.Medium,
-                            ErrorType.Visual
-                        );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                        e.Add(error);
-                        break;
-                    case false when res:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
-                        break;
                 }
             }
             
@@ -261,6 +225,8 @@ public static class PdfPipelines
             {
                 ExtractedImageMetadata.CompareExtractedImages(pair, oImages, nImages);
             }
+            
+            BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
