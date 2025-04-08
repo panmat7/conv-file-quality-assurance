@@ -396,9 +396,19 @@ public static class ComperingMethods
                 continue;
             }
             if(!relevance ?? true) continue;
-                
-            //Visual comparison goes here
-        }
+
+            var res = PbpComparisonMagick.CalculateImageSimilarity(segO, segN);
+
+            if (Math.Abs(res - (-1)) < 0.001)
+            {
+                err = true;
+                continue;
+            }
+            
+            if(res < 0.85) failed = true;
+            
+            if(failed && err) return new Tuple<bool, bool>(err, failed); //Everything failed already, no point continuing
+        }                                                                              //it cannot get worse (or better)
         
         return new Tuple<bool, bool>(err, failed);
     }
