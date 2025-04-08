@@ -178,6 +178,17 @@ public static class ComperingMethods
         var originalStandardized = MetadataStandardizer.StandardizeImageMetadata(metaOriginal, files.OriginalFileFormat);
         var newStandardized = MetadataStandardizer.StandardizeImageMetadata(metaNew, files.NewFileFormat);
         
+        if(originalStandardized == null || newStandardized == null) 
+            return
+            [
+                new Error(
+                    "Unsupported image format",
+                    "At least one of the files is of a non-supported image format",
+                    ErrorSeverity.Medium,
+                    ErrorType.FileError
+                )
+            ];
+        
         var errors = new List<Error>();
         
         //Check properties, note errors and mismatches
@@ -201,15 +212,7 @@ public static class ComperingMethods
             ));
         }
         
-        if (!originalStandardized.CompareResolution(newStandardized))
-        {
-            errors.Add(new Error(
-                "Image resolution difference (metadata)",
-                "Mismatched resolution between images in metadata.",
-                ErrorSeverity.High,
-                ErrorType.Metadata
-            ));
-        }
+        errors.AddRange(originalStandardized.CompareResolution(newStandardized));
 
         if (!originalStandardized.VerifyBitDepth())
         {
@@ -231,15 +234,7 @@ public static class ComperingMethods
             ));
         }
 
-        if (!originalStandardized.CompareBitDepth(newStandardized))
-        {
-            errors.Add(new Error(
-                "Bit-depth mismatch",
-                "Mismatched bit-depth between images.",
-                ErrorSeverity.Medium,
-                ErrorType.Metadata
-            ));
-        }
+        errors.AddRange(originalStandardized.CompareBitDepth(newStandardized));
         
         if (!originalStandardized.VerifyColorType())
         {

@@ -121,7 +121,7 @@ public static class BasePipeline
         DeleteTempFolder(tempNDirectory);
     }
 
-    public static void CheckTransparency(string tempFolder, string tempFolder2, FilePair pair, List<Error> e)
+    public static void CheckTransparency(string tempFolder, string tempFolder2, FilePair pair)
     {
         var res = false;
         var exceptionOccurred = false;
@@ -143,7 +143,6 @@ public static class BasePipeline
                 ErrorType.Metadata
             );
             GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-            e.Add(error);
         }
             
         switch (exceptionOccurred)
@@ -156,7 +155,6 @@ public static class BasePipeline
                     ErrorType.Visual
                 );
                 GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                e.Add(error);
                 break;
             case false when res:
                 GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
@@ -164,7 +162,7 @@ public static class BasePipeline
         }
     }
 
-    public static void CheckColorProfiles(string tempFolder, string tempFolder2, FilePair pair, List<Error> e)
+    public static void CheckColorProfiles(string tempFolder, string tempFolder2, FilePair pair)
     {
         var res = false;
         var exceptionOccurred = false;
@@ -186,7 +184,6 @@ public static class BasePipeline
                 ErrorType.Metadata
             );
             GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-            e.Add(error);
         }
 
         switch (exceptionOccurred)
@@ -199,7 +196,6 @@ public static class BasePipeline
                     ErrorType.Metadata
                 );
                 GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                e.Add(error);
                 break;
             case false when res:
                 GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);

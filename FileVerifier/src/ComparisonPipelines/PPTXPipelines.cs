@@ -148,7 +148,7 @@ public static class PptxPipelines
                 if (equalNumberOfImages)
                 {
                     BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                        tempFoldersForImages.Item2, pair, e);
+                        tempFoldersForImages.Item2, pair);
                 }
                 else
                 {
@@ -168,7 +168,7 @@ public static class PptxPipelines
                 if (equalNumberOfImages)
                 {
                     BasePipeline.CheckTransparency(tempFoldersForImages.Item1,
-                        tempFoldersForImages.Item2, pair, e);
+                        tempFoldersForImages.Item2, pair);
                 }
                 else
                 {
@@ -185,7 +185,22 @@ public static class PptxPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
             {
-                ExtractedImageMetadata.CompareExtractedImages(pair, oImages, nImages);
+                if (equalNumberOfImages)
+                {
+                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2);
+                }
+                else
+                {
+                    error = new Error(
+                        "Unequal number of images",
+                        "The comparison of extracted image metadata could not be performed " +
+                        "because the number of images in the original and new file is different.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                }
             }
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
