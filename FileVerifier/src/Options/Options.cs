@@ -12,6 +12,7 @@ using System.IO;
 using System.Text.Json.Serialization;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using AvaloniaDraft.FileManager;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AvaloniaDraft.Options;
 
@@ -26,11 +27,12 @@ public enum SettingsProfile
 /// <summary>
 /// Contains options for conversion
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class Options
 {
     public SettingsProfile Profile { get; set; }
 
-    private string? dir; // The directory where settings are stored
+    private string? Dir; // The directory where settings are stored
 
     public double SizeComparisonThreshold { get; set; }
     public double PbpComparisonThreshold { get; set; }
@@ -222,7 +224,7 @@ public class Options
     /// </summary>
     public void SaveSettings()
     {
-        if (dir != null) ExportJSON(GetFilePath());
+        if (Dir != null) ExportJSON(GetFilePath());
     }
 
 
@@ -231,7 +233,7 @@ public class Options
     /// </summary>
     public void LoadSettings()
     {
-        if (dir != null) ImportJSON(GetFilePath());
+        if (Dir != null) ImportJSON(GetFilePath());
     }
 
 
@@ -247,7 +249,7 @@ public class Options
         {
             if (Path.GetFileName(currentDir) == "FileVerifier")
             {
-                dir = Path.Join(currentDir, "settings");
+                Dir = Path.Join(currentDir, "settings");
                 return;
             }
             currentDir = Directory.GetParent(currentDir)?.FullName;
@@ -260,7 +262,7 @@ public class Options
     /// <returns></returns>
     private string GetFilePath()
     {
-        return dir + "/" + Profile switch
+        return Dir + "/" + Profile switch
         {
             SettingsProfile.Default => "default",
             SettingsProfile.Custom1 => "custom1",
