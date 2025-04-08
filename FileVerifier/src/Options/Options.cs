@@ -175,9 +175,9 @@ public class Options
     /// </summary>
     /// <param name="fp"></param>
     /// <returns></returns>
-    public bool? FormatsAreEnabled(FilePair fp)
+    public bool FormatsAreEnabled(FilePair fp)
     {
-        if ((GetFileFormat(fp.OriginalFileFormat), GetFileFormat(fp.NewFileFormat)) is not (bool oEnabled, bool nEnabled)) return null;
+        if ((GetFileFormat(fp.OriginalFileFormat), GetFileFormat(fp.NewFileFormat)) is not (bool oEnabled, bool nEnabled)) return false;
         return (oEnabled && nEnabled);
     }
 
@@ -278,15 +278,11 @@ public class Options
         try
         {
             var jsonString = JsonSerializer.Serialize(this);
-            Trace.WriteLine(jsonString);
             File.WriteAllText(path, jsonString);
-
-            string checkJson = File.ReadAllText(path);
-            Trace.WriteLine("Written JSON: " + checkJson);
         }
         catch (Exception ex)
         {
-            throw new Exception("Failed to save settings", ex);
+            Console.WriteLine($"Error trying to save settings: {ex}");
         }
     }
 
@@ -323,7 +319,7 @@ public class Options
         }
         catch (Exception ex)
         {
-            throw new Exception("Failed to load settings", ex);
+            Console.WriteLine($"Error trying to load settings: {ex}");
         }
     }
 

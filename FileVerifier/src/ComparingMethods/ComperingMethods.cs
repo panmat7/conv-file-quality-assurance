@@ -1,15 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using Emgu.CV.Aruco;
+using ICSharpCode.SharpZipLib.Zip;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using ColorType = AvaloniaDraft.Helpers.ColorType;
+using ZipArchive = SharpCompress.Archives.Zip.ZipArchive;
+using ZipFile = System.IO.Compression.ZipFile;
 
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -22,8 +28,10 @@ public static class ComperingMethods
     /// <param name="files">The two files to be compared</param>
     /// <param name="toleranceValue">The values </param>
     /// <returns>True/false whether the difference is too large. Null means that the size could not have been gotten.</returns>
-    public static bool? CheckFileSizeDifference(FilePair files, double toleranceValue)
+    public static bool? CheckFileSizeDifference(FilePair files, double? toleranceValue = null)
     {
+        toleranceValue ??= (GlobalVariables.Options.SizeComparisonThreshold / 100.0);
+
         try
         {
             var originalSize = new FileInfo(files.OriginalFilePath).Length;
@@ -126,11 +134,16 @@ public static class ComperingMethods
             {
                 propertyName = "PageCount";
             }
-        
-            //Does not work for OpenDocument Presentations
+            
             if (FormatCodes.PronomCodesPresentationDocuments.Contains(format) && !FormatCodes.PronomCodesODP.Contains(format))
             {
                 propertyName = "Slides";
+            }
+            
+            //ExifTool does not work for OpenDocument Presentations, need to extract manually
+            if (FormatCodes.PronomCodesODP.Contains(format))
+            {
+                return GetOdpSlideCount(path);
             }
 
             if (propertyName == "")
@@ -347,6 +360,102 @@ public static class ComperingMethods
             ));
             
         return errors;
+    }
+    
+    /// <summary>
+    /// Compare the fonts of two files
+    /// </summary>
+    /// <param name="fp">The file pair</param>
+    public static List<Error> CompareFonts(FilePair fp)
+    {
+        if (!GlobalVariables.Options.GetMethod(Methods.Fonts)) return [];
+
+        var comments = new List<string>();
+        var errors = new List<Error>();
+
+        var result = FontComparison.CompareFiles(fp);
+
+        if (result.Errors.Count > 0)
+        {
+            foreach (var e in result.Errors) errors.Add(e);
+        }
+
+        if (result.ContainsForeignCharacters) comments.Add("Contains foreign characters");
+
+
+        if (result.FontsOnlyInOriginal.Count > 0 || result.FontsOnlyInConverted.Count > 0)
+        {
+            errors.Add(new Error(
+                "Font difference", 
+                "Different fonts were detected in the two files.",
+                ErrorSeverity.Medium,
+                ErrorType.Visual)
+            );
+
+            if (result.FontsOnlyInOriginal.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Fonts only in original:");
+                foreach (var f in result.FontsOnlyInOriginal) bld.Append($"\n{f}");
+                comments.Add(bld.ToString());
+            }
+
+            if (result.FontsOnlyInConverted.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Fonts only in converted:");
+                foreach (var f in result.FontsOnlyInConverted) bld.Append($"\n{f}");
+                comments.Add(bld.ToString());
+            }
+        }
+
+
+        if (result.BgColorsNotConverted)
+        {
+            errors.Add(new Error(
+                "Background color difference",
+                "Different background colors were detected in the two files.",
+                ErrorSeverity.Medium,
+                ErrorType.Visual
+            ));
+        }
+
+
+        if (result.TextColorsNotConverted)
+        {
+            errors.Add(new Error(
+                "Text color difference",
+                "Different text colors were detected in the two files.",
+                ErrorSeverity.Medium,
+                ErrorType.Visual
+            ));
+        }
+
+        GlobalVariables.Logger.AddTestResult(fp, Methods.Fonts.Name, result.Pass, null, comments, errors);
+
+        return errors;
+    }
+    
+    /// <summary>
+    /// Extracts the count of "draw:page" elements from content.xml, representing the number of slides
+    /// </summary>
+    /// <param name="path">Absolute path to the file</param>
+    /// <returns></returns>
+    private static int? GetOdpSlideCount(string path)
+    {
+        try
+        {
+            using var arch = ZipFile.OpenRead(path);
+            var contentXml = arch.GetEntry("content.xml");
+            
+            if(contentXml == null) return null;
+
+            using var reader = new StreamReader(contentXml.Open());
+            var content = reader.ReadToEnd();
+
+            return Regex.Matches(content, "<draw:page ").Count;
+        }
+        catch { return null; }
     }
     
     /// <summary>

@@ -41,13 +41,19 @@ public static class ImagePipelines
         {
             Error error;
 
-            using var oImage = new MagickImage(pair.OriginalFilePath);
-            using var nImage = new MagickImage(pair.NewFilePath);
+            var oFormatInfo = MagickFormatInfo.Create(pair.OriginalFilePath);
+            var nFormatInfo = MagickFormatInfo.Create(pair.NewFilePath);
+            
+            var oSettings = ColorProfileComparison.CreateFormatSpecificSettings(oFormatInfo?.Format);
+            var nSettings = ColorProfileComparison.CreateFormatSpecificSettings(nFormatInfo?.Format);
+            
+            using var oImage = new MagickImage(pair.OriginalFilePath, oSettings);
+            using var nImage = new MagickImage(pair.NewFilePath, nSettings);
             
             //Check options if this check is enabled.
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
+                var res = ComperingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {
@@ -130,7 +136,7 @@ public static class ImagePipelines
 
             if(GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name))
             {
-                var acceptance = 0.5; //Read from options later ?
+                var acceptance = GlobalVariables.Options.PbpComparisonThreshold;
 
                 var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
 
@@ -200,11 +206,22 @@ public static class ImagePipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            var oImage = new MagickImage(pair.OriginalFilePath);
-            var nImages = ImageExtraction.ExtractImagesFromPdf(pair.NewFilePath);
+            Error error;
+            
+            var tempFolder = BasePipeline.CreateTempFolderForImages();
+            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFolder);
+            
+            var oFormatInfo = MagickFormatInfo.Create(pair.OriginalFilePath);
+            var nFormatInfo = MagickFormatInfo.Create(pair.NewFilePath);
+            var oSettings = ColorProfileComparison.CreateFormatSpecificSettings(oFormatInfo?.Format);
+            var nSettings = ColorProfileComparison.CreateFormatSpecificSettings(nFormatInfo?.Format);
+            
+            using var oImage = new MagickImage(pair.OriginalFilePath, oSettings);
     
+            var tempFiles = Directory.GetFiles(tempFolder);
+            
             //Image converted to PDF should result in a single image embedded in the PDF 
-            if (nImages.Count != 1)
+            if (tempFiles.Length != 1)
             {
                 GlobalVariables.Logger.AddTestResult(pair, "Image Count in Resulting PDF", false,
                     comments: ["The resulting PDF does not contain exactly one image."]);
@@ -212,27 +229,19 @@ public static class ImagePipelines
             }
             
             //Converting the image to bytes encoded to correct format
-            var nImage = nImages[0];
-            var tempFile = ImageExtraction.SaveExtractedImageToDisk(nImage, oImage.Format);
+            using var nImage = new MagickImage(pair.NewFilePath, nSettings);
+            var pronomCode = ImageExtraction.GetExpectedPronomFromImage(nImage.Format);
+            
             FilePair? pairWithTemp = null;
-    
-            if (tempFile != null)
-            {
-                pairWithTemp = new FilePair(
-                    pair.OriginalFilePath, pair.OriginalFileFormat,
-                    tempFile.Value.Item1, tempFile.Value.Item2
-                );
-            }
-            else
-            {
-                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false,
-                    comments:
-                    ["Could not extract and save the image embedded in the PDF. Cannot preform image specific tests."]);
-            }
+            
+            pairWithTemp = new FilePair(
+                pair.OriginalFilePath, pair.OriginalFileFormat,
+                tempFiles[0], pronomCode
+            );
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
+                var res = ComperingMethods.CheckFileSizeDifference(pair);
     
                 if (res == null)
                 {
@@ -359,6 +368,42 @@ public static class ImagePipelines
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.PointByPoint.Name, true);
             }
+            
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+            {
+                var res = false;
+                var exceptionOccurred = false;
+
+                try
+                {
+                    res = ColorProfileComparison.ImageToImageColorProfileComparison(oImage, nImage);
+                }
+                catch (Exception)
+                {
+                    exceptionOccurred = true;
+                    error = new Error(
+                        "Error comparing color profiles",
+                        "There occurred an error while extracting and comparing color profiles.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                }
+
+                if (!exceptionOccurred && !res)
+                {
+                    error = new Error(
+                        "Difference in both images color profile",
+                        "The images did not pass Color Profile comparison.",
+                        ErrorSeverity.Medium,
+                        ErrorType.Metadata
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                }
+                else
+                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.ColorProfile.Name, true);
+            }
+            
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

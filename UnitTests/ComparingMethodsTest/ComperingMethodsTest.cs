@@ -233,6 +233,36 @@ public class ComperingMethodsTest
         var diff = ComperingMethods.GetPageCountDifferenceExif(files);
         Assert.That(diff, Is.EqualTo(0));
     }
+    
+    [Test]
+    public void GetPageCountDifferenceExifTest_2PPT_2ODP()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"PowerPoint\presentation_without_animations.ppt",
+            "fmt/126",
+            _testFileDirectory + @"ODP\odp-with-animations.odp",
+            "fmt/1754"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.EqualTo(0));
+    }
+
+    [Test]
+    public void GetPageCountDifferenceExifTest_2RTF_2PDF()
+    {
+        var files = new FilePair
+        (
+            _testFileDirectory + @"TestDocuments\rtf_with_two_images_of_different_profile.rtf",
+            "fmt/355",
+            _testFileDirectory + @"PDF\presentation_without_animations.pdf",
+            "fmt/19"
+        );
+        
+        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        Assert.That(diff, Is.EqualTo(0));
+    }
 
     [Test]
     public void GetPageCountDifferenceExifTest_Invalid()

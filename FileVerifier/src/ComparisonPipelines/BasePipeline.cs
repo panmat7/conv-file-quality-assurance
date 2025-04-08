@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using Avalonia;
-using Avalonia.Threading;
+using System.IO.Abstractions;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
-using AvaloniaDraft.Views;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -28,8 +24,9 @@ public static class BasePipeline
         {
             pipeline();
         }
-        catch
+        catch(Exception er)
         {
+            Console.WriteLine(er);
             var e = new Error(
                 "Error during file processing.",
                 "An internal error occurred while processing the files.",
@@ -83,83 +80,130 @@ public static class BasePipeline
 
         if (FormatCodes.PronomCodesXLSX.Contains(pair.OriginalFileFormat))
             return XLSXPipelines.GetXlsxPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesCSV.Contains(pair.OriginalFileFormat))
+            return CSVPipelines.GetCsvPipeline(pair.NewFileFormat);
+
+        if (FormatCodes.PronomCodesRTF.Contains(pair.OriginalFileFormat))
+            return RtfPipelines.GetRtfPipeline(pair.NewFileFormat);
         
         return null;
     }
 
-
-    /// <summary>
-    /// Compare the fonts of two files
-    /// </summary>
-    /// <param name="fp">The file pair</param>
-    public static List<Error> CompareFonts(FilePair fp)
+    public static string CreateTempFolderForImages()
     {
-        if (!GlobalVariables.Options.GetMethod(Methods.Fonts)) return [];
-
-        var comments = new List<string>();
-        var errors = new List<Error>();
-
-        var result = FontComparison.CompareFiles(fp);
-
-        if (result.Errors.Count > 0)
-        {
-            foreach (var e in result.Errors) errors.Add(e);
-        }
-
-        if (result.ContainsForeignCharacters) comments.Add("Contains foreign characters");
-
-
-        if (result.FontsOnlyInOriginal.Count > 0 || result.FontsOnlyInConverted.Count > 0)
-        {
-            errors.Add(new Error(
-                "Font difference", 
-                "Different fonts were detected in the two files.",
-                ErrorSeverity.Medium,
-                ErrorType.Visual)
-            );
-
-            if (result.FontsOnlyInOriginal.Count > 0)
-            {
-                StringBuilder bld = new StringBuilder();
-                bld.Append("Fonts only in original:");
-                foreach (var f in result.FontsOnlyInOriginal) bld.Append($"\n{f}");
-                comments.Add(bld.ToString());
-            }
-
-            if (result.FontsOnlyInConverted.Count > 0)
-            {
-                StringBuilder bld = new StringBuilder();
-                bld.Append("Fonts only in converted:");
-                foreach (var f in result.FontsOnlyInConverted) bld.Append($"\n{f}");
-                comments.Add(bld.ToString());
-            }
-        }
-
-
-        if (result.BgColorsNotConverted)
-        {
-            errors.Add(new Error(
-                "Background color difference",
-                "Different background colors were detected in the two files.",
-                ErrorSeverity.Medium,
-                ErrorType.Visual
-            ));
-        }
-
-
-        if (result.TextColorsNotConverted)
-        {
-            errors.Add(new Error(
-                "Text color difference",
-                "Different text colors were detected in the two files.",
-                ErrorSeverity.Medium,
-                ErrorType.Visual
-            ));
-        }
-
-        GlobalVariables.Logger.AddTestResult(fp, Methods.Fonts.Name, result.Pass, null, comments, errors);
-
-        return errors;
+        var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
+        var tempDirectory = fileSystem?.Path.Combine(fileSystem.Path.GetTempPath(), fileSystem.Path.GetRandomFileName());
+        if (tempDirectory == null) return string.Empty;
+        fileSystem?.Directory.CreateDirectory(tempDirectory);
+        return tempDirectory;
     }
     
+    public static (string, string) CreateTempFoldersForImages()
+    {
+        var tempFolder1 = CreateTempFolderForImages();
+        var tempFolder2 = CreateTempFolderForImages();
+        return (tempFolder1, tempFolder2);
+    }
+
+    private static void DeleteTempFolder(string tempDirectory)
+    {
+        var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
+        if (fileSystem == null) return;
+        
+        if (fileSystem.Directory.Exists(tempDirectory))
+            fileSystem.Directory.Delete(tempDirectory, true);
+    }
+    
+    public static void DeleteTempFolders(string tempODirectory, string tempNDirectory)
+    {
+        DeleteTempFolder(tempODirectory);
+        DeleteTempFolder(tempNDirectory);
+    }
+
+    public static void CheckTransparency(string tempFolder, string tempFolder2, FilePair pair, List<Error> e)
+    {
+        var res = false;
+        var exceptionOccurred = false;
+        Error error;
+            
+        try
+        {
+            res = TransparencyComparison.CompareTransparencyInImagesOnDisk(tempFolder, tempFolder2);
+        }
+        catch (Exception er)
+        {
+            Console.WriteLine(er);
+            exceptionOccurred = true;
+            error = new Error(
+                "Error comparing transparency across images",
+                "There occurred an error while comparing transparency" +
+                " of the images.",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            );
+            GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+            e.Add(error);
+        }
+            
+        switch (exceptionOccurred)
+        {
+            case false when !res:
+                error = new Error(
+                    "Difference of transparency detected in images contained in the docx",
+                    "The images contained in the docx and pdf files did not pass Transparency comparison.",
+                    ErrorSeverity.Medium,
+                    ErrorType.Visual
+                );
+                GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                e.Add(error);
+                break;
+            case false when res:
+                GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
+                break;
+        }
+    }
+
+    public static void CheckColorProfiles(string tempFolder, string tempFolder2, FilePair pair, List<Error> e)
+    {
+        var res = false;
+        var exceptionOccurred = false;
+        Error error;
+
+        try
+        {
+            res = ColorProfileComparison.CompareColorProfilesFromDisk(tempFolder, tempFolder2);
+        }
+        catch (Exception er)
+        {
+            Console.WriteLine(er);
+            exceptionOccurred = true;
+            error = new Error(
+                "Error comparing color profiles across images",
+                "There occurred an error while extracting and comparing " +
+                "color profiles in the images.",
+                ErrorSeverity.High,
+                ErrorType.Metadata
+            );
+            GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+            e.Add(error);
+        }
+
+        switch (exceptionOccurred)
+        {
+            case false when !res:
+                error = new Error(
+                    "Mismatching color profile",
+                    "The color profile in the new file does not match the original in at least one image.",
+                    ErrorSeverity.Medium,
+                    ErrorType.Metadata
+                );
+                GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                e.Add(error);
+                break;
+            case false when res:
+                GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
+                break;
+        }
+    }
 }

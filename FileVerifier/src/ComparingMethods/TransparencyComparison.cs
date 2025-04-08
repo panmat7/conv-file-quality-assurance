@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using ImageMagick;
 using UglyToad.PdfPig.Content;
@@ -9,17 +11,6 @@ namespace AvaloniaDraft.ComparingMethods;
 public static class TransparencyComparison
 {
     /// <summary>
-    /// Compares transparency between images in docx and pdf
-    /// </summary>
-    /// <param name="oImages"></param>
-    /// <param name="nImages"></param>
-    /// <returns></returns>
-    public static bool DocxToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
-    {
-        return CompareNonPdfImagesWithPdfImages(oImages, nImages);
-    }
-
-    /// <summary>
     /// Compares transparency between images in pdf files
     /// </summary>
     /// <param name="oImages"></param>
@@ -28,17 +19,6 @@ public static class TransparencyComparison
     public static bool PdfToPdfTransparencyComparison(List<IPdfImage> oImages, List<IPdfImage> nImages)
     {
         return ComparePdfImagesWithPdfImages(oImages, nImages);
-    }
-
-    /// <summary>
-    /// Compares transparency between xml based PowerPoint and pdf images
-    /// </summary>
-    /// <param name="oImages"></param>
-    /// <param name="nImages"></param>
-    /// <returns></returns>
-    public static bool XmlBasedPowerPointToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
-    {
-        return CompareNonPdfImagesWithPdfImages(oImages, nImages);
     }
     
     /// <summary>
@@ -62,12 +42,12 @@ public static class TransparencyComparison
     }
 
     /// <summary>
-    /// Compares transparency between OpenDocuments (excluding sheets) and pdf images
+    /// General function to compare the transparency of images between docx, pptx, pdf with a pdf file
     /// </summary>
     /// <param name="oImages"></param>
     /// <param name="nImages"></param>
     /// <returns></returns>
-    public static bool OpenDocumentToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
+    public static bool GeneralDocsToPdfTransparencyComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
         return CompareNonPdfImagesWithPdfImages(oImages, nImages);
     }
@@ -113,6 +93,33 @@ public static class TransparencyComparison
         
         return !oImages.Where((t, i) => CheckNonPdfImageTransparency(t) != CheckPdfImageTransparency(nImages[i])).Any();
     }
+    
+    public static bool CompareTransparencyInImagesOnDisk(string oFolderPath, string nFolderPath)
+    {
+        var oFiles = Directory.GetFiles(oFolderPath).OrderBy(File.GetCreationTime).ToArray();
+        var nFiles = Directory.GetFiles(nFolderPath).OrderBy(File.GetCreationTime).ToArray();
+    
+        // If both folders are empty, return true
+        if (oFiles.Length == 0 && nFiles.Length == 0) return true;
+    
+        // If the number of files in the folders differ, return false
+        if (oFiles.Length != nFiles.Length) throw new InvalidOperationException("The number of files in the folders differ.");
+    
+        for (var i = 0; i < oFiles.Length; i++)
+        {
+            using var oImage = new MagickImage(oFiles[i]);
+            using var nImage = new MagickImage(nFiles[i]);
+            
+            var oImageHasTransparency = CheckNonPdfImageTransparency(oImage);
+            
+            var nImageHasTransparency = CheckNonPdfImageTransparency(nImage);
+            
+            if (oImageHasTransparency == nImageHasTransparency) continue;
+            return false;
+        }
+    
+        return true;
+    }
 
     /// <summary>
     /// Checks the transparency of an image from a pdf
@@ -134,6 +141,22 @@ public static class TransparencyComparison
     /// <returns></returns>
     private static bool CheckNonPdfImageTransparency(MagickImage image)
     {
-        return image.HasAlpha && image.GetPixels().Any(pixel => pixel.ToColor()!.A < 255);
+        using var pixels = image.GetPixels();
+        if (!image.HasAlpha)
+            return false;
+
+        var values = pixels.GetValues();
+        var channels = (int)image.ChannelCount;
+        var compValue = image.Depth == 16 ? 65535 : 255;
+        
+        
+        if (values == null) return false;
+        for (var i = 3; i < values.Length; i += channels)
+        {
+            if (values[i] < compValue)
+                return true;
+        }
+
+        return false;
     }
 }

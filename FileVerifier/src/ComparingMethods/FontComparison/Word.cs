@@ -192,7 +192,6 @@ public static class WordFontExtraction
             if (string.IsNullOrEmpty(font)) continue;
 
 
-
             // Check that the font exists in the font table, and that it is using its primary and not alternative name.
             bool existsInFontTable = fontTable.Descendants<Font>()
                 .Any(f => font == f.Name?.Value || font == f.AltName?.Val?.Value);
