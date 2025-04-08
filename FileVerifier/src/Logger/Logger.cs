@@ -179,6 +179,7 @@ public class Logger
         var name = DateTime.Now.ToString();
         name = name.Replace(' ', '_');
         name = name.Replace('.', '-');
+        name = name.Replace('/', '-');
         name = name.Replace(':', '-');
         name += ".json";
         var path = Path.Join(dir, name);
