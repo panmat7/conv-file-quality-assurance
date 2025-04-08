@@ -30,7 +30,7 @@ public static class ScriptCodes
         var langScripts = Scripts.GetValueOrDefault(lang);
         if (langScripts == null) return null;
 
-        return langScripts.GetValueOrDefault(region);
+        return langScripts.GetValueOrDefault(region) ?? langScripts.GetValueOrDefault("");
     }
 
     private static readonly ImmutableDictionary<string, Dictionary<string, string>> Scripts = new Dictionary<string, Dictionary<string, string>>() {

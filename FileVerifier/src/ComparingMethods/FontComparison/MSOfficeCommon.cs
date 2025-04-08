@@ -75,6 +75,8 @@ public static class MSOffice
         dic.TryAdd("EastAsia", "");
         dic.TryAdd("ComplexScript", "");
 
+        dic.TryAdd("Latn", dic["Latin"]);
+
         return dic;
     }
 }

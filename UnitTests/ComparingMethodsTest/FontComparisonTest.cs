@@ -116,7 +116,6 @@ public class FontComparisonTest
                     }
                 }
 
-
                 PrintList("Fonts only in original:", comparisonResult.FontsOnlyInOriginal);
                 PrintList("Fonts only in converted:", comparisonResult.FontsOnlyInConverted);
                 PrintList("Text colors only in original:", comparisonResult.TextColorsOnlyInOriginal);
