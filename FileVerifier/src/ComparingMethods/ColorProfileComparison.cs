@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using ImageMagick;
+using ImageMagick.Formats;
 using UglyToad.PdfPig.Content;
 
 // NOTE: COLOR PROFILE COMPARISON WILL NOT WORK CORRECTLY WHEN IMAGES ARE IN DIFFERENT ORDER BETWEEN ORIGINAL AND NEW
@@ -112,6 +114,37 @@ public static class ColorProfileComparison
                                         !CompareColorProfiles(t, convertedNImages[i])).Any();
     }
 
+    public static bool CompareColorProfilesFromDisk(string oFolderPath, string nFolderPath)
+    {
+        var oFiles = Directory.GetFiles(oFolderPath).OrderBy(File.GetCreationTime).ToArray();
+        var nFiles = Directory.GetFiles(nFolderPath).OrderBy(File.GetCreationTime).ToArray();
+    
+        // If both folders are empty, return true
+        if (oFiles.Length == 0 && nFiles.Length == 0) return true;
+    
+        // If the number of files in the folders differ, return false
+        if (oFiles.Length != nFiles.Length) return false;
+    
+        for (var i = 0; i < oFiles.Length; i++)
+        {
+            // Get the file format
+            var oFormatInfo = MagickFormatInfo.Create(oFiles[i]);
+            var nFormatInfo = MagickFormatInfo.Create(nFiles[i]);
+            
+            var oSettings = CreateFormatSpecificSettings(oFormatInfo?.Format);
+            var nSettings = CreateFormatSpecificSettings(nFormatInfo?.Format);
+            
+            using var oImage = new MagickImage(oFiles[i], oSettings);
+            using var nImage = new MagickImage(nFiles[i], nSettings);
+        
+            if (!CompareColorProfiles(oImage, nImage))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     /// <summary>
     /// Function checks that embedded color profile for two images are the same
     /// </summary>
@@ -133,5 +166,21 @@ public static class ColorProfileComparison
             _ => nProfile != null && // If the profiles are different it means loss of data
                  oProfile.Equals(nProfile)
         };
+    }
+    
+    public static MagickReadSettings CreateFormatSpecificSettings(MagickFormat? format)
+    {
+        var settings = new MagickReadSettings();
+
+        switch (format)
+        {
+            case MagickFormat.Png:
+                settings.Defines = new PngReadDefines { PreserveiCCP = true };
+                break;
+            default:
+                // do nothing
+                break;
+        }
+        return settings;
     }
 }

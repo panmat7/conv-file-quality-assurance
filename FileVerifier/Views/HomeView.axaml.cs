@@ -1,12 +1,9 @@
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.OpenGL.Surfaces;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using AvaloniaDraft.Helpers;
@@ -16,6 +13,8 @@ namespace AvaloniaDraft.Views;
 
 public partial class HomeView : UserControl
 {
+    private bool AutoStartVerification { get; set; }
+    
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
     private bool Working { get; set; } = false;
@@ -128,32 +127,21 @@ public partial class HomeView : UserControl
 
     private async void Start_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (Working || GlobalVariables.FileManager == null) return;
-        
-        Working = true;
-        
-        StartButton.IsEnabled = false;
-        LoadButton.IsEnabled = false;
-        
-        OverwriteConsole(null);
-
-        GlobalVariables.Logger.Start();
-
-        await Task.Run(() =>
+        try
         {
-            GlobalVariables.FileManager.StartVerification();
-        });
-        
-        LoadButton.IsEnabled = true;
-
-
-        GlobalVariables.Logger.Finish();
-        GlobalVariables.Logger.SaveReport();
-
-        Working = false;
+            await StartVerificationProcess();
+        }
+        catch (Exception err)
+        {
+            System.Console.WriteLine(err);
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow =
+                    new ErrorWindow("An error occured when starting the verification process.");
+                errWindow.ShowDialog((VisualRoot as Window)!);
+            });
+        }
     }
-
-    
 
     private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
     {
@@ -163,6 +151,8 @@ public partial class HomeView : UserControl
 
         var loadingWindow = new LoadingView();
 
+        loadingWindow.AutoStartChanged += LoadingWindow_AutoStartChanged;
+        
         try
         {
             loadingWindow.Show();
@@ -188,7 +178,12 @@ public partial class HomeView : UserControl
 
             try
             {
-                if (GlobalVariables.FileManager != null)
+                if (AutoStartVerification)
+                {
+                    await StartVerificationProcess();
+                    AutoStartVerification = false;
+                }
+                else if (GlobalVariables.FileManager != null)
                 {
                     var ignoredFilesWindow = new IgnoredFilesView(
                         GlobalVariables.FileManager.GetFilePairs().Count, GlobalVariables.FileManager.IgnoredFiles);
@@ -198,9 +193,61 @@ public partial class HomeView : UserControl
             catch (Exception exception)
             {
                 System.Console.WriteLine(exception);
-                throw;
             }
         }
+    }
+    
+    private void LoadingWindow_AutoStartChanged(object? sender, bool e)
+    {
+        AutoStartVerification = e;
+    }
+
+    private Task StartVerificationProcess()
+    {
+        return Task.Run(async () =>
+        {
+            try
+            {
+                if (Working || GlobalVariables.FileManager == null) return;
+
+                Working = true;
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    StartButton.IsEnabled = false;
+                    LoadButton.IsEnabled = false;
+                    OverwriteConsole(null);
+                });
+
+                GlobalVariables.Logger.Start();
+
+                await Task.Run(() =>
+                {
+                    GlobalVariables.FileManager.StartVerification();
+                });
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    LoadButton.IsEnabled = true;
+                });
+
+                GlobalVariables.Logger.Finish();
+                GlobalVariables.Logger.SaveReport();
+                Trace.WriteLine("Finished");
+
+                Working = false;
+            }
+            catch (Exception err)
+            {
+                System.Console.WriteLine(err);
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    var errWindow =
+                        new ErrorWindow("An error occured when starting the verification process.");
+                    errWindow.ShowDialog((VisualRoot as Window)!);
+                });
+            }
+        });
     }
     
     private void PerformBackgroundWork()

@@ -49,6 +49,39 @@ public class GeneralDocsToPdfTransparencyComparisonTest : TestBase
     }
     
     [Test]
+    public void TestCorrectScenarioDocxDisk()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "Transparency", "correct_transparency.docx");
+        var nFilePath = Path.Combine(TestFileDirectory, "Transparency", "correct_transparency.pdf");
+        
+        ImageExtraction.ExtractImagesFromDocxToDisk(oFilePath, TestExtractionODirectory);
+        ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
+        try
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
+                Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(1));
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(1));
+            });
+    
+            var result = TransparencyComparison.CompareTransparencyInImagesOnDisk(TestExtractionODirectory, TestExtractionNDirectory);
+            Assert.That(result, Is.True);
+        }
+        finally
+        {
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
+    }
+    
+    [Test]
     public void TestFailScenarioDocx()
     {
         var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "transparent.docx");
@@ -59,6 +92,39 @@ public class GeneralDocsToPdfTransparencyComparisonTest : TestBase
         
         var result = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
         Assert.That(result, Is.False);
+    }
+    
+    [Test]
+    public void TestFailScenarioDocxDisk()
+    {
+        var oFilePath = Path.Combine(TestFileDirectory, "TestDocuments", "transparent.docx");
+        var nFilePath = Path.Combine(TestFileDirectory, "PDF", "missing_transparent.pdf");
+        
+        ImageExtraction.ExtractImagesFromDocxToDisk(oFilePath, TestExtractionODirectory);
+        ImageExtraction.ExtractImagesFromPdfToDisk(nFilePath, TestExtractionNDirectory);
+        try
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
+                Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(1));
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(1));
+            });
+    
+            var result = TransparencyComparison.CompareTransparencyInImagesOnDisk(TestExtractionODirectory, TestExtractionNDirectory);
+            Assert.That(result, Is.False); // Two files with same color profiles should pass
+        }
+        finally
+        {
+            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
+                Assert.That(Directory.GetFiles(TestExtractionNDirectory), Is.Empty);
+            });
+        }
     }
 
     [Test]
