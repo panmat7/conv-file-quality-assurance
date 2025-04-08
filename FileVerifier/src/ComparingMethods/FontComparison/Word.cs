@@ -1,4 +1,5 @@
 ﻿using Avalonia.Animation.Easings;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System;
@@ -19,8 +20,11 @@ public static class WordFontExtraction
         WordprocessingDocument doc = WordprocessingDocument.Open(src, false);
         var mainDocPart = doc.MainDocumentPart;
 
+        var themePart = mainDocPart?.ThemePart;
+        if (themePart == null) return null;
+
         // Get default fonts
-        var fontScheme = mainDocPart?.ThemePart?.Theme?.ThemeElements?.GetFirstChild<DocumentFormat.OpenXml.Drawing.FontScheme>();
+        var fontScheme = themePart?.Theme?.ThemeElements?.GetFirstChild<DocumentFormat.OpenXml.Drawing.FontScheme>();
         if (fontScheme == null) return null;
 
         var fontSchemeXml = XElement.Parse(fontScheme?.OuterXml ?? "");
@@ -47,7 +51,7 @@ public static class WordFontExtraction
             // Go through each run
             foreach (var run in p.Elements<Run>())
             {
-                CheckRun(run, themeFontLang, fontTable, majFonts, minFonts, textInfo);
+                CheckRun(run, themePart, themeFontLang, fontTable, majFonts, minFonts, textInfo);
             }
         }
 
@@ -60,7 +64,7 @@ public static class WordFontExtraction
             var name = style.StyleName;
             if (name == null || name?.Val?.Value != "Hyperlink") continue;
 
-            var hex = style.StyleRunProperties?.Color?.Val?.Value;
+            var hex = GetColor(style.StyleRunProperties?.Color, themePart);
             if (hex != null)
             {
                 textInfo.TextColors.Add(hex);
@@ -71,23 +75,65 @@ public static class WordFontExtraction
     }
 
 
+
+    /// <summary>
+    /// Get the hex of a color
+    /// </summary>
+    /// <param name="col"></param>
+    /// <param name="themePart"></param>
+    /// <returns></returns>
+    private static string? GetColor(Color? col, ThemePart? themePart)
+    {
+        var hex = col?.Val?.Value;
+        if (hex != null) return hex;
+
+
+
+        var themeCol = col?.ThemeColor?.Value;
+
+        var themColString = (themeCol is ThemeColorValues c) ?
+        ((IEnumValue)c).Value : null;
+        if (themColString == null) return null;
+
+        var scheme = themePart?.Theme?.ThemeElements?.ColorScheme;
+        if (scheme == null) return null;
+
+        return themColString.ToLower() switch
+        {
+            "accent1" => scheme.Accent1Color?.RgbColorModelHex?.Val?.Value,
+            "accent2" => scheme.Accent2Color?.RgbColorModelHex?.Val?.Value,
+            "accent3" => scheme.Accent3Color?.RgbColorModelHex?.Val?.Value,
+            "accent4" => scheme.Accent4Color?.RgbColorModelHex?.Val?.Value,
+            "accent5" => scheme.Accent5Color?.RgbColorModelHex?.Val?.Value,
+            "accent6" => scheme.Accent6Color?.RgbColorModelHex?.Val?.Value,
+            
+            "dark1" => scheme.Dark1Color?.RgbColorModelHex?.Val?.Value,
+            "dark2" => scheme.Dark2Color?.RgbColorModelHex?.Val?.Value,
+            "light1" => scheme.Light1Color?.RgbColorModelHex?.Val?.Value,
+            "light2" => scheme.Light1Color?.RgbColorModelHex?.Val?.Value,
+
+            "hyperlink" => scheme.Hyperlink?.RgbColorModelHex?.Val?.Value,
+            "followedhyperlink" => scheme.FollowedHyperlinkColor?.RgbColorModelHex?.Val?.Value,
+
+            _ => null,
+        };
+    }
+
+
     /// <summary>
     /// Check a run
     /// </summary>
     /// <param name="run"></param>
+    /// <param name="themePart"></param>
     /// <param name="themeFontLang"></param>
     /// <param name="fontTable"></param>
     /// <param name="majFonts"></param>
     /// <param name="minFonts"></param>
-    /// <param name="fonts"></param>
-    /// <param name="textColors"></param>
-    /// <param name="bgColors"></param>
-    /// <param name="foreignWriting"></param>
-    private static void CheckRun(Run run, ThemeFontLanguages themeFontLang, Fonts fontTable, Dictionary<string, string> majFonts, Dictionary<string, string> minFonts,
-        TextInfo textInfo)
+    /// <param name="textInfo"></param>
+    private static void CheckRun(Run run, ThemePart themePart, ThemeFontLanguages themeFontLang, Fonts fontTable, 
+        Dictionary<string, string> majFonts, Dictionary<string, string> minFonts, TextInfo textInfo)
     {
         var runProperties = run.RunProperties;
-
 
         // Check hightlight color
         var highlightCol = runProperties?.Highlight?.Val;
@@ -97,7 +143,7 @@ public static class WordFontExtraction
         if (string.IsNullOrWhiteSpace(run.InnerText)) return;
 
         // Check text color
-        string? textCol = runProperties?.Color?.Val?.Value;
+        var textCol = GetColor(runProperties?.Color, themePart);
         textInfo.TextColors.Add(textCol ?? "000000");
 
         // Check shading color
