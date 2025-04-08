@@ -94,7 +94,7 @@ public class StandardizedImageMetadata
     {
         var e = new List<Error>();
         
-        if (img2.ImgWidth == ImgWidth && img2.ImgHeight == ImgHeight)
+        if (img2.ImgWidth != ImgWidth || img2.ImgHeight != ImgHeight)
         {
             e.Add(new Error(
                 "Image resolution difference (metadata)",
@@ -116,7 +116,7 @@ public class StandardizedImageMetadata
     {
         var e = new List<Error>();
         
-        if (img2.BitDepth == BitDepth)
+        if (img2.BitDepth != BitDepth)
         {
             e.Add(new Error(
                 "Bit-depth mismatch",

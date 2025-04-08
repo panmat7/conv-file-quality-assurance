@@ -290,6 +290,10 @@ public partial class HomeView : UserControl
         OverwriteConsole("The following pairs were formed:\n" + GlobalVariables.FileManager.GetPairFormats());
     }
 
+    /// <summary>
+    /// Increments the number of files done
+    /// </summary>
+    /// <param name="count"></param>
     private void SetFileCount(int count)
     {
         lock (_lock)
@@ -298,6 +302,9 @@ public partial class HomeView : UserControl
         }
     }
 
+    /// <summary>
+    /// Resets the progress bar to 0
+    /// </summary>
     private void ResetProgress()
     {
         lock (_lock)
@@ -310,19 +317,29 @@ public partial class HomeView : UserControl
         }
     }
     
+    /// <summary>
+    /// Marks a file as done and updates console progress 
+    /// </summary>
     private void FileDone()
     {
         lock (_lock)
         {
             FilesDone++;
-            
-            Dispatcher.UIThread.Post(() =>
+            var progress = (FilesDone / (double)FileCount) * 100; //Progressing in 1% increments to avoid ui updates
+            if ((int)progress > (int)ProgressBar.Value)
             {
-                ProgressBar.Value = (FilesDone / (double)FileCount) * 100;
-            });
+                Dispatcher.UIThread.Post(() =>
+                {
+                    ProgressBar.Value = (FilesDone / (double)FileCount) * 100;
+                });
+            }
         }
     }
 
+    /// <summary>
+    /// Appends the message to console.
+    /// </summary>
+    /// <param name="message">Message to be appended.</param>
     private void AppendConsole(string message)
     {
         Dispatcher.UIThread.Post(() =>
@@ -332,6 +349,10 @@ public partial class HomeView : UserControl
         });
     }
 
+    /// <summary>
+    /// Overwrites the console with a message, or resets it.
+    /// </summary>
+    /// <param name="message">Message to overwrite with, null just remove all content.</param>
     private void OverwriteConsole(string? message)
     {
         Dispatcher.UIThread.Post(() =>
