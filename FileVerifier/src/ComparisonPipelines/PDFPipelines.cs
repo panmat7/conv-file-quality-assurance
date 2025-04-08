@@ -220,9 +220,9 @@ public static class PdfPipelines
                         comments: ["Comparison not preformed due to page count differences."]);
             }
             
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
+            // UiControlService.Instance.AppendToConsole(
+            //     $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
+            //     e.GenerateErrorString() + "\n\n");
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             

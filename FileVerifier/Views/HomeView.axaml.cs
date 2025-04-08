@@ -225,10 +225,18 @@ public partial class HomeView : UserControl
                 {
                     GlobalVariables.FileManager.StartVerification();
                 });
-
+                
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    LoadButton.IsEnabled = true;
+                    var completedWindow = new CompletedView();
+                    completedWindow.Show();
+                    completedWindow.Closed += (sender, args) =>
+                    {
+                        Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            LoadButton.IsEnabled = true;
+                        });
+                    };
                 });
 
                 GlobalVariables.Logger.Finish();
