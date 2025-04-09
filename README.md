@@ -47,6 +47,7 @@ The checks consists of metadata, size, color space, pixelvalue, fonts, number of
 - Other dependencies
 
 ### Installation Windows
+1. Install .Net 8 from Microsoft's website (https://dotnet.microsoft.com/en-us/download)
 1. Install Siegfried from their website (https://www.itforarchivists.com/) and add it to path enviromental variables. 
 2. Clone the repository 
 ```sh
@@ -79,18 +80,20 @@ dotnet build
 ```
 
 
-
 ## Usage
+### Usage NB!
 
 
+### Usage guide
 
-## Comparison criteria
-This is a preliminary draft of what can be used to compare a converted file with an original in another format:
+1. Choose the folder for original files, and for the new files.
+2. Click the "Load" button to create the file pairs.
+3. Use the Quick settings or the "Settings" tab to choose what comparison methods you want to run. 
+ - In the settings tab you can ignore File formats to verify.
+4. Click the "Start" button to start the verfication process. 
+5. After the process is done, a JSON report will be genereated in the reports folder:
+```sh
+conv-file-quality-assurance\FileVerifier\reports
+```
+6. To view the report in the application go to the "Report" tab click the "Load from JSON" button and choose the report.
 
-- Size: If the size of the document (image) is stated - do the sizes of the original and copy match?
-- Image resolution: is it possible to identify image resolution in the two formats being compared and is the resolution the same? (dots per inch)
-- Color space: If possible, we want to identify the color profile in the original against the color profile in the copy. Do these match?
-- Fonts Are fonts built into the copy? And does it match the original's use of fonts?
-- Point by point - comparison: If we look at the original and converted file as two point matrices - Do the pixels in the two files match in terms of color? (requires size and resolution to match)
-- Number of pages: Same number of pages in original and copy.
-- Animations: Identify if the original uses animations. This will often disappear upon conversion.
