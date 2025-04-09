@@ -85,7 +85,7 @@ dotnet build
 ### Usage NB!
 
 * The console window will print the progress of the verification every 5 minutes, and a estimated time left.
-* The loading process may take a while.
+* If you try to load and verify many thousands of files, it may take a while for the loading and verification to finnish.
 
 
 ### Usage guide
