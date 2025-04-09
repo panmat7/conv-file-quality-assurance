@@ -10,14 +10,15 @@ using System.Runtime.CompilerServices;
 using AvaloniaDraft.Helpers;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Avalonia.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AvaloniaDraft.Logger;
-
 
 
 /// <summary>
 /// A result of a single comparison test
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class TestResult
 {
     public bool Pass { get; set; }
@@ -37,6 +38,7 @@ public class TestResult
 /// <summary>
 /// A result of comparing two files
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class ComparisonResult
 {
     public FilePair FilePair { get; set; }
@@ -71,6 +73,7 @@ public class ComparisonResult
 /// <summary>
 /// A logger to store test results
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class Logger
 {
     public int FileComparisonCount { get; set; }
