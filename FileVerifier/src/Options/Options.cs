@@ -245,7 +245,15 @@ public class Options
     /// </summary>
     public void LoadSettings()
     {
-        if (Dir != null) ImportJSON(GetFilePath());
+        if (Dir != null)
+        {
+            ImportJSON(GetFilePath());
+        } 
+        else
+        {
+            SetDefaultSettings();
+        }
+            
     }
 
 
