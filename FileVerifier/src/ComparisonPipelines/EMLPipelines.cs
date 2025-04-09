@@ -37,32 +37,55 @@ public static class EmlPipelines
         {
             Error error;
             
+            var failedToExtract = false;
+            var equalNumberOfImages = false;
+
             var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
-            ImageExtraction.ExtractImagesFromEmlToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
-            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
-            
-            // Some checks will be skipped if the number of images is not equal
-            var equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
-                tempFoldersForImages.Item2);
-            
-            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+            try
             {
-                if (equalNumberOfImages)
+                ImageExtraction.ExtractImagesFromPdfToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+                ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
+                // Some checks will be skipped if the number of images is not equal
+                equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                    tempFoldersForImages.Item2);
+            }
+            catch (Exception)
+            {
+                failedToExtract = true;
+            }
+
+            if (!failedToExtract)
+            {
+                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
                 {
-                    BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                        tempFoldersForImages.Item2, pair);
+                    if (equalNumberOfImages)
+                    {
+                        BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
+                            tempFoldersForImages.Item2, pair);
+                    }
+                    else
+                    {
+                        error = new Error(
+                            "Unequal number of images",
+                            "The comparison of color profiles could not be performed " +
+                            "because the number of images in the original and new file is different.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                    }
                 }
-                else
-                {
-                    error = new Error(
-                        "Unequal number of images",
-                        "The comparison of color profiles could not be performed " +
-                        "because the number of images in the original and new file is different.",
-                        ErrorSeverity.High,
-                        ErrorType.FileError
-                    );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                }
+            }
+            else
+            {
+                error = new Error(
+                    "Failed to extract images from files",
+                    "Comparisons involving extracted images can not be performed " +
+                    "because the tool was unable to extract images from at least one of the files.",
+                    ErrorSeverity.High,
+                    ErrorType.FileError
+                );
+                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
             }
 
             if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
@@ -84,8 +107,6 @@ public static class EmlPipelines
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
                 }
             }
-            
-            ComperingMethods.CompareFonts(pair);
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
 

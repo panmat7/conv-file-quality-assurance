@@ -208,17 +208,31 @@ public static class ImagePipelines
         {
             Error error;
             
+            var failedToExtract = false;
+            
             var tempFolder = BasePipeline.CreateTempFolderForImages();
-            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFolder);
+
+            try
+            {
+                ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFolder);
+            }
+            catch (Exception)
+            {
+                failedToExtract = true;
+            }
+            if (failedToExtract)
+            {
+                return;
+            }
+            
+            var tempFiles = Directory.GetFiles(tempFolder);
             
             var oFormatInfo = MagickFormatInfo.Create(pair.OriginalFilePath);
-            var nFormatInfo = MagickFormatInfo.Create(pair.NewFilePath);
+            var nFormatInfo = MagickFormatInfo.Create(tempFiles[0]);
             var oSettings = ColorProfileComparison.CreateFormatSpecificSettings(oFormatInfo?.Format);
             var nSettings = ColorProfileComparison.CreateFormatSpecificSettings(nFormatInfo?.Format);
             
             using var oImage = new MagickImage(pair.OriginalFilePath, oSettings);
-    
-            var tempFiles = Directory.GetFiles(tempFolder);
             
             //Image converted to PDF should result in a single image embedded in the PDF 
             if (tempFiles.Length != 1)
@@ -229,7 +243,7 @@ public static class ImagePipelines
             }
             
             //Converting the image to bytes encoded to correct format
-            using var nImage = new MagickImage(pair.NewFilePath, nSettings);
+            using var nImage = new MagickImage(tempFiles[0], nSettings);
             var pronomCode = ImageExtraction.GetExpectedPronomFromImage(nImage.Format);
             
             FilePair? pairWithTemp = null;
