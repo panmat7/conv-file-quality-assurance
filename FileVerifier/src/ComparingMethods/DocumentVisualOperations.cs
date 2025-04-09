@@ -336,83 +336,11 @@ public static class DocumentVisualOperations
     }
 
     /// <summary>
-    /// Determine whether a segment is relevant for pixel-to-pixel comparison based on the number of color clusters.
+    /// Determine whether a segment is relevant for pixel-to-pixel comparison based on histogram analysis and edge density.
     /// </summary>
     /// <param name="seg">Segment to be considered.</param>
     /// <returns>True/False, null if an error occured.</returns>
     public static bool? DetermineSegmentRelevance(byte[] seg)
-    {
-        try
-        {
-            var img = new Mat();
-            CvInvoke.Imdecode(seg, ImreadModes.Unchanged, img);
-
-            //Converting to grayscale
-            var brg = new Mat();
-            switch (img.NumberOfChannels)
-            {
-                case 1: CvInvoke.CvtColor(img, brg, ColorConversion.Gray2Bgr); break; //Grayscale
-                case 3: brg = img; break; //RGB
-                case 4: CvInvoke.CvtColor(img, brg, ColorConversion.Bgra2Bgr); break; //RGBA
-                default: return null;
-            }
-
-            var lab = new Mat();
-            CvInvoke.CvtColor(brg, lab, ColorConversion.Bgr2Lab);
-
-            //Flattening
-            var reshaped = lab.Reshape(1, lab.Rows * lab.Cols);
-            reshaped.ConvertTo(reshaped, DepthType.Cv32F); //float32
-
-            var labels = new Mat();
-            var centers = new Mat();
-            const int k = 4;
-
-            CvInvoke.Kmeans(
-                data: reshaped,
-                k: k,
-                bestLabels: labels,
-                termcrit: new MCvTermCriteria(5, 0.75),
-                attempts: 2,
-                flags: KMeansInitType.PPCenters,
-                centers: centers
-            );
-
-            var counts = new int[k];
-            var totalPixels = labels.Rows;
-
-            unsafe
-            {
-                var labelData = (int*)labels.DataPointer.ToPointer();
-                for (var i = 0; i < totalPixels; i++)
-                {
-                    counts[labelData[i]]++;
-                }
-            }
-
-            Array.Sort(counts);
-            Array.Reverse(counts);
-
-            var dominanceRatio = (counts[0] + counts[1]) / (double)totalPixels;
-
-            CvInvoke.Imshow("img", img);
-            CvInvoke.WaitKey(0);
-            CvInvoke.DestroyAllWindows();
-
-            return dominanceRatio < 0.8;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Determine whether a segment is relevant for pixel-to-pixel comparison based on histogram analysis.
-    /// </summary>
-    /// <param name="seg">Segment to be considered.</param>
-    /// <returns>True/False, null if an error occured.</returns>
-    public static bool? DetermineSegmentRelevanceHistogram(byte[] seg)
     {
         try
         {
@@ -445,24 +373,22 @@ public static class DocumentVisualOperations
             for (var i = 0; i < hist.Length; i++)
                 normalizedHist[i] = hist[i] / (float)pixels.Length;
             
+            //Getting peaks
+            var peaks = GetPeaks(normalizedHist);
 
-            var peaks = new List<int>();
-
-            for (var i = 1; i < hist.Length - 1; i++)
-            {
-                if(normalizedHist[i] > normalizedHist[i - 1] && normalizedHist[i] > normalizedHist[i + 1] && normalizedHist[i] > 0.3) 
-                    peaks.Add(i);
-            }
+            //Edge density
+            const double densityThreshold = 45.0;
+            var density = GetEdgeDensity(grayImg);
             
-            if(normalizedHist[0] > .3f && normalizedHist[0] > normalizedHist[1]) peaks.Add(0);
-            if(normalizedHist[^1] > .3f && normalizedHist[^1] > normalizedHist[^2]) peaks.Add(normalizedHist.Length-1);
+
+            //Histogram entropy
+            const double entropyThreshold = 3.5;
+            var entropy = GetHistogramEntropy(normalizedHist);
+
+            if (entropy < entropyThreshold || density > densityThreshold) return false;
             
-            CvInvoke.Imshow("img", img);
-            CvInvoke.WaitKey(0);
-            CvInvoke.DestroyAllWindows();
-
-            if (peaks.Count == 1 && normalizedHist[peaks[0]] > 0.5f) return false; //Mostly one color, oftentimes text on white background
-
+            if (peaks.Count == 1 && normalizedHist[peaks[0]] > 0.5f) return false;
+            
             return true;
         }
         catch
@@ -470,6 +396,135 @@ public static class DocumentVisualOperations
             return null;
         }
     }
+
+    /// <summary>
+    /// Finds peaks in a histogram
+    /// </summary>
+    /// <returns>List of the indexes containing the peaks.</returns>
+    private static List<int> GetPeaks(float[] histogram)
+    {
+        var peaks = new List<int>();
+        
+        for (var i = 1; i < histogram.Length - 1; i++)
+        {
+            if(histogram[i] > histogram[i - 1] && histogram[i] > histogram[i + 1] && histogram[i] > 0.3) //Filtering out the smallest
+                peaks.Add(i);
+        }
+            
+        if(histogram[0] > .3f && histogram[0] > histogram[1]) peaks.Add(0);
+        if(histogram[^1] > .3f && histogram[^1] > histogram[^2]) peaks.Add(histogram.Length-1);
+
+        return peaks;
+    }
+    
+    /// <summary>
+    /// Calculating the entropy estimation for a histogram
+    /// </summary>
+    /// <returns>The entropy of the histogram.</returns>
+    private static double GetHistogramEntropy(float[] histogram)
+    {
+        var entropy = 0.0;
+        for (var i = 0; i < histogram.Length; i++)
+        {
+            if (histogram[i] > 0.0)
+            {
+                entropy -= histogram[i] * Math.Log(histogram[i], 2);
+            }
+        }
+        
+        return entropy;
+    }
+
+    /// <summary>
+    /// Calculates the edge density of an grayscale image using Sobel.
+    /// </summary>
+    /// <returns>The edge density of the image.</returns>
+    private static double GetEdgeDensity(Image<Gray, byte> img)
+    {
+        var sobel = new Mat();
+        CvInvoke.Sobel(img, sobel, DepthType.Cv16S, 1, 0);
+        CvInvoke.ConvertScaleAbs(sobel, sobel, 1, 0);
+
+        var edgeSum = CvInvoke.Sum(sobel).V0;
+        var density = edgeSum / (img.Width * img.Height);
+        
+        return density;
+    }
+    
+    // /// <summary>
+    // /// Determine whether a segment is relevant for pixel-to-pixel comparison based on the number of color clusters.
+    // /// </summary>
+    // /// <param name="seg">Segment to be considered.</param>
+    // /// <returns>True/False, null if an error occured.</returns>
+    // private static bool? DetermineSegmentRelevanceKMeans(byte[] seg)
+    // {
+    //     try
+    //     {
+    //         var img = new Mat();
+    //         CvInvoke.Imdecode(seg, ImreadModes.Unchanged, img);
+    //
+    //         //Converting to grayscale
+    //         var brg = new Mat();
+    //         switch (img.NumberOfChannels)
+    //         {
+    //             case 1: CvInvoke.CvtColor(img, brg, ColorConversion.Gray2Bgr); break; //Grayscale
+    //             case 3: brg = img; break; //RGB
+    //             case 4: CvInvoke.CvtColor(img, brg, ColorConversion.Bgra2Bgr); break; //RGBA
+    //             default: return null;
+    //         }
+    //
+    //         var lab = new Mat();
+    //         CvInvoke.CvtColor(brg, lab, ColorConversion.Bgr2Lab);
+    //
+    //         //Flattening
+    //         var reshaped = lab.Reshape(1, lab.Rows * lab.Cols);
+    //         reshaped.ConvertTo(reshaped, DepthType.Cv32F); //float32
+    //
+    //         var labels = new Mat();
+    //         var centers = new Mat();
+    //         const int k = 4;
+    //
+    //         CvInvoke.Kmeans(
+    //             data: reshaped,
+    //             k: k,
+    //             bestLabels: labels,
+    //             termcrit: new MCvTermCriteria(5, 0.75),
+    //             attempts: 2,
+    //             flags: KMeansInitType.PPCenters,
+    //             centers: centers
+    //         );
+    //
+    //         var counts = new int[k];
+    //         var totalPixels = labels.Rows;
+    //
+    //         unsafe
+    //         {
+    //             var labelData = (int*)labels.DataPointer.ToPointer();
+    //             for (var i = 0; i < totalPixels; i++)
+    //             {
+    //                 counts[labelData[i]]++;
+    //             }
+    //         }
+    //
+    //         Array.Sort(counts);
+    //         Array.Reverse(counts);
+    //
+    //         var dominanceRatio = (counts[0] + counts[1]) / (double)totalPixels;
+    //
+    //         var res = (dominanceRatio < 0.8) ? "DROPPED" : "KEPT";
+    //         
+    //         CvInvoke.PutText(img, res, new Point(img.Width / 2, img.Height / 2), FontFace.HersheyPlain, 2.0, new MCvScalar(255, 15, 25), 2);
+    //         CvInvoke.Imshow("img", img);
+    //         CvInvoke.WaitKey(0);
+    //         CvInvoke.DestroyAllWindows();
+    //
+    //         return dominanceRatio < 0.8;
+    //     }
+    //     catch
+    //     {
+    //         return null;
+    //     }
+    // }
 
     /// <summary>
     /// Creates an error list from marked pages.

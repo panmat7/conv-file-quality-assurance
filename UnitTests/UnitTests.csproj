@@ -15,7 +15,9 @@
         <PackageReference Include="NUnit" Version="3.14.0" />
         <PackageReference Include="NUnit.Analyzers" Version="3.9.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+        <PackageReference Include="PdfPig" Version="0.1.11-alpha-20250331-4fbcc" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
+        <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.5" />
         <PackageReference Include="System.IO.Abstractions" Version="21.3.1" />
         <PackageReference Include="TestableIO.System.IO.Abstractions.TestingHelpers" Version="21.3.1" />
         <PackageReference Include="xunit" Version="2.9.3" />
@@ -32,6 +34,8 @@
     <ItemGroup>
       <Folder Include="ComparingMethodsTest\TestFiles\FontComparison\Converted\" />
       <Folder Include="ComparingMethodsTest\TestFiles\FontComparison\Original\" />
+      <Folder Include="ComparingMethodsTest\TestFiles\NTempFilesTest\" />
+      <Folder Include="ComparingMethodsTest\TestFiles\OTempFilesTest\" />
     </ItemGroup>
 
 </Project>

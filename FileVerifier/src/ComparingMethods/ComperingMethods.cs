@@ -32,8 +32,10 @@ public static class ComperingMethods
     /// <param name="files">The two files to be compared</param>
     /// <param name="toleranceValue">The values </param>
     /// <returns>True/false whether the difference is too large. Null means that the size could not have been gotten.</returns>
-    public static bool? CheckFileSizeDifference(FilePair files, double toleranceValue)
+    public static bool? CheckFileSizeDifference(FilePair files, double? toleranceValue = null)
     {
+        toleranceValue ??= (GlobalVariables.Options.SizeComparisonThreshold / 100.0);
+
         try
         {
             var originalSize = new FileInfo(files.OriginalFilePath).Length;
@@ -176,6 +178,17 @@ public static class ComperingMethods
         var originalStandardized = MetadataStandardizer.StandardizeImageMetadata(metaOriginal, files.OriginalFileFormat);
         var newStandardized = MetadataStandardizer.StandardizeImageMetadata(metaNew, files.NewFileFormat);
         
+        if(originalStandardized == null || newStandardized == null) 
+            return
+            [
+                new Error(
+                    "Unsupported image format",
+                    "At least one of the files is of a non-supported image format",
+                    ErrorSeverity.Medium,
+                    ErrorType.FileError
+                )
+            ];
+        
         var errors = new List<Error>();
         
         //Check properties, note errors and mismatches
@@ -199,15 +212,7 @@ public static class ComperingMethods
             ));
         }
         
-        if (!originalStandardized.CompareResolution(newStandardized))
-        {
-            errors.Add(new Error(
-                "Image resolution difference (metadata)",
-                "Mismatched resolution between images in metadata.",
-                ErrorSeverity.High,
-                ErrorType.Metadata
-            ));
-        }
+        errors.AddRange(originalStandardized.CompareResolution(newStandardized));
 
         if (!originalStandardized.VerifyBitDepth())
         {
@@ -229,15 +234,7 @@ public static class ComperingMethods
             ));
         }
 
-        if (!originalStandardized.CompareBitDepth(newStandardized))
-        {
-            errors.Add(new Error(
-                "Bit-depth mismatch",
-                "Mismatched bit-depth between images.",
-                ErrorSeverity.Medium,
-                ErrorType.Metadata
-            ));
-        }
+        errors.AddRange(originalStandardized.CompareBitDepth(newStandardized));
         
         if (!originalStandardized.VerifyColorType())
         {
@@ -399,9 +396,19 @@ public static class ComperingMethods
                 continue;
             }
             if(!relevance ?? true) continue;
-                
-            //Visual comparison goes here
-        }
+
+            var res = PbpComparisonMagick.CalculateImageSimilarity(segO, segN);
+
+            if (Math.Abs(res - (-1)) < 0.001)
+            {
+                err = true;
+                continue;
+            }
+            
+            if(res < 0.85) failed = true;
+            
+            if(failed && err) return new Tuple<bool, bool>(err, failed); //Everything failed already, no point continuing
+        }                                                                              //it cannot get worse (or better)
         
         return new Tuple<bool, bool>(err, failed);
     }

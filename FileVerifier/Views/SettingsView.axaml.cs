@@ -69,7 +69,6 @@ public partial class SettingsView : UserControl
                 checkBox.Click += (_, _) =>
                 {
                     GlobalVariables.Options.FileFormatsEnabled[fileFormat][pronomCode] = checkBox.IsChecked ?? false;
-
                     UpdateFormatCheckBox(checkBox.Classes[0]);
                 };
 
@@ -105,9 +104,13 @@ public partial class SettingsView : UserControl
         var checkBoxes = FileFormatsExpander.GetLogicalDescendants()
                    .OfType<CheckBox>()
                    .Where(cb => cb.Classes.Contains(fileFormat));
-        
 
-        foreach (var checkBox in checkBoxes) checkBox.IsChecked = check;
+
+        foreach (var checkBox in checkBoxes)
+        {
+            checkBox.IsChecked = check;
+            checkBox.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        }
     }
 
 

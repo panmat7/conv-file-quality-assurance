@@ -37,8 +37,13 @@ public static class ODTPipelines
         {
             Error error;
 
-            var oImages = ImageExtraction.ExtractImagesFromOpenDocuments(pair.OriginalFilePath);
-            var nImages = ImageExtraction.GetNonDuplicatePdfImages(pair.NewFilePath);
+            var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
+            ImageExtraction.ExtractImagesFromOpenDocumentsToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
+            
+            // Some checks will be skipped if the number of images is not equal
+            var equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                tempFoldersForImages.Item2);
             
             ComperingMethods.CompareFonts(pair);
             
@@ -74,7 +79,7 @@ public static class ODTPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
+                var res = ComperingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {
@@ -109,89 +114,66 @@ public static class ODTPipelines
 
             if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
             {
-                var res = false;
-                var exceptionOccurred = false;
-
-                try
+                if (equalNumberOfImages)
                 {
-                    res = ColorProfileComparison.GeneralDocsToPdfColorProfileComparison(oImages, nImages);
+                    BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2, pair);
                 }
-                catch (Exception)
+                else
                 {
-                    exceptionOccurred = true;
                     error = new Error(
-                        "Error comparing color profiles in odt contained images",
-                        "There occurred an error while extracting and comparing " +
-                        "color profiles of the images contained in the odt.",
+                        "Unequal number of images",
+                        "The comparison of color profiles could not be performed " +
+                        "because the number of images in the original and new file is different.",
                         ErrorSeverity.High,
-                        ErrorType.Metadata
+                        ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                }
-
-                switch (exceptionOccurred)
-                {
-                    case false when !res:
-                        error = new Error(
-                            "Mismatching color profile",
-                            "The color profile in the new file does not match the original on at least one image.",
-                            ErrorSeverity.Medium,
-                            ErrorType.Metadata
-                        );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                        break;
-                    case false when res:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
-                        break;
                 }
                 
             }
 
             if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
             {
-                var res = false;
-                var exceptionOccurred = false;
-
-                try
+                if (equalNumberOfImages)
                 {
-                    res = TransparencyComparison.GeneralDocsToPdfTransparencyComparison(oImages, nImages);
+                    BasePipeline.CheckTransparency(tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2, pair);
                 }
-                catch (Exception)
+                else
                 {
-                    exceptionOccurred = true;
                     error = new Error(
-                        "Error comparing transparency in odt contained images",
-                        "There occurred an error while comparing transparency" +
-                        " of the images contained in the odt.",
-                        ErrorSeverity.Medium,
-                        ErrorType.Metadata
+                        "Unequal number of images",
+                        "The comparison of transparency could not be performed " +
+                        "because the number of images in the original and new file is different.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                }
-
-                switch (exceptionOccurred)
-                {
-                    case false when !res:
-                        error = new Error(
-                            "Difference of transparency detected in images contained in the odt",
-                            "The images contained in the docx and pdf files did not pass Transparency comparison.",
-                            ErrorSeverity.Medium,
-                            ErrorType.Visual
-                        );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                        break;
-                    case false when res:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
-                        break;
                 }
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
             {
-                ExtractedImageMetadata.CompareExtractedImages(pair, oImages, nImages);
+                if (equalNumberOfImages)
+                {
+                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2);
+                }
+                else
+                {
+                    error = new Error(
+                        "Unequal number of images",
+                        "The comparison of extracted image metadata could not be performed " +
+                        "because the number of images in the original and new file is different.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                }
             }
             
-            ImageExtraction.DisposeMagickImages(oImages);
+            BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

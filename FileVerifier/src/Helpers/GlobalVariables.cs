@@ -2,6 +2,7 @@ using System.IO.Abstractions;
 using System.Threading;
 using AvaloniaDraft.Logger;
 using AvaloniaDraft.ComparingMethods.ExifTool;
+using AvaloniaDraft.FileManager;
 
 namespace AvaloniaDraft.Helpers;
 
@@ -13,6 +14,7 @@ public static class GlobalVariables
     public static Options.Options Options { get; set; }
     public static Logger.Logger Logger { get; set; }
     public static object ImageExtractionLock { get; } = new object();
+    public static Paths Paths { get; set; } = new Paths();
 
     static GlobalVariables()
     {

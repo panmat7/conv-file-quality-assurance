@@ -16,6 +16,8 @@ namespace AvaloniaDraft.Views;
 
 public partial class HomeView : UserControl
 {
+    private bool AutoStartVerification { get; set; }
+    
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
     private bool Working { get; set; } = false;
@@ -34,6 +36,8 @@ public partial class HomeView : UserControl
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
         DataContext = new SettingsViewModel();
+
+        LoadPaths();
     }
 
     private async void InputButton_OnClick(object? sender, RoutedEventArgs e)
@@ -57,18 +61,42 @@ public partial class HomeView : UserControl
                 case "InputButton":
                     InputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     InputButton.Content = "Selected";
+                    GlobalVariables.Paths.OriginalFilesPath = InputPath;
                     break;
                 case "OutputButton":
                     OutputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     OutputButton.Content = "Selected";
+                    GlobalVariables.Paths.NewFilesPath = OutputPath;
                     break;
             }
+            GlobalVariables.Paths.SavePaths();
         }
         else
         {
             //TODO: Please select folder message
         }
     }
+
+
+    private void LoadPaths()
+    {
+        GlobalVariables.Paths.LoadPaths();
+        var oPath = GlobalVariables.Paths.OriginalFilesPath;
+        var nPath = GlobalVariables.Paths.NewFilesPath;
+
+        if (oPath != null)
+        {
+            InputPath = oPath;
+            InputButton.Content = "Selected";
+        }
+
+        if (nPath != null)
+        {
+            OutputPath = nPath;
+            OutputButton.Content = "Selected";
+        }
+    }
+
 
     private void InputButton_OnPointerEntered(object? sender, PointerEventArgs e)
     {
@@ -102,29 +130,20 @@ public partial class HomeView : UserControl
 
     private async void Start_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (Working || GlobalVariables.FileManager == null) return;
-        
-        Working = true;
-        
-        StartButton.IsEnabled = false;
-        LoadButton.IsEnabled = false;
-        
-        OverwriteConsole(null);
-
-        GlobalVariables.Logger.Start();
-        await Task.Run(async () =>
+        try
         {
-            GlobalVariables.FileManager.StartVerification();
-        });
-        
-        LoadButton.IsEnabled = true;
-
-        GlobalVariables.Logger.Finish();
-        GlobalVariables.Logger.SaveReport();
-        AppendConsole("End report written.");
-        Trace.WriteLine("Finished");
-
-        Working = false;
+            await StartVerificationProcess();
+        }
+        catch (Exception err)
+        {
+            System.Console.WriteLine(err);
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow =
+                    new ErrorWindow("An error occured when starting the verification process.");
+                errWindow.ShowDialog((VisualRoot as Window)!);
+            });
+        }
     }
 
     
@@ -137,6 +156,8 @@ public partial class HomeView : UserControl
 
         var loadingWindow = new LoadingView();
 
+        loadingWindow.AutoStartChanged += LoadingWindow_AutoStartChanged;
+        
         try
         {
             loadingWindow.Show();
@@ -162,7 +183,12 @@ public partial class HomeView : UserControl
 
             try
             {
-                if (GlobalVariables.FileManager != null)
+                if (AutoStartVerification)
+                {
+                    await StartVerificationProcess();
+                    AutoStartVerification = false;
+                }
+                else if (GlobalVariables.FileManager != null)
                 {
                     var ignoredFilesWindow = new IgnoredFilesView(
                         GlobalVariables.FileManager.GetFilePairs().Count, GlobalVariables.FileManager.IgnoredFiles);
@@ -172,9 +198,62 @@ public partial class HomeView : UserControl
             catch (Exception exception)
             {
                 System.Console.WriteLine(exception);
-                throw;
             }
         }
+    }
+    
+    private void LoadingWindow_AutoStartChanged(object? sender, bool e)
+    {
+        AutoStartVerification = e;
+    }
+
+    private Task StartVerificationProcess()
+    {
+        return Task.Run(async () =>
+        {
+            try
+            {
+                if (Working || GlobalVariables.FileManager == null) return;
+
+                Working = true;
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    StartButton.IsEnabled = false;
+                    LoadButton.IsEnabled = false;
+                    OverwriteConsole(null);
+                });
+
+                GlobalVariables.Logger.Start();
+
+                await Task.Run(() =>
+                {
+                    GlobalVariables.FileManager.StartVerification();
+                });
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    LoadButton.IsEnabled = true;
+                });
+
+                GlobalVariables.Logger.Finish();
+                GlobalVariables.Logger.SaveReport();
+                AppendConsole("End report written.");
+                Trace.WriteLine("Finished");
+
+                Working = false;
+            }
+            catch (Exception err)
+            {
+                System.Console.WriteLine(err);
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    var errWindow =
+                        new ErrorWindow("An error occured when starting the verification process.");
+                    errWindow.ShowDialog((VisualRoot as Window)!);
+                });
+            }
+        });
     }
     
     private void PerformBackgroundWork()
@@ -182,6 +261,8 @@ public partial class HomeView : UserControl
         try
         {
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+            GlobalVariables.FileManager.GetSiegfriedFormats();
+            GlobalVariables.FileManager.FilterOutDisabledFileFormats();
             SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
         }
         catch (InvalidOperationException err)
@@ -205,11 +286,14 @@ public partial class HomeView : UserControl
             });
             return;
         }
-        GlobalVariables.FileManager.GetSiegfriedFormats();
         GlobalVariables.FileManager.WritePairs();
         OverwriteConsole("The following pairs were formed:\n" + GlobalVariables.FileManager.GetPairFormats());
     }
 
+    /// <summary>
+    /// Increments the number of files done
+    /// </summary>
+    /// <param name="count"></param>
     private void SetFileCount(int count)
     {
         lock (_lock)
@@ -218,6 +302,9 @@ public partial class HomeView : UserControl
         }
     }
 
+    /// <summary>
+    /// Resets the progress bar to 0
+    /// </summary>
     private void ResetProgress()
     {
         lock (_lock)
@@ -230,19 +317,29 @@ public partial class HomeView : UserControl
         }
     }
     
+    /// <summary>
+    /// Marks a file as done and updates console progress 
+    /// </summary>
     private void FileDone()
     {
         lock (_lock)
         {
             FilesDone++;
-            
-            Dispatcher.UIThread.Post(() =>
+            var progress = (FilesDone / (double)FileCount) * 100; //Progressing in 1% increments to avoid ui updates
+            if ((int)progress > (int)ProgressBar.Value)
             {
-                ProgressBar.Value = (FilesDone / (double)FileCount) * 100;
-            });
+                Dispatcher.UIThread.Post(() =>
+                {
+                    ProgressBar.Value = (FilesDone / (double)FileCount) * 100;
+                });
+            }
         }
     }
-    
+
+    /// <summary>
+    /// Appends the message to console.
+    /// </summary>
+    /// <param name="message">Message to be appended.</param>
     private void AppendConsole(string message)
     {
         Dispatcher.UIThread.Post(() =>
@@ -252,6 +349,10 @@ public partial class HomeView : UserControl
         });
     }
 
+    /// <summary>
+    /// Overwrites the console with a message, or resets it.
+    /// </summary>
+    /// <param name="message">Message to overwrite with, null just remove all content.</param>
     private void OverwriteConsole(string? message)
     {
         Dispatcher.UIThread.Post(() =>
