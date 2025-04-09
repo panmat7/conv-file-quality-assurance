@@ -96,7 +96,7 @@ dotnet build
     - In the settings tab you can ignore File formats to verify.
 
 
-The Settings tab
+The Settings tab:
 ![Home Screen](https://github.com/panmat7/conv-file-quality-assurance/blob/main/Settings.png?raw=true)
 
 
