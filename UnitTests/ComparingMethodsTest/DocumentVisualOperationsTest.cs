@@ -49,7 +49,7 @@ public class DocumentVisualOperationsTest
         var rects3 = DocumentVisualOperations.SegmentDocumentImage(file3);
         var rects4 = DocumentVisualOperations.SegmentDocumentImage(path4);
         var rects5 = DocumentVisualOperations.SegmentDocumentImage("Not real");
-        var rects6 = DocumentVisualOperations.SegmentDocumentImage([]);
+        var rects6 = DocumentVisualOperations.SegmentDocumentImage(path4);
 
         if(rects5 is not null || rects6 is not null) Assert.Fail();
         
