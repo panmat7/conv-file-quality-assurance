@@ -102,10 +102,8 @@ The Settings tab:
 
 4. Click the "Start" button to start the verfication process. 
 
-5. After the process is done, a JSON report will be genereated in the reports folder:
-```sh
-conv-file-quality-assurance\FileVerifier\reports
-```
+5. After the process is done, a JSON report will be genereated in the reports folder. The folder will be generated in the working directory.
+
 6. To view the report in the application go to the "Report" tab click the "Load from JSON" button and choose the report.
 
 The Report tab with an JSON report imported:
