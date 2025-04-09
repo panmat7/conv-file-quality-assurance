@@ -17,7 +17,7 @@ The checks consists of metadata, size, color space, pixelvalue, fonts, number of
 
 * Animations: Checks if presenting formats include animations.
 
-* Image resolution: Checks for different resolkution in images
+* Image resolution: Checks for different resolution in images.
 
 * Visual Document comparison: 
 
@@ -44,9 +44,8 @@ The checks consists of metadata, size, color space, pixelvalue, fonts, number of
 
 ## Windows
 ### Dependencies Windows
-- .NET 8+
-- Siegfried 
-- Other dependencies
+* .NET 8+
+* Siegfried 
 
 ### Installation Windows
 1. Install .Net 8 from Microsoft's website (https://dotnet.microsoft.com/en-us/download)
@@ -60,10 +59,10 @@ git clone https://github.com/panmat7/conv-file-quality-assurance.git
 
 ## Ubuntu 22.04
 ### Dependencies Ubuntu
-- .NET 8+
-- Siegfried
-- Emgu.cv - Emgu.cv 
-- ExifTool
+* .NET 8+
+* Siegfried
+* Emgu.cv - Emgu.cv 
+* ExifTool
 
 ### Installation Ubuntu
 1. Install Siegfried from their website (https://www.itforarchivists.com/)
@@ -86,7 +85,7 @@ dotnet build
 ### Usage NB!
 
 * The console window will print the progress of the verification every 5 minutes, and a estimated time left.
-* 
+* The loading process may take a while.
 
 
 ### Usage guide
@@ -96,15 +95,19 @@ dotnet build
 3. Use the Quick settings or the "Settings" tab to choose what comparison methods you want to run. 
     - In the settings tab you can ignore File formats to verify.
 
-Example of the settigns tab:
+
+The Settings tab
 ![Home Screen](https://github.com/panmat7/conv-file-quality-assurance/blob/main/Settings.png?raw=true)
+
+
 4. Click the "Start" button to start the verfication process. 
+
 5. After the process is done, a JSON report will be genereated in the reports folder:
 ```sh
 conv-file-quality-assurance\FileVerifier\reports
 ```
 6. To view the report in the application go to the "Report" tab click the "Load from JSON" button and choose the report.
 
-Example of the Report tab with an JSON reported:
+The Report tab with an JSON report imported:
 ![Home Screen](https://github.com/panmat7/conv-file-quality-assurance/blob/main/ReportTab.png?raw=true)
 
