@@ -2,6 +2,7 @@
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -84,10 +85,8 @@ public static class WordFontExtraction
     /// <returns></returns>
     private static string? GetColor(Color? col, ThemePart? themePart)
     {
-        var hex = col?.Val?.Value;
-        if (hex != null) return hex;
-
-
+        var valHex = col?.Val?.Value;
+        if (valHex != null) return valHex;
 
         var themeCol = col?.ThemeColor?.Value;
 
@@ -98,7 +97,10 @@ public static class WordFontExtraction
         var scheme = themePart?.Theme?.ThemeElements?.ColorScheme;
         if (scheme == null) return null;
 
-        return themColString.ToLower() switch
+        var themeTint = col?.ThemeTint?.Value;
+        var themeShade = col?.ThemeShade?.Value;
+
+        var themeColHex = themColString.ToLower() switch
         {
             "accent1" => scheme.Accent1Color?.RgbColorModelHex?.Val?.Value,
             "accent2" => scheme.Accent2Color?.RgbColorModelHex?.Val?.Value,
@@ -117,6 +119,80 @@ public static class WordFontExtraction
 
             _ => null,
         };
+
+        return GetThemeColor(themeColHex, themeShade, themeTint);
+    }
+
+
+    /// <summary>
+    /// Get the theme colro with the theme tint and theme shade applied
+    /// </summary>
+    /// <param name="themeHex"></param>
+    /// <param name="themeShade"></param>
+    /// <param name="themeTint"></param>
+    /// <returns></returns>
+    private static string? GetThemeColor(string? themeHex, string? themeShade, string? themeTint)
+    {
+        if (themeHex == null) return null;
+
+        var r = Convert.ToInt32(themeHex.Substring(0, 2), 16);
+        var g = Convert.ToInt32(themeHex.Substring(2, 2), 16);
+        var b = Convert.ToInt32(themeHex.Substring(4, 2), 16);
+
+        try
+        {
+            var themeTintFactor = int.Parse(themeTint, System.Globalization.NumberStyles.HexNumber) / 255.0;
+            r *= ApplyThemeTint(r, themeTintFactor);
+            g *= ApplyThemeTint(g, themeTintFactor);
+            b *= ApplyThemeTint(b, themeTintFactor);
+
+            return FontComparison.GetHex((r, g, b));
+        }
+        catch
+        {
+            // Nothing
+        }
+
+        try
+        {
+            var themeShadeFactor = int.Parse(themeShade, System.Globalization.NumberStyles.HexNumber) / 255.0;
+            r = ApplyThemeShade(r, themeShadeFactor);
+            g = ApplyThemeShade(g, themeShadeFactor);
+            b = ApplyThemeShade(b, themeShadeFactor);
+
+            return FontComparison.GetHex((r, g, b));
+        }
+        catch
+        {
+            // Nothing
+        }
+
+        return null;
+    }
+
+
+
+    /// <summary>
+    /// Apply a theme tint
+    /// </summary>
+    /// <param name="c"></param>
+    /// <param name="tint"></param>
+    /// <returns></returns>
+    private static int ApplyThemeTint(int c, double tint)
+    {
+        return (int)((1.0 - tint) * (255 - c) + c);
+    }
+
+
+    /// <summary>
+    /// Apply a theme shade
+    /// </summary>
+    /// <param name="c"></param>
+    /// <param name="shade"></param>
+    /// <returns></returns>
+    private static int ApplyThemeShade(int c, double shade)
+    {
+        return (int)((1.0 - shade) * c);
     }
 
 
