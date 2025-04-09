@@ -2,6 +2,8 @@
 This application performs quality checks on files mostly for files converted from a fileformat to an archival format. 
 The checks consists of metadata, size, color space, pixelvalue, fonts, number of pages and animations. 
 
+![Home Screen](https://github.com/panmat7/conv-file-quality-assurance/blob/main/Program.png?raw=true)
+
 ## Comparing methods
 * File Size: Compares the file sizes of each file.
 
@@ -32,11 +34,11 @@ The checks consists of metadata, size, color space, pixelvalue, fonts, number of
 
 ## Supported file formats
 
-![Supported File formats](https://github.com/panmat7/conv-file-quality-assurance/blob/pbp/SupportedFileFormats.png?raw=true)
+![Supported File formats](https://github.com/panmat7/conv-file-quality-assurance/blob/main/SupportedFileFormats.png?raw=true)
 
 ## Supported comparison methods
 
-![Supported Comparison methods](https://github.com/panmat7/conv-file-quality-assurance/blob/pbp/SupportedComparisonMethods.png?raw=true)
+![Supported Comparison methods](https://github.com/panmat7/conv-file-quality-assurance/blob/main/SupportedComparisonMethods.png?raw=true)
 
 
 
@@ -66,7 +68,7 @@ git clone https://github.com/panmat7/conv-file-quality-assurance.git
 ### Installation Ubuntu
 1. Install Siegfried from their website (https://www.itforarchivists.com/)
 2. Install Emgu.cv (https://www.emgu.com/wiki/index.php/Download_And_Installation)
- - If you can't run the Point by point comparison, check for missing dependencies (https://www.emgu.com/wiki/index.php/Download_And_Installation#System.DllNotFoundException)
+    - If you can't run the Point by point or Visual document comparison, check for missing dependencies (https://www.emgu.com/wiki/index.php/Download_And_Installation#System.DllNotFoundException)
 3. Install ExifTool (https://exiftool.org/install.html#Unix)
 
 4. Clone the repository 
@@ -83,17 +85,26 @@ dotnet build
 ## Usage
 ### Usage NB!
 
+* The console window will print the progress of the verification every 5 minutes, and a estimated time left.
+* 
+
 
 ### Usage guide
 
 1. Choose the folder for original files, and for the new files.
 2. Click the "Load" button to create the file pairs.
 3. Use the Quick settings or the "Settings" tab to choose what comparison methods you want to run. 
- - In the settings tab you can ignore File formats to verify.
+    - In the settings tab you can ignore File formats to verify.
+
+Example of the settigns tab:
+![Home Screen](https://github.com/panmat7/conv-file-quality-assurance/blob/main/Settings.png?raw=true)
 4. Click the "Start" button to start the verfication process. 
 5. After the process is done, a JSON report will be genereated in the reports folder:
 ```sh
 conv-file-quality-assurance\FileVerifier\reports
 ```
 6. To view the report in the application go to the "Report" tab click the "Load from JSON" button and choose the report.
+
+Example of the Report tab with an JSON reported:
+![Home Screen](https://github.com/panmat7/conv-file-quality-assurance/blob/main/ReportTab.png?raw=true)
 
