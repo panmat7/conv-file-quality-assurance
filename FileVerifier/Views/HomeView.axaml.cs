@@ -1,9 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.OpenGL.Surfaces;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using AvaloniaDraft.Helpers;
@@ -143,6 +146,8 @@ public partial class HomeView : UserControl
         }
     }
 
+    
+
     private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
     {
         ResetProgress();
@@ -233,6 +238,7 @@ public partial class HomeView : UserControl
 
                 GlobalVariables.Logger.Finish();
                 GlobalVariables.Logger.SaveReport();
+                AppendConsole("End report written.");
                 Trace.WriteLine("Finished");
 
                 Working = false;
@@ -264,7 +270,7 @@ public partial class HomeView : UserControl
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var errWindow = new ErrorWindow(
-                    "Duplicate file names in the input or output folder! Ensure all files have unique names, matching their converted counterpart."
+                    "Duplicate file names in the folder containing converted files! Ensure all files have unique names, matching their original counterpart."
                 );
                 errWindow.ShowDialog((this.VisualRoot as Window)!);
             });
@@ -281,8 +287,13 @@ public partial class HomeView : UserControl
             return;
         }
         GlobalVariables.FileManager.WritePairs();
+        OverwriteConsole("The following pairs were formed:\n" + GlobalVariables.FileManager.GetPairFormats());
     }
 
+    /// <summary>
+    /// Increments the number of files done
+    /// </summary>
+    /// <param name="count"></param>
     private void SetFileCount(int count)
     {
         lock (_lock)
@@ -291,6 +302,9 @@ public partial class HomeView : UserControl
         }
     }
 
+    /// <summary>
+    /// Resets the progress bar to 0
+    /// </summary>
     private void ResetProgress()
     {
         lock (_lock)
@@ -303,33 +317,51 @@ public partial class HomeView : UserControl
         }
     }
     
+    /// <summary>
+    /// Marks a file as done and updates console progress 
+    /// </summary>
     private void FileDone()
     {
         lock (_lock)
         {
             FilesDone++;
-            
-            Dispatcher.UIThread.Post(() =>
+            var progress = (FilesDone / (double)FileCount) * 100; //Progressing in 1% increments to avoid ui updates
+            if ((int)progress > (int)ProgressBar.Value)
             {
-                ProgressBar.Value = (FilesDone / (double)FileCount) * 100;
-            });
+                Dispatcher.UIThread.Post(() =>
+                {
+                    ProgressBar.Value = (FilesDone / (double)FileCount) * 100;
+                });
+            }
         }
     }
 
+    /// <summary>
+    /// Appends the message to console.
+    /// </summary>
+    /// <param name="message">Message to be appended.</param>
     private void AppendConsole(string message)
     {
         Dispatcher.UIThread.Post(() =>
         {
             Console.Text += message + Environment.NewLine;
+            Console.CaretIndex = Console.Text.Length;
         });
     }
 
+    /// <summary>
+    /// Overwrites the console with a message, or resets it.
+    /// </summary>
+    /// <param name="message">Message to overwrite with, null just remove all content.</param>
     private void OverwriteConsole(string? message)
     {
-        Console.Text = null;
+        Dispatcher.UIThread.Post(() =>
+        {
+            Console.Text = null;
 
-        if (message != null)
-            AppendConsole(message);
+            if (message != null)
+                AppendConsole(message);
+        });
     }
 }
 

@@ -10,9 +10,16 @@ using System.Xml.Linq;
 using AvaloniaDraft.Helpers;
 using MimeKit;
 using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.Graphics;
 using RtfDomParser;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Tiff;
+using SixLabors.ImageSharp;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -50,7 +57,7 @@ public static class ImageExtraction
         foreach (var page in pdfDocument.GetPages())
         {
             var images = page.GetImages().ToList();
-    
+            
             // Only extract images that are not already in the hash set
             extractedImages.AddRange(from image in images
                 let hash = ComputeHash(image.RawBytes)
@@ -614,8 +621,8 @@ public static class ImageExtraction
     /// </summary>
     /// <param name="image">The MagickImage object to be saved.</param>
     /// <param name="oFormat">Format of the original, using which the object will be encoded.</param>
-    /// <returns>A tuple containing the path to the file and its expected PRONOM code.</returns>
-    public static (string, string)? SaveExtractedImageToDisk(MagickImage image, MagickFormat oFormat)
+    /// <returns>A tuple containing the path to the file and its expected PRONOM code, null if an error occured</returns>
+    public static (string, string)? SaveExtractedMagickImageToDisk(MagickImage image, MagickFormat oFormat)
     {
         try
         {
@@ -726,5 +733,64 @@ public static class ImageExtraction
         var nFiles = Directory.GetFiles(dir2).ToArray();
         
         return oFiles.Length == nFiles.Length;
+    }
+
+    /// <summary>
+    /// Saves an IPdfImage object to an actual image on disk.
+    /// </summary>
+    /// <param name="image">The image to be saved.</param>
+    /// <returns>A tuple containing the path to the file and its expected PRONOM code, null if an error occured.</returns>
+    public static (string, string)? SaveExtractedIPdfImageToDisk(IPdfImage image)
+    {
+        try
+        {
+            var format = FormatDeterminer.GetImageFormat(image.RawBytes.ToArray());
+            string expectedPronom; //Note that this might not be the exact code, but it should serve to distinguish format group.
+            IImageEncoder encoder;
+
+            switch (format)
+            {
+                case ".jpeg": 
+                    encoder = new JpegEncoder(); 
+                    expectedPronom = FormatCodes.PronomCodesJPEG.FormatCodes[0];
+                    break;
+                case ".png": 
+                    encoder = new PngEncoder(); 
+                    expectedPronom = FormatCodes.PronomCodesPNG.FormatCodes[0];
+                    break;
+                case ".bmp": 
+                    encoder = new BmpEncoder(); 
+                    expectedPronom = FormatCodes.PronomCodesBMP.FormatCodes[0];
+                    break;
+                case ".gif": 
+                    encoder = new GifEncoder(); 
+                    expectedPronom = FormatCodes.PronomCodesGIF.FormatCodes[0];
+                    break;
+                case ".tiff": 
+                    encoder = new TiffEncoder(); 
+                    expectedPronom = FormatCodes.PronomCodesTIFF.FormatCodes[0];
+                    break;
+                default: return null;
+            }
+            
+            var tempDirs = GlobalVariables.FileManager!.GetTempDirectories();
+
+            using var ms = new MemoryStream();
+            using (var img = Image.Load(image.RawBytes))
+            {
+                img.Save(ms, encoder);
+            }
+                
+            var path = TempFiles.CreateTemporaryFile(ms.ToArray(), tempDirs.Item2);
+            
+
+            if (path == null) return null;
+
+            return (path, expectedPronom);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

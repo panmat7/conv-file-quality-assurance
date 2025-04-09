@@ -34,9 +34,7 @@ public static class HtmlPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
-
-            e.AddRange(ComperingMethods.CompareFonts(pair));
+            ComperingMethods.CompareFonts(pair);
 
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading;
+using Avalonia.Threading;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.ComparisonPipelines;
 using AvaloniaDraft.Helpers;
@@ -115,6 +115,9 @@ public sealed class FileManager
     private static readonly object Lock = new object();
     private static readonly object ListLock = new object();
     private readonly List<Thread> _threads = [];
+    
+    //Progress reporting
+    private DateTime _startTime;
     
     public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
     {
@@ -268,6 +271,9 @@ public sealed class FileManager
     public void StartVerification()
     {
         var maxThreads = GlobalVariables.Options.SpecifiedThreadCount ?? 8;
+        _startTime = DateTime.Now;
+        var timer = new Timer(WriteProgressToConsole, null, (int)TimeSpan.FromMinutes(5).TotalMilliseconds, 
+            (int)TimeSpan.FromMinutes(5).TotalMilliseconds);
         
         //Continuing until done with all files
         while (true)
@@ -304,13 +310,10 @@ public sealed class FileManager
             
             Thread.Sleep(150);
         }
-
+    
         AwaitThreads(); //Awaiting all remaining threads
-        
-        foreach (var file in _filePairs)
-        {
-            Console.WriteLine($"This file is verified: {file.Done}");
-        }
+        UiControlService.Instance.AppendToConsole("\n" + $@"Verification completed in {(DateTime.Now - _startTime):hh\:mm\:ss}." + "\n");
+        timer.Dispose();
     }
     
     /// <summary>
@@ -447,11 +450,57 @@ public sealed class FileManager
         {
             Console.WriteLine($"{file}");
         }
-        
-        
-        foreach (KeyValuePair<string, Tuple<string, int>> kvp in pronomFormat)
+    }
+    
+    /// <summary>
+    /// Writes the current progress to console, used as a callback for a timer
+    /// </summary>
+    private void WriteProgressToConsole(object? state)
+    {
+        var filesDone = _filePairs.Count(p => p.Done);
+        var time = DateTime.Now - _startTime;
+        var estimate = TimeSpan.Zero;
+
+        if (filesDone > 0)
         {
-            UiControlService.Instance.OverwriteConsoleOutput($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
+            estimate = (time / filesDone) * (filesDone - _filePairs.Count); 
         }
+        
+        var msg = $"Files completed: {filesDone}/{_filePairs.Count}, " +
+            $@"time elapsed: {time:hh\:mm\:ss}. Estimated time to completion: {estimate:hh\:mm\:ss}";
+        UiControlService.Instance.AppendToConsole(msg);
+    }
+    
+    /// <summary>
+    /// Returns a string detailing the formats for pairs.
+    /// </summary>
+    public string GetPairFormats()
+    {
+        var pairs = new Dictionary<string, int>();
+
+        foreach (var pair in _filePairs)
+        {
+            try
+            {
+                var oCode = FormatCodes.AllCodes
+                    .First(c => c.PronomCodes.Contains(pair.OriginalFileFormat))
+                    .FormatCodes.FirstOrDefault() ?? "unk.";
+                var nCode = FormatCodes.AllCodes
+                    .First(c => c.PronomCodes.Contains(pair.NewFileFormat))
+                    .FormatCodes.FirstOrDefault() ?? "unk.";
+
+                var key = $"{oCode} - {nCode}";
+                if (!pairs.TryAdd(key, 1))
+                    pairs[key] += 1;
+            }
+            catch
+            {
+                var key = "unk.-unk.";
+                if (!pairs.TryAdd(key, 1))
+                    pairs[key] += 1;
+            }
+        }
+        
+        return string.Join("\n", pairs.Select(pair => $"{pair.Key}:  {pair.Value}"));
     }
 }
