@@ -78,8 +78,8 @@ public class Logger
 {
     public int FileComparisonCount { get; set; }
     public int FileComparisonsFailed { get; set; }
-    public Stopwatch Stopwatch { get; set; }
-    public List<ComparisonResult> Results { get; set; }
+    public Stopwatch Stopwatch { get; set; } = new();
+    public List<ComparisonResult> Results { get; set; } = [];
 
     private bool Active { get; set; }
     private bool Finished { get; set; }
@@ -186,12 +186,7 @@ public class Logger
 
         if (dir == null) return;
 
-        var name = DateTime.Now.ToString();
-        name = name.Replace(' ', '_');
-        name = name.Replace('.', '-');
-        name = name.Replace('/', '-');
-        name = name.Replace(':', '-');
-        name += ".json";
+        var name = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".json";
         var path = Path.Join(dir, name);
 
         ExportJSON(path);
