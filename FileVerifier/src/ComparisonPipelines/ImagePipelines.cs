@@ -316,7 +316,9 @@ public static class ImagePipelines
                         )
                     ]);
                     
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: [
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, 
+                        comments: ["This test was preformed on an extracted image."],
+                        errors: [
                         new Error(
                             "Could not read metadata",
                             "There occurred an error when trying to read the metadata of the image file.",
@@ -327,10 +329,13 @@ public static class ImagePipelines
                 }
                 else if (res.Count > 0)
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: res);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, 
+                        comments: ["This test was preformed on an extracted image."],
+                        errors: res);
                 }
                 else
-                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Metadata.Name, true);
+                    GlobalVariables.Logger.AddTestResult(pair, Helpers.Methods.Metadata.Name, true,
+                    comments: ["This test was preformed on an extracted image."]);
             }
     
             if(GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name) && pairWithTemp != null)

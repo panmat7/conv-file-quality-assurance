@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.Marshalling;
+using AvaloniaDraft.Helpers;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
@@ -74,7 +75,7 @@ public static class DocumentVisualOperations
             CvInvoke.CvtColor(img, grayscale, ColorConversion.Bgr2Gray);
             
             Console.WriteLine(CvInvoke.Mean(grayscale).V0);
-            var darkBackground = HasLightBackground(CvInvoke.Mean(grayscale).V0);
+            var lightBackground = HasLightBackground(CvInvoke.Mean(grayscale).V0);
 
             var threshold = new Mat();
             //Finding best threshold using Otsu
@@ -82,7 +83,7 @@ public static class DocumentVisualOperations
             
             //Thresholding
             CvInvoke.Threshold(grayscale, threshold, thresholdValue, 255,
-                !darkBackground ? ThresholdType.Binary : ThresholdType.BinaryInv); //Using BinaryInv for light and Binary for dark backgrounds
+                lightBackground ? ThresholdType.BinaryInv : ThresholdType.Binary); //Using BinaryInv for light and Binary for dark backgrounds
 
             //Morphing to connect parts together
             var kernel = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(5, 5), new Point(-1, -1));
@@ -277,6 +278,32 @@ public static class DocumentVisualOperations
             return null;
         }
     }
+    
+    /// <summary>
+    /// Separates out the segments based on the given rectangles and returns them as bytes.
+    /// </summary>
+    /// <param name="imageBytes">Image to be segmented.</param>
+    /// <param name="rect">Segment coordinates.</param>
+    /// <returns>List of all segment pictures, or null if an error occured.</returns>
+    public static byte[]? GetSegmentPictures(byte[] imageBytes, Rectangle rect)
+    {
+        try
+        {
+            var img = new Mat();
+            CvInvoke.Imdecode(imageBytes, ImreadModes.Unchanged, img);
+            
+            var cropped = new Mat(img, rect);
+            var buf = new VectorOfByte();
+
+            CvInvoke.Imencode(".png", cropped, buf);
+
+            return buf.ToArray();
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     /// <summary>
     /// Determines whether the image should be considered having a light background. 
@@ -307,33 +334,246 @@ public static class DocumentVisualOperations
         
         return result;
     }
-    
-    /*
-    public static double DetermineSegmentRelevance(byte[] seg)
+
+    /// <summary>
+    /// Determine whether a segment is relevant for pixel-to-pixel comparison based on histogram analysis and edge density.
+    /// </summary>
+    /// <param name="seg">Segment to be considered.</param>
+    /// <returns>True/False, null if an error occured.</returns>
+    public static bool? DetermineSegmentRelevance(byte[] seg)
     {
-        var img = new Mat();
-        CvInvoke.Imdecode(seg, ImreadModes.Unchanged, img);
+        try
+        {
+            var img = new Mat();
+            CvInvoke.Imdecode(seg, ImreadModes.Unchanged, img);
 
-        var edges = new Mat();
-        CvInvoke.Canny(img, edges, 50, 150);
+            using var grayImg = img.ToImage<Gray, byte>();
+            
+            var pixels = new float[grayImg.Width * grayImg.Height];
+
+            for (var i = 0; i < grayImg.Height; i++)
+            {
+                for (var j = 0; j < grayImg.Width; j++)
+                {
+                    // Get the grayscale pixel value directly (no need for R, G, B averaging)
+                    pixels[i * grayImg.Width + j] = (float)grayImg[i, j].Intensity;
+                }
+            }
+
+            const int bins = 64;
+            var hist = new int[bins];
+            var normalizedHist = new float[bins];
+
+            foreach (var p in pixels)
+            {
+                var index = (int)(p / 256f * bins);
+                hist[index]++;
+            }
+
+            for (var i = 0; i < hist.Length; i++)
+                normalizedHist[i] = hist[i] / (float)pixels.Length;
+            
+            //Getting peaks
+            var peaks = GetPeaks(normalizedHist);
+
+            //Edge density
+            const double densityThreshold = 45.0;
+            var density = GetEdgeDensity(grayImg);
+            
+
+            //Histogram entropy
+            const double entropyThreshold = 3.5;
+            var entropy = GetHistogramEntropy(normalizedHist);
+
+            if (entropy < entropyThreshold || density > densityThreshold) return false;
+            
+            if (peaks.Count == 1 && normalizedHist[peaks[0]] > 0.5f) return false;
+            
+            return true;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Finds peaks in a histogram
+    /// </summary>
+    /// <returns>List of the indexes containing the peaks.</returns>
+    private static List<int> GetPeaks(float[] histogram)
+    {
+        var peaks = new List<int>();
         
-        var contours = new VectorOfVectorOfPoint();
-        var hier = new Mat();
-        CvInvoke.FindContours(edges, contours, hier, RetrType.List, ChainApproxMethod.ChainApproxSimple);
+        for (var i = 1; i < histogram.Length - 1; i++)
+        {
+            if(histogram[i] > histogram[i - 1] && histogram[i] > histogram[i + 1] && histogram[i] > 0.3) //Filtering out the smallest
+                peaks.Add(i);
+        }
+            
+        if(histogram[0] > .3f && histogram[0] > histogram[1]) peaks.Add(0);
+        if(histogram[^1] > .3f && histogram[^1] > histogram[^2]) peaks.Add(histogram.Length-1);
 
-        var density = EdgeDensity(edges);
+        return peaks;
+    }
+    
+    /// <summary>
+    /// Calculating the entropy estimation for a histogram
+    /// </summary>
+    /// <returns>The entropy of the histogram.</returns>
+    private static double GetHistogramEntropy(float[] histogram)
+    {
+        var entropy = 0.0;
+        for (var i = 0; i < histogram.Length; i++)
+        {
+            if (histogram[i] > 0.0)
+            {
+                entropy -= histogram[i] * Math.Log(histogram[i], 2);
+            }
+        }
         
-        Console.Error.WriteLine(density);
+        return entropy;
+    }
 
+    /// <summary>
+    /// Calculates the edge density of an grayscale image using Sobel.
+    /// </summary>
+    /// <returns>The edge density of the image.</returns>
+    private static double GetEdgeDensity(Image<Gray, byte> img)
+    {
+        var sobel = new Mat();
+        CvInvoke.Sobel(img, sobel, DepthType.Cv16S, 1, 0);
+        CvInvoke.ConvertScaleAbs(sobel, sobel, 1, 0);
+
+        var edgeSum = CvInvoke.Sum(sobel).V0;
+        var density = edgeSum / (img.Width * img.Height);
+        
         return density;
     }
+    
+    // /// <summary>
+    // /// Determine whether a segment is relevant for pixel-to-pixel comparison based on the number of color clusters.
+    // /// </summary>
+    // /// <param name="seg">Segment to be considered.</param>
+    // /// <returns>True/False, null if an error occured.</returns>
+    // private static bool? DetermineSegmentRelevanceKMeans(byte[] seg)
+    // {
+    //     try
+    //     {
+    //         var img = new Mat();
+    //         CvInvoke.Imdecode(seg, ImreadModes.Unchanged, img);
+    //
+    //         //Converting to grayscale
+    //         var brg = new Mat();
+    //         switch (img.NumberOfChannels)
+    //         {
+    //             case 1: CvInvoke.CvtColor(img, brg, ColorConversion.Gray2Bgr); break; //Grayscale
+    //             case 3: brg = img; break; //RGB
+    //             case 4: CvInvoke.CvtColor(img, brg, ColorConversion.Bgra2Bgr); break; //RGBA
+    //             default: return null;
+    //         }
+    //
+    //         var lab = new Mat();
+    //         CvInvoke.CvtColor(brg, lab, ColorConversion.Bgr2Lab);
+    //
+    //         //Flattening
+    //         var reshaped = lab.Reshape(1, lab.Rows * lab.Cols);
+    //         reshaped.ConvertTo(reshaped, DepthType.Cv32F); //float32
+    //
+    //         var labels = new Mat();
+    //         var centers = new Mat();
+    //         const int k = 4;
+    //
+    //         CvInvoke.Kmeans(
+    //             data: reshaped,
+    //             k: k,
+    //             bestLabels: labels,
+    //             termcrit: new MCvTermCriteria(5, 0.75),
+    //             attempts: 2,
+    //             flags: KMeansInitType.PPCenters,
+    //             centers: centers
+    //         );
+    //
+    //         var counts = new int[k];
+    //         var totalPixels = labels.Rows;
+    //
+    //         unsafe
+    //         {
+    //             var labelData = (int*)labels.DataPointer.ToPointer();
+    //             for (var i = 0; i < totalPixels; i++)
+    //             {
+    //                 counts[labelData[i]]++;
+    //             }
+    //         }
+    //
+    //         Array.Sort(counts);
+    //         Array.Reverse(counts);
+    //
+    //         var dominanceRatio = (counts[0] + counts[1]) / (double)totalPixels;
+    //
+    //         var res = (dominanceRatio < 0.8) ? "DROPPED" : "KEPT";
+    //         
+    //         CvInvoke.PutText(img, res, new Point(img.Width / 2, img.Height / 2), FontFace.HersheyPlain, 2.0, new MCvScalar(255, 15, 25), 2);
+    //         CvInvoke.Imshow("img", img);
+    //         CvInvoke.WaitKey(0);
+    //         CvInvoke.DestroyAllWindows();
+    //
+    //         return dominanceRatio < 0.8;
+    //     }
+    //     catch
+    //     {
+    //         return null;
+    //     }
+    // }
 
-    private static double EdgeDensity(Mat edges)
+    /// <summary>
+    /// Creates an error list from marked pages.
+    /// </summary>
+    /// <param name="errorPages">List of hashsets containing pages for each error.</param>
+    /// <returns>List of errors.</returns>
+    public static List<Error> WriteErrors(List<HashSet<int>> errorPages)
     {
-        var pCount = CvInvoke.CountNonZero(edges);
-        var pTotal = edges.Rows * edges.Cols;
+        //Writing errors
+        var errors = new List<Error>();
+        if (errorPages[0].Count > 0)
+            errors.Add(new Error(
+                "Mismatch in detected points of interest",
+                "The original or/and new document contain points of interest that could not have been paired. " +
+                "This could be caused by added/removed noise in the resulting file, something being missing/added or " +
+                "large differences in document structure.",
+                ErrorSeverity.High,
+                ErrorType.Visual,
+                "Pages: " + string.Join(", ", errorPages[0])
+            ));
+
+        if (errorPages[1].Count > 1)
+            errors.Add(new Error(
+                "Misaligned points of interest",
+                "Some segments of the document have been moved above the allowed value.",
+                ErrorSeverity.High,
+                ErrorType.Visual,
+                "Pages: " + string.Join(", ", errorPages[1])
+            ));
         
-        return ((double)pCount / pTotal);
+        if(errorPages[2].Count > 1)
+            errors.Add(new Error(
+                "Error getting pages",
+                "There occured an error when trying to compare images of the segments visually, using Point by Point " +
+                "comparison. This is an internal error, possibly caused some issue in the file.",
+                ErrorSeverity.Medium,
+                ErrorType.FileError,
+                "Pages: " + string.Join(", ", errorPages[2])
+            ));
+        
+        if(errorPages[3].Count > 1)
+            errors.Add(new Error(
+                "Visual Segment Comparison failed",
+                "At least one segment failed the visual comparison.",
+                ErrorSeverity.High,
+                ErrorType.Visual,
+                "Pages: " + string.Join(", ", errorPages[3])
+            ));
+        
+        return errors;
     }
-    */
 }

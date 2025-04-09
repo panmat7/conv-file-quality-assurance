@@ -30,11 +30,56 @@ public static class PbpComparisonMagick
             return -1;
         }
     }
+    
+    /// <summary>
+    /// Calculates the similarity between two images by comparing their pixels.
+    /// </summary>
+    /// <param name="originalImage">Bytes of the original image.</param>
+    /// <param name="newImage">Bytes of the new image.</param>
+    /// <returns>A similarity percentage between 0 and 100, or -1 if an error occurs.</returns>
+    public static double CalculateImageSimilarity(byte[] originalImage, byte[] newImage)
+    { 
+        try
+        {
+            return CompareImagesPixelByPixel(originalImage, newImage);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in image comparison: {ex.Message}\nStack Trace: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}\nInner Stack Trace: {ex.InnerException.StackTrace}");
+            }
+            return -1;
+        }
+    }
 
     /// <summary>
     /// Compares two images on a pixel-by-pixel basis, resizing if necessary.
     /// </summary>
     private static double CompareImagesPixelByPixel(string originalFile, string newFile) 
+    {
+        using var originalImage = new MagickImage(originalFile);
+        using var newImage = new MagickImage(newFile);
+        
+        //Convert to Lab color space 
+        originalImage.ColorSpace = ColorSpace.Lab;
+        newImage.ColorSpace = ColorSpace.Lab;
+
+        // Resize the new image if necessary
+        if (originalImage.Width != newImage.Width || originalImage.Height != newImage.Height)
+        {
+            newImage.Resize(originalImage.Width, originalImage.Height);  
+            Console.WriteLine("Warning: The new image was resized to match the original. This may affect accuracy.");
+        }
+
+        return CheckDistance(originalImage, newImage);
+    }
+    
+    /// <summary>
+    /// Compares two images on a pixel-by-pixel basis, resizing if necessary.
+    /// </summary>
+    private static double CompareImagesPixelByPixel(byte[] originalFile, byte[] newFile) 
     {
         using var originalImage = new MagickImage(originalFile);
         using var newImage = new MagickImage(newFile);

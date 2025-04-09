@@ -35,7 +35,6 @@ public static class EmlPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
             Error error;
             
             var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
@@ -51,7 +50,7 @@ public static class EmlPipelines
                 if (equalNumberOfImages)
                 {
                     BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                        tempFoldersForImages.Item2, pair, e);
+                        tempFoldersForImages.Item2, pair);
                 }
                 else
                 {
@@ -63,17 +62,34 @@ public static class EmlPipelines
                         ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                    e.Add(error);
+                }
+            }
+
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            {
+                if (equalNumberOfImages)
+                {
+                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2);
+                }
+                else
+                {
+                    error = new Error(
+                        "Unequal number of images",
+                        "The comparison of extracted image metadata could not be performed " +
+                        "because the number of images in the original and new file is different.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
                 }
             }
             
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
+            ComperingMethods.CompareFonts(pair);
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
 
-            e.AddRange(ComperingMethods.CompareFonts(pair));
+            ComperingMethods.CompareFonts(pair);
 
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
