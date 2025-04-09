@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvaloniaDraft.Views.CompletedView"
+        WindowStartupLocation="CenterOwner"
+        Title="Process Completed"
+        Width="200"
+        Height="100"
+        CanResize="False">
+        
+        <Window.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#1E1E1E" Offset="0"/>
+                        <GradientStop Color="#121212" Offset="1"/>
+                </LinearGradientBrush>
+        </Window.Background>
+        
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+
+                <TextBlock Text="Process Completed" HorizontalAlignment="Center" FontSize="16"/>
+
+                <Button Name="OkButton" Click="OKButton_OnClick_" Background="#139A43" Foreground="White"
+                        BorderBrush="#0DAB76" BorderThickness="1" 
+                        Padding="20,5" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        OK
+                </Button>
+        </StackPanel>
+</Window>
