@@ -74,14 +74,26 @@ public class Options
             var ff = fld.GetValue(null);
             if (ff is FileFormat fileFormat)
             {
-                if (fileFormat.FormatCodes.Count != 1) continue;
+                var fmtCodes = fileFormat.FormatCodes;
 
-                var type = fileFormat.FormatCodes[0].ToLower();
-
-                if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
-                foreach (var fmt in fileFormat.PronomCodes)
+                if (fmtCodes.ToHashSet().SetEquals(["jpg", "jpeg"]))
                 {
-                    FileFormatsEnabled[type][fmt] = true;
+                    var type = "jpeg/jpg";
+                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                    foreach (var fmt in fileFormat.PronomCodes)
+                    {
+                        FileFormatsEnabled[type][fmt] = true;
+                    }
+                } 
+                else if (fmtCodes.Count == 1)
+                {
+                    var type = fileFormat.FormatCodes[0].ToLower();
+
+                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                    foreach (var fmt in fileFormat.PronomCodes)
+                    {
+                        FileFormatsEnabled[type][fmt] = true;
+                    }
                 }
             }
         }
