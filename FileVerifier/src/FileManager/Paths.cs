@@ -18,7 +18,9 @@ public class Paths
 {
     public string? OriginalFilesPath { get; set; }
     public string? NewFilesPath { get; set; }
-    private string? JsonPath;
+    public string? CheckpointPath { get; set; }
+
+    private readonly string? JsonPath;
 
     public Paths() 
     {

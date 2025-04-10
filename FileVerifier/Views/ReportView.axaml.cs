@@ -108,11 +108,9 @@ public partial class ReportView : UserControl
         {
             var comparisonResultexpander = CreateComparisonResultExpander(result);
 
-
-
             AllResultExpanders.Add(comparisonResultexpander);
             ResultExpanders.Add(comparisonResultexpander);
-        }   
+        }
     }
 
 

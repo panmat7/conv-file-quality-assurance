@@ -15,6 +15,8 @@ using System.Linq;
 
     public sealed class SettingsViewModel : INotifyPropertyChanged
     {
+        private bool _startFromCheckpoint;
+
         private bool _isIgnoreUnsupportedFormatsEnabled;
 
         private double _sizeComparisonThreshold;
@@ -26,7 +28,7 @@ using System.Linq;
         private bool _isPbPEnabled;
         private bool _isPageCountEnabled;
         private bool _isColorEnabled;
-        private bool _isAnimationEnabled;
+    private bool _isAnimationEnabled;
 
 
         public List<WindowSizeOption?> AvailableWindowSizes { get; } =
@@ -52,6 +54,8 @@ using System.Linq;
         
         public SettingsViewModel()
         {
+            _startFromCheckpoint = false;
+
             // Set default to the first option:
             _selectedWindowSize = AvailableWindowSizes.Skip(1).FirstOrDefault();
 
@@ -70,7 +74,20 @@ using System.Linq;
         }
 
 
-        public double SizeComparisonThreshold
+        public bool StartFromCheckpoint
+        {
+            get => _startFromCheckpoint;
+            set
+            {
+                if (_startFromCheckpoint == value) return;
+                _startFromCheckpoint = value;
+                OnPropertyChanged(nameof(StartFromCheckpoint));
+            }
+        }
+
+
+
+    public double SizeComparisonThreshold
         {
             get => _sizeComparisonThreshold;
             set

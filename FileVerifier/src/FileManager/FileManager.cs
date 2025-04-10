@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -83,6 +84,7 @@ public enum ReasonForIgnoring
 {
     Encrypted,
     Filtered,
+    AlreadyChecked,
     Corrupted,
     EncryptedOrCorrupted,
     UnsupportedFormat,
@@ -100,6 +102,7 @@ public sealed class FileManager
     private readonly string _nDirectory;
     private readonly string _tempODirectory;
     private readonly string _tempNDirectory;
+    private readonly string _checkpoint;
     internal List<IgnoredFile> IgnoredFiles { get; set; }
     private List<FilePair> _filePairs;
     private readonly List<string> _pairlessFiles;
@@ -119,12 +122,12 @@ public sealed class FileManager
     //Progress reporting
     private DateTime _startTime;
     
-    public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
+    public FileManager(string originalDirectory, string newDirectory, List<FilePair> checkpointFilePairs, IFileSystem? fileSystem = null)
     {
         _fileSystem = fileSystem ?? new FileSystem();
         _oDirectory = originalDirectory;
         _nDirectory = newDirectory;
-        
+
         IgnoredFiles = [];
         
         _filePairs = new List<FilePair>();
@@ -157,7 +160,6 @@ public sealed class FileManager
         
         if (newFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != newFiles.Count)
             throw new InvalidOperationException("FILENAME DUPLICATES IN NEW DIRECTORY");
-        
         foreach (var iFile in originalFiles)
         {
             try
@@ -166,7 +168,19 @@ public sealed class FileManager
                 var oFile = newFiles.First(f =>
                     _fileSystem.Path.GetFileNameWithoutExtension(f) ==
                     _fileSystem.Path.GetFileNameWithoutExtension(iFile));
-                _filePairs.Add(new FilePair(iFile, "", oFile, ""));
+                var pair = new FilePair(iFile, "", oFile, "");
+
+                if (!checkpointFilePairs.Any(fp => fp.OriginalFilePath == pair.OriginalFilePath 
+                    && fp.NewFilePath == pair.NewFilePath))
+                {
+                    _filePairs.Add(pair);
+                } 
+                else
+                {
+                    var reason = ReasonForIgnoring.AlreadyChecked;
+                    IgnoredFiles.Add(new IgnoredFile(iFile, reason));
+                    IgnoredFiles.Add(new IgnoredFile(oFile, reason));
+                }
             }
             catch
             {

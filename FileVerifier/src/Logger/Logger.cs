@@ -114,9 +114,6 @@ public class Logger
     {
         if (Active) return;
 
-        FileComparisonCount = 0;
-        FileComparisonsFailed = 0;
-
         Active = true;
         Stopwatch.Restart();
         Stopwatch.Start();
@@ -163,6 +160,16 @@ public class Logger
         Stopwatch.Stop();
         Active = false;
         Finished = true;
+    }
+
+
+    /// <summary>
+    /// Return a list of all file pairs
+    /// </summary>
+    /// <returns></returns>
+    public List<FilePair> GetFilePairs()
+    {
+        return Results.Select(r => r.FilePair).ToList();
     }
 
 

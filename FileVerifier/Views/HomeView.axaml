@@ -49,17 +49,18 @@
             Select
         </Button>
 
-		<!-- Checkpoint -->
-		<TextBlock Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" Margin="5" Foreground="White">Saved progress (Not required)</TextBlock>
-		<Button Grid.Column="1" Grid.Row="2" Margin="5"
+        <!-- Checkpoint -->
+        <CheckBox x:Name="CheckpointCheckbox" Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" Margin="5" Foreground="White">
+			Start from checkpoint</CheckBox>
+        <Button Grid.Column="1" Grid.Row="2" Margin="5"
                 Name="CheckpointButton" Click="CheckpointButton_OnClick"
-                PointerEntered="CheckpointButton_OnPointerEntered"
-                PointerExited="CheckpointButton_OnPointerExited"
-                Background="#139A43" Foreground="White"
-                BorderBrush="#0DAB76" BorderThickness="1"
+                PointerEntered="InputButton_OnPointerEntered"
+                PointerExited="InputButton_OnPointerExited"
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="1" 
                 Padding="10,5">
-			Select
-		</Button>
+            Select
+        </Button>
 		
         
         <!-- Load -->
