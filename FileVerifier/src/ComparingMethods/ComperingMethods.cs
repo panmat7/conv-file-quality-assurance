@@ -405,7 +405,7 @@ public static class ComperingMethods
                 continue;
             }
             
-            if(res < 0.85) failed = true;
+            if(res < 0.15) failed = true;
             
             if(failed && err) return new Tuple<bool, bool>(err, failed); //Everything failed already, no point continuing
         }                                                                              //it cannot get worse (or better)
