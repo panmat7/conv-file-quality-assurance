@@ -370,7 +370,6 @@ public partial class ReportView : UserControl
             }
         }
 
-
         expander.Content = stackPanel;
 
         return expander;

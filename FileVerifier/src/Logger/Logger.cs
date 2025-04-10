@@ -169,8 +169,13 @@ public class Logger
     /// <summary>
     /// Save the report
     /// </summary>
-    public void SaveReport()
+    public void SaveReport(bool checkpoint = false)
     {
+        var reportsFolderName = "reports";
+        var reportName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".json";
+        var checkpointName = "checkpoint.json";
+        var name = checkpoint ? checkpointName : reportName;
+
         // Get directory
         string? dir = null;
         var currentDir = Directory.GetCurrentDirectory();
@@ -178,15 +183,13 @@ public class Logger
         {
             if (Path.GetFileName(currentDir) == "FileVerifier")
             {
-                dir = Path.Join(currentDir, "reports");
+                dir = checkpoint ? currentDir : Path.Join(currentDir, reportsFolderName);
                 break;
             }
             currentDir = Directory.GetParent(currentDir)?.FullName;
         }
-
         if (dir == null) return;
 
-        var name = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".json";
         var path = Path.Join(dir, name);
 
         ExportJSON(path);

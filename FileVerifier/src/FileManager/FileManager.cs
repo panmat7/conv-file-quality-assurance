@@ -240,7 +240,7 @@ public sealed class FileManager
             }
         }
     }
-    
+
     /// <summary>
     /// Calls Siegfried to identify format of files in both directories
     /// </summary>
@@ -274,7 +274,12 @@ public sealed class FileManager
         _startTime = DateTime.Now;
         var timer = new Timer(WriteProgressToConsole, null, (int)TimeSpan.FromMinutes(5).TotalMilliseconds, 
             (int)TimeSpan.FromMinutes(5).TotalMilliseconds);
-        
+
+
+        var checkPointInterval = (int)TimeSpan.FromMinutes(15).TotalMilliseconds; // Change later based on settings
+        var checkpointTimer = new Timer(_ => GlobalVariables.Logger.SaveReport(true), null,
+            checkPointInterval, checkPointInterval);
+
         //Continuing until done with all files
         while (true)
         {
@@ -314,6 +319,7 @@ public sealed class FileManager
         AwaitThreads(); //Awaiting all remaining threads
         UiControlService.Instance.AppendToConsole("\n" + $@"Verification completed in {(DateTime.Now - _startTime):hh\:mm\:ss}." + "\n");
         timer.Dispose();
+        checkpointTimer.Dispose();
     }
     
     /// <summary>

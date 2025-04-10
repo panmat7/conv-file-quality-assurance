@@ -77,6 +77,22 @@ public partial class HomeView : UserControl
         }
     }
 
+    private async void CheckpointButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+
+    }
+
+
+    private void CheckpointButton_OnPointerEntered(object? sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void CheckpointButton_OnPointerExited(object? sender, RoutedEventArgs e)
+    {
+
+    }
+
 
     private void LoadPaths()
     {
