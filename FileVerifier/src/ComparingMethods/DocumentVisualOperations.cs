@@ -28,9 +28,7 @@ public static class DocumentVisualOperations
         {
             var img = CvInvoke.Imread(imageFilePath);
 
-            if (img is null) return null;
-
-            return GetRects(img);
+            return img is null ? null : GetRects(img);
         }
         catch
         {

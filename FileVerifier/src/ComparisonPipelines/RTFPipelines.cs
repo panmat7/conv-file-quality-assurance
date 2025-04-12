@@ -44,7 +44,7 @@ public static class RtfPipelines
             var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
             try
             {
-                ImageExtraction.ExtractImagesFromPdfToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+                ImageExtraction.ExtractImagesFromRtfToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
                 ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
                 // Some checks will be skipped if the number of images is not equal
                 equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
@@ -70,7 +70,7 @@ public static class RtfPipelines
                         ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                } else if ((bool)res)
+                } else if (res.Value)
                 {
                     //For now only printing to console
                     error = new Error(

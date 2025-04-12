@@ -43,7 +43,7 @@ public static class OdpPipelines
             var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
             try
             {
-                ImageExtraction.ExtractImagesFromPdfToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+                ImageExtraction.ExtractImagesFromOpenDocumentsToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
                 ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
                 // Some checks will be skipped if the number of images is not equal
                 equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
@@ -99,7 +99,7 @@ public static class OdpPipelines
                             ErrorType.FileError
                         );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                } else if ((bool)res)
+                } else if (res.Value)
                 {
                     error = new Error(
                             "File Size Difference",
