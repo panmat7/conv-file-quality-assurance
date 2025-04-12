@@ -27,7 +27,7 @@ public class FileManagerTest : TestBase
             }
         );
 
-        var f = new FileManager(@"C:\testOriginal\", @"C:\testNew\", fileSystem);
+        var f = new FileManager(@"C:\testOriginal\", @"C:\testNew\", [], fileSystem);
         
         if(f == null) Assert.Fail();
         
