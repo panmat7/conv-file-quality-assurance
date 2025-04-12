@@ -41,7 +41,7 @@ public static class XLSXPipelines
         var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
         try
         {
-            ImageExtraction.ExtractImagesFromPdfToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+            ImageExtraction.ExtractImagesFromXlsxToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
             ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
             // Some checks will be skipped if the number of images is not equal
             equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
