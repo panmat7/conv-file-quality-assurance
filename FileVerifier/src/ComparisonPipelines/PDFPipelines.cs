@@ -95,7 +95,7 @@ public static class PdfPipelines
                         );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
                     e.Add(error);
-                } else if ((bool)res)
+                } else if (res.Value)
                 {
                     error = new Error(
                             "File Size Difference",

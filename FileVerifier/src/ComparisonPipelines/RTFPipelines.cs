@@ -61,7 +61,7 @@ public static class RtfPipelines
                         ErrorType.FileError
                     );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                } else if ((bool)res)
+                } else if (res.Value)
                 {
                     //For now only printing to console
                     error = new Error(
