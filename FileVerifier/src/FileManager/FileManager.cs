@@ -84,6 +84,7 @@ public enum ReasonForIgnoring
 {
     Encrypted,
     Filtered,
+    AlreadyChecked,
     Corrupted,
     EncryptedOrCorrupted,
     UnsupportedFormat,
@@ -101,6 +102,7 @@ public sealed class FileManager
     private readonly string _nDirectory;
     private readonly string _tempODirectory;
     private readonly string _tempNDirectory;
+    private readonly string _checkpoint;
     internal List<IgnoredFile> IgnoredFiles { get; set; }
     private List<FilePair> _filePairs;
     private readonly List<string> _pairlessFiles;
@@ -119,12 +121,12 @@ public sealed class FileManager
     //Progress reporting
     private DateTime _startTime;
     
-    public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
+    public FileManager(string originalDirectory, string newDirectory, List<FilePair> checkpointFilePairs, IFileSystem? fileSystem = null)
     {
         _fileSystem = fileSystem ?? new FileSystem();
         _oDirectory = originalDirectory;
         _nDirectory = newDirectory;
-        
+
         IgnoredFiles = [];
         
         _filePairs = new List<FilePair>();
@@ -169,7 +171,19 @@ public sealed class FileManager
             //If file with matching name is found, adding pair
             if (newFileLookupDir.TryGetValue(_fileSystem.Path.GetFileNameWithoutExtension(oFile), out var nFile))
             {
-                _filePairs.Add(new FilePair(oFile, "", nFile, ""));
+                var pair = new FilePair(nFile, "", oFile, "");
+
+                if (!checkpointFilePairs.Any(fp => fp.OriginalFilePath == pair.OriginalFilePath 
+                    && fp.NewFilePath == pair.NewFilePath))
+                {
+                    _filePairs.Add(pair);
+                } 
+                else
+                {
+                    var reason = ReasonForIgnoring.AlreadyChecked;
+                    IgnoredFiles.Add(new IgnoredFile(nFile, reason));
+                    IgnoredFiles.Add(new IgnoredFile(oFile, reason));
+                }
             }
             else
             {
@@ -238,7 +252,7 @@ public sealed class FileManager
             }
         }
     }
-    
+
     /// <summary>
     /// Calls Siegfried to identify format of files in both directories
     /// </summary>
@@ -272,7 +286,12 @@ public sealed class FileManager
         _startTime = DateTime.Now;
         var timer = new Timer(WriteProgressToConsole, null, (int)TimeSpan.FromMinutes(5).TotalMilliseconds, 
             (int)TimeSpan.FromMinutes(5).TotalMilliseconds);
-        
+
+
+        var checkPointInterval = (int)TimeSpan.FromMinutes(15).TotalMilliseconds; // Change later based on settings
+        var checkpointTimer = new Timer(_ => GlobalVariables.Logger.SaveReport(true), null,
+            checkPointInterval, checkPointInterval);
+
         //Continuing until done with all files
         while (true)
         {
@@ -312,6 +331,7 @@ public sealed class FileManager
         AwaitThreads(); //Awaiting all remaining threads
         UiControlService.Instance.AppendToConsole("\n" + $@"Verification completed in {(DateTime.Now - _startTime):hh\:mm\:ss}." + "\n");
         timer.Dispose();
+        checkpointTimer.Dispose();
     }
     
     /// <summary>

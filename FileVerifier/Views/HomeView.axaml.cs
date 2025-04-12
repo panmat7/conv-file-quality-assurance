@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.OpenGL.Surfaces;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.ViewModels;
 
@@ -20,6 +21,7 @@ public partial class HomeView : UserControl
     
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
+    private string CheckpointPath { get; set; }
     private bool Working { get; set; } = false;
     
     //Progress bar
@@ -78,11 +80,47 @@ public partial class HomeView : UserControl
     }
 
 
+    private async void CheckpointButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel == null) return;
+
+        var result = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Select Checkpoint",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType("JSON file")
+                {
+                    Patterns = ["*.json"]
+                }
+            ]
+        });
+
+        if (result.Count > 0)
+        {
+            var file = result[0];
+
+            if (sender is not Button button) return;
+            CheckpointButton.Content = "Selected";
+            CheckpointPath = file.TryGetLocalPath() ?? throw new InvalidOperationException();
+            GlobalVariables.Paths.CheckpointPath = CheckpointPath;
+            GlobalVariables.Paths.SavePaths();
+        }
+        else
+        {
+            //TODO: Please select file message
+        }
+    }
+
+
     private void LoadPaths()
     {
         GlobalVariables.Paths.LoadPaths();
         var oPath = GlobalVariables.Paths.OriginalFilesPath;
         var nPath = GlobalVariables.Paths.NewFilesPath;
+        var cpPath = GlobalVariables.Paths.CheckpointPath;
 
         if (oPath != null)
         {
@@ -94,6 +132,12 @@ public partial class HomeView : UserControl
         {
             OutputPath = nPath;
             OutputButton.Content = "Selected";
+        }
+
+        if (cpPath != null)
+        {
+            CheckpointPath = cpPath;
+            CheckpointButton.Content = "Selected";
         }
     }
 
@@ -111,6 +155,11 @@ public partial class HomeView : UserControl
                 if (string.IsNullOrEmpty(OutputPath)) return;
                 OutputButton.Content = OutputPath;
                 break;
+            case "CheckpointButton":
+                if (string.IsNullOrEmpty(CheckpointPath)) return;
+                CheckpointButton.Content = CheckpointPath;
+                break;
+
         }
     }
 
@@ -124,6 +173,9 @@ public partial class HomeView : UserControl
                 break;
             case "OutputButton":
                 OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
+                break;
+            case "CheckpointButton":
+                CheckpointButton.Content = string.IsNullOrEmpty(CheckpointPath) ? "Select" : "Selected";
                 break;
         }
     }
@@ -162,7 +214,8 @@ public partial class HomeView : UserControl
         {
             loadingWindow.Show();
 
-            await Task.Run(PerformBackgroundWork);
+            var checkpointChecked = CheckpointCheckbox.IsChecked;
+            await Task.Run(() => PerformBackgroundWork(checkpointChecked));
 
             StartButton.IsEnabled = true;
         }
@@ -209,6 +262,8 @@ public partial class HomeView : UserControl
 
     private Task StartVerificationProcess()
     {
+        var checkpointChecked = CheckpointCheckbox?.IsChecked ?? false;
+
         return Task.Run(async () =>
         {
             try
@@ -247,7 +302,6 @@ public partial class HomeView : UserControl
                 GlobalVariables.Logger.Finish();
                 GlobalVariables.Logger.SaveReport();
                 AppendConsole("End report written.");
-                Trace.WriteLine("Finished");
 
                 Working = false;
             }
@@ -264,11 +318,16 @@ public partial class HomeView : UserControl
         });
     }
     
-    private void PerformBackgroundWork()
+    private void PerformBackgroundWork(bool? checkpointChecked)
     {
         try
         {
-            GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath);
+            var checkPointPath = (checkpointChecked ?? false) ? CheckpointPath : null;
+
+            if (!string.IsNullOrEmpty(checkPointPath)) GlobalVariables.Logger.ImportJSON(checkPointPath);
+            var filePairs = GlobalVariables.Logger.GetFilePairs();
+
+            GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath, filePairs);
             GlobalVariables.FileManager.GetSiegfriedFormats();
             GlobalVariables.FileManager.FilterOutDisabledFileFormats();
             SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);

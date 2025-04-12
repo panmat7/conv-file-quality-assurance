@@ -13,6 +13,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
             <RowDefinition Height="2*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -47,6 +48,20 @@
                 Padding="10,5">
             Select
         </Button>
+
+        <!-- Checkpoint -->
+        <CheckBox x:Name="CheckpointCheckbox" Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" Margin="5" Foreground="White">
+			Start from checkpoint</CheckBox>
+        <Button Grid.Column="1" Grid.Row="2" Margin="5"
+                Name="CheckpointButton" Click="CheckpointButton_OnClick"
+                PointerEntered="InputButton_OnPointerEntered"
+                PointerExited="InputButton_OnPointerExited"
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="1" 
+                Padding="10,5">
+            Select
+        </Button>
+		
         
         <!-- Load -->
         <Button Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" Margin="5"
