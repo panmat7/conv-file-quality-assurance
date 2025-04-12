@@ -171,7 +171,7 @@ public sealed class FileManager
             //If file with matching name is found, adding pair
             if (newFileLookupDir.TryGetValue(_fileSystem.Path.GetFileNameWithoutExtension(oFile), out var nFile))
             {
-                var pair = new FilePair(iFile, "", oFile, "");
+                var pair = new FilePair(nFile, "", oFile, "");
 
                 if (!checkpointFilePairs.Any(fp => fp.OriginalFilePath == pair.OriginalFilePath 
                     && fp.NewFilePath == pair.NewFilePath))
@@ -181,7 +181,7 @@ public sealed class FileManager
                 else
                 {
                     var reason = ReasonForIgnoring.AlreadyChecked;
-                    IgnoredFiles.Add(new IgnoredFile(iFile, reason));
+                    IgnoredFiles.Add(new IgnoredFile(nFile, reason));
                     IgnoredFiles.Add(new IgnoredFile(oFile, reason));
                 }
             }
