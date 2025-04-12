@@ -60,5 +60,9 @@
         <DependentUpon>IgnoredFilesView.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Views\CompletedView.axaml.cs">
+        <DependentUpon>CompletedView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>

@@ -7,16 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
 using System.Collections.Immutable;
-using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace AvaloniaDraft.ComparingMethods;
 
 public static class ODFontExtraction
 {
-    private static List<(int start, int end)> CjkRanges =
+    private static readonly List<(int start, int end)> CjkRanges =
     [
             (0x4E00, 0x9FFF),  // CJK Unified Ideographs
             (0x3400, 0x4DBF),  // CJK Unified Ideographs Extension A
@@ -78,11 +75,7 @@ public static class ODFontExtraction
     /// <returns></returns>
     public static TextInfo? GetTextInfoODF(string src)
     {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
+        var textInfo = new TextInfo();
 
         if (ExtractDocuments(src) is not (XDocument contentDoc, XDocument stylesDoc)) return null;
 
@@ -113,22 +106,7 @@ public static class ODFontExtraction
         var paragraphs = contentDoc.Descendants().Where(e => e.Name.LocalName == "p");
         foreach (var p in paragraphs)
         {
-            var style = GetStyle(p, contentStyles);
-            if (style == null) continue;
-
-            // Check paragraph properties
-            var pStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "paragraph-properties");
-            ReadStyleProperties(pStyleProperties, defaultParagraphProperties, null, null, null, bgColors);
-
-            
-            var txt = p.Value;
-            if (string.IsNullOrEmpty(txt)) continue;
-
-            // Check paragraph text properties
-            var pTextStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-            ReadStyleProperties(pTextStyleProperties, defaultParagraphTextProperties, txt, fonts, textColors, bgColors);
-
-            if (!foreignWriting && FontComparison.IsForeign(txt)) foreignWriting = true;
+            CheckElement(p, "paragraph", contentStyles, defaultParagraphProperties, defaultParagraphTextProperties, textInfo);
         }
 
 
@@ -136,21 +114,22 @@ public static class ODFontExtraction
         var cells = contentDoc.Descendants().Where(e => e.Name.LocalName == "table-cell");
         foreach (var cell in cells)
         {
-            var style = GetStyle(cell, contentStyles);
-            if (style == null) continue;
+            CheckElement(cell, "table-cell", contentStyles, defaultCellProperties, defaultCellTextProperties, textInfo);
+        }
 
-            // Check cell properties
-            var cStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "table-cell-properties");
-            ReadStyleProperties(cStyleProperties, defaultCellProperties, null, null, null, bgColors);
+        
+        // Check every frame
+        var frames = contentDoc.Descendants().Where(e => e.Name.LocalName == "frame");
+        foreach (var frame in frames)
+        {
+            CheckElement(frame, "graphic", contentStyles, null, defaultParagraphTextProperties, textInfo);
+        }
 
-            var txt = cell.Value;
-            if (string.IsNullOrEmpty(txt)) continue;
-
-            // Check cell text properties
-            var cTextStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-            ReadStyleProperties(cTextStyleProperties, defaultCellTextProperties, txt, fonts, textColors, bgColors);
-
-            if (!foreignWriting && FontComparison.IsForeign(txt)) foreignWriting = true;
+        // Check every span
+        var textSpans = contentDoc.Descendants().Where(e => e.Name.LocalName == "span");
+        foreach (var span in textSpans)
+        {
+            CheckElement(span, null, contentStyles, null, defaultParagraphTextProperties, textInfo);
         }
 
 
@@ -170,29 +149,46 @@ public static class ODFontExtraction
             if (itemStyle == null) continue;
 
             var textProperties = itemStyle.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-            ReadStyleProperties(textProperties, null, null, fonts, textColors, bgColors, true);
+            ReadStyleProperties(textProperties, null, null, textInfo, true);
         }
 
-
-        // Check every span
-        var textSpans = contentDoc.Descendants().Where(e => e.Name.LocalName == "span");
-        foreach (var span in textSpans)
-        {
-            var txt = span.Value;
-            if (string.IsNullOrEmpty(txt)) continue;
-
-            if (!foreignWriting && FontComparison.IsForeign(txt)) foreignWriting = true;
-
-            var style = GetStyle(span, contentStyles);
-            if (style == null) continue;
-
-            // Check text properties of the span
-            var sStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
-            ReadStyleProperties(sStyleProperties, defaultParagraphTextProperties, txt, fonts, textColors, bgColors);
-        }
-
-        var textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
+    }
+    
+
+    /// <summary>
+    /// Add the style properties of an element
+    /// </summary>
+    /// <param name="element"></param>
+    /// <param name="elementName"></param>
+    /// <param name="contentStyles"></param>
+    /// <param name="defaultElementProperties"></param>
+    /// <param name="defaultTextProperties"></param>
+    /// <param name="fonts"></param>
+    /// <param name="textColors"></param>
+    /// <param name="bgColors"></param>
+    /// <param name="foreignWriting"></param>
+    private static void CheckElement(XElement element, string? elementName, XElement contentStyles, XElement? defaultElementProperties, XElement? defaultTextProperties,
+        TextInfo textInfo)
+    {
+        var style = GetStyle(element, contentStyles);
+        if (style == null) return;
+
+        // Check element properties
+        if (elementName != null)
+        {
+            var elementStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == $"{elementName}-properties");
+            ReadStyleProperties(elementStyleProperties, defaultElementProperties, null, textInfo);
+        }
+
+        var txt = element.Value;
+        if (string.IsNullOrEmpty(txt)) return;
+
+        // Check text properties
+        var textStyleProperties = style.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
+        ReadStyleProperties(textStyleProperties, defaultTextProperties, txt, textInfo);
+
+        if (!textInfo.ForeignWriting && FontComparison.IsForeign(txt)) textInfo.ForeignWriting = true;
     }
 
 
@@ -205,34 +201,43 @@ public static class ODFontExtraction
     /// <param name="fonts"></param>
     /// <param name="textColors"></param>
     /// <param name="bgColors"></param>
-    private static void ReadStyleProperties(XElement? p, XElement? d, string? text, HashSet<string>? fonts, HashSet<string>? textColors, HashSet<string> bgColors, bool isBullet = false)
+    private static void ReadStyleProperties(XElement? p, XElement? d, string? text, TextInfo textInfo, bool isBullet = false)
     {
         if (p == null && d == null) return;
 
-        var attrBgColor = p?.Attributes().FirstOrDefault(a => a.Name.LocalName == "background-color") ?? 
-            d?.Attributes().FirstOrDefault(a => a.Name.LocalName == "background-color");
+        var attrBgColor = p?.Attributes().FirstOrDefault(a => a.Name.LocalName == "background-color" || a.Name.LocalName == "fill-color") ?? 
+            d?.Attributes().FirstOrDefault(a => a.Name.LocalName == "background-color" || a.Name.LocalName == "fill-color");
 
         var attrTextColor = p?.Attributes().FirstOrDefault(a => a.Name.LocalName == "color") ??
             d?.Attributes().FirstOrDefault(a => a.Name.LocalName == "color");
 
         // Check the background color
-        if (!string.IsNullOrEmpty(attrBgColor?.Value))
+        var bgHex = ODGetHex(attrBgColor?.Value);
+        if (bgHex != null) textInfo.BgColors?.Add(bgHex);
+
+
+        if (text != null)
         {
-            var hex = ODGetHex(attrBgColor.Value);
-            if (hex != null) bgColors.Add(hex);
+            // Check the text color
+            var txtHex = ODGetHex(attrTextColor?.Value);
+            if (txtHex != null) textInfo.TextColors?.Add(txtHex);
+
+            // Check the font
+            ReadFontsFromSyleProperties(text, isBullet, p, d, textInfo);
         }
-
-        // Check the text color
-        if (textColors != null && !string.IsNullOrEmpty(attrTextColor?.Value))
-        {
-            var hex = ODGetHex(attrTextColor.Value);
-            if (hex != null) textColors.Add(hex);
-        }
-
-        // Check the font
-        if (fonts == null) return;
+    }
 
 
+    /// <summary>
+    /// Add the fonts from style properties
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="isBullet"></param>
+    /// <param name="properties"></param>
+    /// <param name="defaultProperties"></param>
+    /// <param name="fonts"></param>
+    private static void ReadFontsFromSyleProperties(string? text, bool isBullet, XElement? properties, XElement? defaultProperties, TextInfo textInfo)
+    {
         if (!isBullet && text != null)
         {
             var gotten = new Dictionary<CharClassification, bool>();
@@ -252,26 +257,27 @@ public static class ODFontExtraction
                 {
                     CharClassification.CJK => "-asian",
                     CharClassification.CTL => "-complex",
-                    CharClassification.Other => ""
+                    CharClassification.Other => "",
+                    _ => "",
                 };
 
                 var fontName = $"font-name{fontAttributeClassification}";
                 var fontFamily = $"font-family{fontAttributeClassification}";
-                var font = p?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value ??
-                    d?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value;
+                var font = properties?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value ??
+                    defaultProperties?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value;
                 if (font != null)
                 {
-                    fonts.Add(FontComparison.NormalizeFontName(font));
+                    textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
                 }
             }
-        } 
+        }
         else if (isBullet)
         {
-            var font = p?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value ??
-                d?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value;
+            var font = properties?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value ??
+                defaultProperties?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value;
             if (font != null)
             {
-                fonts.Add(FontComparison.NormalizeFontName(font));
+                textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
             }
         }
     }
@@ -282,20 +288,14 @@ public static class ODFontExtraction
     /// </summary>
     /// <param name="col"></param>
     /// <returns></returns>
-    private static string? ODGetHex(string col)
+    private static string? ODGetHex(string? col)
     {
+        if (string.IsNullOrEmpty(col)) return null;
         string? hex = null;
 
-        if (col != "transparent")
+        if (col[0] == '#')
         {
-            if (col[0] == '#')
-            {
-                hex = col.Substring(1).ToUpper(); // Remove the '#'
-            }
-            else
-            {
-                //hex = GetOfficeColorFromName(col);
-            }
+            hex = col.Substring(1).ToUpper(); // Remove the '#'
         }
 
         return hex;
