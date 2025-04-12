@@ -34,14 +34,17 @@ public static class ComperingMethods
     /// <returns>True/false whether the difference is too large. Null means that the size could not have been gotten.</returns>
     public static bool? CheckFileSizeDifference(FilePair files, double? toleranceValue = null)
     {
-        toleranceValue ??= (GlobalVariables.Options.SizeComparisonThreshold / 100.0);
+        if (GlobalVariables.Options != null) //Only relevant for tests
+            toleranceValue ??= (GlobalVariables.Options.SizeComparisonThreshold / 100.0);
+        else
+            toleranceValue ??= 0.75;
 
         try
         {
             var originalSize = new FileInfo(files.OriginalFilePath).Length;
             var newSize = new FileInfo(files.NewFilePath).Length;
-        
-            return (long.Abs(originalSize - newSize) > originalSize * toleranceValue);
+
+            return Math.Abs(originalSize - newSize) > originalSize * toleranceValue;
         }
         catch { return null; }
     }
@@ -405,7 +408,7 @@ public static class ComperingMethods
                 continue;
             }
             
-            if(res < 0.85) failed = true;
+            if(res < 0.15) failed = true;
             
             if(failed && err) return new Tuple<bool, bool>(err, failed); //Everything failed already, no point continuing
         }                                                                              //it cannot get worse (or better)

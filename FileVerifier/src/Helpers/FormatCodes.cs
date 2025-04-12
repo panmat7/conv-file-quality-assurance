@@ -65,7 +65,8 @@ public static class FormatCodes
 
     public static readonly FileFormat PronomCodesDOCX = new FileFormat(["docx"], [
         "fmt/412", //Word for Windows 2007 onwards
-        "fmt/413",
+        "fmt/479",
+        "fmt1827"
     ]);
 
 
@@ -168,7 +169,8 @@ public static class FormatCodes
     ]);
 
     public static readonly FileFormat PronomCodesPPTX = new FileFormat(["pptx"], [
-        "fmt/215" //PowerPoint for Windows 2007 onwards
+        "fmt/215", //PowerPoint for Windows 2007 onwards
+        "fmt/1829"
     ]);
 
     public static readonly FileFormat PronomCodesODP = new FileFormat(["odp"], [
@@ -203,7 +205,8 @@ public static class FormatCodes
     ]);
 
     public static readonly FileFormat PronomCodesXML = new FileFormat(["xml"], [
-        "fmt/101"
+        "fmt/101", //1.0
+        "fmt/1776" //1.1
     ]);
 
     public static readonly FileFormat PronomCodesXMLBasedPowerPoint = new FileFormat([
@@ -237,7 +240,8 @@ public static class FormatCodes
     ]);
 
     public static readonly FileFormat PronomCodesXLSX = new FileFormat(["xlsx"], [
-        "fmt/214"
+        "fmt/214",
+        "fmt/1828" //OOXML
     ]);
 
     public static readonly FileFormat PronomCodesODS = new FileFormat(["ods"], [
@@ -279,7 +283,12 @@ public static class FormatCodes
         "fmt/41", //Raw JPEG
         "fmt/42", //JPEG 1.00
         "fmt/43", //JPEG 1.01
-        "fmt/44" //JPEG 1.02
+        "fmt/44", //JPEG 1.02
+        "x-fmt/398", //EXIF 2.0
+        "x-fmt/390", //EXIF 2.1
+        "x-fmt/391", //EXIF 2.2
+        "fmt/645", //EXIF 2.21
+        "fmt/1507" //EXIF 2.3.x
     ]);
 
     public static readonly FileFormat PronomCodesTIFF = new FileFormat(["tiff"], [
@@ -287,7 +296,14 @@ public static class FormatCodes
         "fmt/8", //Tagged Image File Format 4
         "fmt/9", //Tagged Image File Format 5
         "fmt/10", //Tagged Image File Format 6
-        "fmt/353" //Tagged Image File Format
+        "fmt/154", //Tagged Image File Format for Electronic Photography 
+        "fmt/153", //Tagged Image File Format for Image Technology
+        "fmt/155", //GeoTIFF
+        "fmt/353", //Tagged Image File Format
+        "fmt/1917", //BigTIFF
+        "x-fmt/399", //EXIF 2.0
+        "x-fmt/398", //EXIF 2.1
+        "x-fmt/397" //EXIF 2.2
     ]);
 
     public static readonly FileFormat PronomCodesBMP = new FileFormat(["bmp"], [
@@ -324,7 +340,13 @@ public static class FormatCodes
 
 
     public static readonly FileFormat PronomCodesHTML = new FileFormat(["html"], [
-        "fmt/103", // 1.0
+        "fmt/96", //html
+        "fmt/97", //2.0
+        "fmt/98", //3.2
+        "fmt/99", //4.0
+        "fmt/100", //4.01
+        "fmt/103", // 1.1
+        "fmt/471" //5
 
     ]);
     

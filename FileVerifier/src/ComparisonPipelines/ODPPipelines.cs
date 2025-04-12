@@ -99,7 +99,7 @@ public static class OdpPipelines
                             ErrorType.FileError
                         );
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
-                } else if ((bool)res)
+                } else if (res.Value)
                 {
                     error = new Error(
                             "File Size Difference",

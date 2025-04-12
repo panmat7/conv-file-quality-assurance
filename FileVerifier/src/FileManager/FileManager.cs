@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -103,7 +104,6 @@ public sealed class FileManager
     internal List<IgnoredFile> IgnoredFiles { get; set; }
     private List<FilePair> _filePairs;
     private readonly List<string> _pairlessFiles;
-    private readonly List<string> _fileDuplicates;
     private readonly IFileSystem _fileSystem;
     
     public List<string> GetPairlessFiles() => _pairlessFiles;
@@ -129,7 +129,7 @@ public sealed class FileManager
         
         _filePairs = new List<FilePair>();
         _pairlessFiles = new List<string>();
-        _fileDuplicates = new List<string>();
+        var fileDuplicates = new List<string>();
         
         _tempODirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), _fileSystem.Path.GetRandomFileName());
         _tempNDirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), _fileSystem.Path.GetRandomFileName());
@@ -143,55 +143,53 @@ public sealed class FileManager
         var originalFiles = ProcessFiles(_oDirectory, _tempODirectory);
         var newFiles = ProcessFiles(_nDirectory, _tempNDirectory);
         
-        //If any file name appears more than once - inform
+        //If any file name appears more than once - add to duplicate list
         if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() !=
             originalFiles.Count)
         {
-            _fileDuplicates.AddRange(
+            fileDuplicates.AddRange(
                 originalFiles.GroupBy(x => _fileSystem.Path.GetFileNameWithoutExtension(x))
                     .Where(g => g.Count() > 1)
                     .SelectMany(g => g)
             );
         }
         
-        
         if (newFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != newFiles.Count)
             throw new InvalidOperationException("FILENAME DUPLICATES IN NEW DIRECTORY");
+
+        //Lookup directory
+        var newFileLookupDir = newFiles
+            .ToDictionary(
+                f => _fileSystem.Path.GetFileNameWithoutExtension(f),
+                f => f
+            );
         
-        foreach (var iFile in originalFiles)
+        foreach (var oFile in originalFiles)
         {
-            try
+            //If file with matching name is found, adding pair
+            if (newFileLookupDir.TryGetValue(_fileSystem.Path.GetFileNameWithoutExtension(oFile), out var nFile))
             {
-                //Creating the file-to-file dictionary, getting first result of outputfiles containing file name 
-                var oFile = newFiles.First(f =>
-                    _fileSystem.Path.GetFileNameWithoutExtension(f) ==
-                    _fileSystem.Path.GetFileNameWithoutExtension(iFile));
-                _filePairs.Add(new FilePair(iFile, "", oFile, ""));
+                _filePairs.Add(new FilePair(oFile, "", nFile, ""));
             }
-            catch
+            else
             {
                 //Checking if its one of the duplicates, if not - to pairless
-                if (_fileDuplicates.Contains(iFile))
+                if (fileDuplicates.Contains(oFile)) //This is done to mimic the naming method used by the conversion tool
                 {
                     //Constructing the name using the same method as the conversion tool
-                    var constructedName = _fileSystem.Path.GetFileNameWithoutExtension(iFile) + "_" +
-                                          _fileSystem.Path.GetExtension(iFile).TrimStart('.').ToUpper();
+                    var constructedName = _fileSystem.Path.GetFileNameWithoutExtension(oFile) + "_" +
+                                          _fileSystem.Path.GetExtension(oFile).TrimStart('.').ToUpper();
                     
                     //We have a match, create pair, otherwise add to pairless
-                    if (newFiles.Any(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName))
-                    {
-                        _filePairs.Add(new FilePair(iFile, "",
-                            newFiles.First(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName),
-                            ""));
-                    }
-                    else
-                    {
-                        _pairlessFiles.Add(iFile);
+                    if (newFileLookupDir.TryGetValue(constructedName, out var nFileMatch)) {
+                        _filePairs.Add(new FilePair(oFile, "", nFileMatch, ""));
+                    } else {
+                        _pairlessFiles.Add(oFile);
                     }
                 }
                 else
                 {
-                    _pairlessFiles.Add(iFile);
+                    _pairlessFiles.Add(oFile);
                 }
             }
         }
@@ -422,14 +420,10 @@ public sealed class FileManager
     /// </summary>
     public void WritePairs()
     {
-        Console.WriteLine("PAIRS:");
-
         var pronomFormat = new Dictionary<string, Tuple<string, int>>();
 
         foreach (var pair in _filePairs)
         {
-            Console.WriteLine($"{pair.OriginalFilePath} ({pair.OriginalFileFormat}) - {pair.NewFilePath} ({pair.NewFileFormat})");
-
             var extension = pair.OriginalFileFormat;
             var fileExtension = Path.GetExtension(pair.OriginalFilePath);
 
@@ -443,12 +437,6 @@ public sealed class FileManager
             {
                 pronomFormat.Add(extension, new Tuple<string, int>(fileExtension, 1));
             }
-        }
-
-        Console.WriteLine("PAIRLESS:");
-        foreach (var file in _pairlessFiles)
-        {
-            Console.WriteLine($"{file}");
         }
     }
     
