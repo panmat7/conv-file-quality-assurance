@@ -288,6 +288,7 @@ public partial class HomeView : UserControl
                 {
                     StartButton.IsEnabled = false;
                     LoadButton.IsEnabled = false;
+                    ExtractionStartButton.IsEnabled = false;
                     OverwriteConsole(null);
                 });
 
@@ -307,6 +308,7 @@ public partial class HomeView : UserControl
                         Dispatcher.UIThread.InvokeAsync(() =>
                         {
                             LoadButton.IsEnabled = true;
+                            ExtractionStartButton.IsEnabled = true;
                         });
                     };
                 });
@@ -367,6 +369,67 @@ public partial class HomeView : UserControl
         }
         GlobalVariables.FileManager.WritePairs();
         OverwriteConsole("The following pairs were formed:\n" + GlobalVariables.FileManager.GetPairFormats());
+    }
+    
+    private async void ExtractionStartButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await StartExtractionProcess();
+        }
+        catch(Exception err)
+        {
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var errWindow =
+                    new ErrorWindow("An error occured when starting the extraction process.");
+                errWindow.ShowDialog((VisualRoot as Window)!);
+            });
+        }
+    }
+
+    private Task StartExtractionProcess()
+    {
+        return Task.Run(async () =>
+        {
+            if(Working) return;
+            
+            Working = true;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                StartButton.IsEnabled = false;
+                LoadButton.IsEnabled = false;
+                ExtractionStartButton.IsEnabled = false;
+                OverwriteConsole(null);
+            });
+
+            GlobalVariables.SingleFileManager = new SingleFileManager(ExtractionPath);
+            await Task.Run(() =>
+            {
+                GlobalVariables.SingleFileManager.StartProcessing();
+            });
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var completedWindow = new CompletedView();
+                completedWindow.Show();
+                completedWindow.Closed += (sender, args) =>
+                {
+                    Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        LoadButton.IsEnabled = true;
+                        ExtractionButton.IsEnabled = true;
+                    });
+                };
+            });
+            
+            GlobalVariables.SingleFileManager.WriteReport();
+            AppendConsole("Extraction report written.");
+            
+            Working = false;
+            GlobalVariables.SingleFileManager = null;
+        });
     }
 
     /// <summary>
@@ -441,11 +504,6 @@ public partial class HomeView : UserControl
             if (message != null)
                 AppendConsole(message);
         });
-    }
-
-    private void ExtractionStartButton_OnClick(object? sender, RoutedEventArgs e)
-    {
-        throw new NotImplementedException();
     }
 }
 

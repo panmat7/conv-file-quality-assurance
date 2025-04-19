@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using AvaloniaDraft.ExtractionPipelines;
 using AvaloniaDraft.Helpers;
@@ -21,6 +23,9 @@ public class SingleFile
     public void UpdateDone() => Done = true;
 }
 
+/// <summary>
+/// Used to write the extraction reports, make to mirror the design of FileManager. Work on the same prinsiples.
+/// </summary>
 public class SingleFileManager
 {
     private readonly string _inputDirectory;
@@ -47,13 +52,13 @@ public class SingleFileManager
         {
             _files.Add(new SingleFile { FilePath = file });
         }
-    }
-
-    public void GetSiegfriedFormats()
-    {
+        
         Siegfried.GetFileFormats(_inputDirectory, ref _files);
     }
 
+    /// <summary>
+    /// Starts the extraction process
+    /// </summary>
     public void StartProcessing()
     {
         var maxThreads = GlobalVariables.Options.SpecifiedThreadCount ?? 8;
@@ -95,6 +100,11 @@ public class SingleFileManager
         UiControlService.Instance.AppendToConsole("\n" + $@"Verification completed in {(DateTime.Now - _startTime):hh\:mm\:ss}." + "\n");
     }
 
+    /// <summary>
+    /// Gets the data extraction pipeline and starts it
+    /// </summary>
+    /// <param name="file">File the pipeline is to be started for</param>
+    /// <returns>True if a pipeline was found, false is none were found.</returns>
     private bool SelectAndStartDataExtraction(SingleFile file)
     {
         var pipeline = BaseExtraction.SelectPipeline(file.FileFormat);
@@ -127,6 +137,9 @@ public class SingleFileManager
         return true;
     }
 
+    /// <summary>
+    /// Awaits all remaining threads
+    /// </summary>
     private void AwaitThreads()
     {
         List<Thread> toAwait;
@@ -136,5 +149,27 @@ public class SingleFileManager
         foreach (var thread in toAwait) thread.Join();
         
         lock(_listLock) _threads.Clear();
+    }
+
+    /// <summary>
+    /// Write the extracted data to a file.
+    /// </summary>
+    public void WriteReport()
+    {
+        var outputDir = _fileSystem.Directory.GetCurrentDirectory() + @"\extraction-reports";
+        _fileSystem.Directory.CreateDirectory(outputDir);
+        
+        var reportName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".json";
+        string jsonOutput;
+        lock (_resultsLock) //Just to get rid of the warning, should not actually need the lock as the process is done
+        {
+            jsonOutput = JsonSerializer.Serialize(_results);
+        }
+        
+        var filePath = _fileSystem.Path.Combine(outputDir, reportName);
+
+        using var stream = _fileSystem.File.Create(filePath);
+        using var writer = new StreamWriter(stream);
+        writer.Write(jsonOutput);
     }
 }
