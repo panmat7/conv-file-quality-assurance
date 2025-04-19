@@ -403,6 +403,8 @@ public partial class HomeView : UserControl
                 ExtractionStartButton.IsEnabled = false;
                 OverwriteConsole(null);
             });
+            
+            AppendConsole("Starting extraction...\n\n");
 
             GlobalVariables.SingleFileManager = new SingleFileManager(ExtractionPath);
             await Task.Run(() =>

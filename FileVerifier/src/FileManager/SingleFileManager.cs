@@ -24,7 +24,7 @@ public class SingleFile
 }
 
 /// <summary>
-/// Used to write the extraction reports, make to mirror the design of FileManager. Work on the same prinsiples.
+/// Used to write the extraction reports, make to mirror the design of FileManager. Work on the same principles.
 /// </summary>
 public class SingleFileManager
 {
@@ -97,7 +97,7 @@ public class SingleFileManager
         }
     
         AwaitThreads(); //Awaiting all remaining threads
-        UiControlService.Instance.AppendToConsole("\n" + $@"Verification completed in {(DateTime.Now - _startTime):hh\:mm\:ss}." + "\n");
+        UiControlService.Instance.AppendToConsole("\n" + $@"Extraction completed in {(DateTime.Now - _startTime):hh\:mm\:ss}." + "\n");
     }
 
     /// <summary>

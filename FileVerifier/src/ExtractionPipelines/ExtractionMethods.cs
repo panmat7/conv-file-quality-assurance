@@ -23,7 +23,7 @@ public static class ExtractionMethods
         Dictionary<string, string> metaDict = new();
         
         metaDict["Resolution"] = $"{standardized.ImgWidth}x{standardized.ImgHeight}";
-        metaDict["ColorType"] = $"{nameof(standardized.ColorType)}";
+        metaDict["ColorType"] = $"{standardized.ColorType.ToString()}";
         metaDict["BitDepth"] = $"{standardized.BitDepth}";
         if(FormatCodes.PronomCodesGIF.Contains(file.FileFormat)) metaDict["FrameCount"] = $"{standardized.FrameCount}";
         metaDict["PhysicalUnits"] = $"{standardized.PPUnitX}x{standardized.PPUnitY} per {standardized.PUnit}";

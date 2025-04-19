@@ -10,7 +10,15 @@ namespace AvaloniaDraft.ExtractionPipelines;
 
 public static class BaseExtraction
 {
-    public static Dictionary<string, string>? ExecutePipeline(Func<Dictionary<string, string>> pipeline, string file, Action updateThreadCount, Action markDone)
+    /// <summary>
+    /// Executes a data extraction pipeline.
+    /// </summary>
+    /// <param name="pipeline">The pipeline function to be executed.</param>
+    /// <param name="file">The name of the files that is operated on.</param>
+    /// <param name="updateThreadCount">Function adding the thread back to the budget.</param>
+    /// <param name="markDone">Function marking the file as done,</param>
+    /// <returns>All data in a name-to-value dictionary, or null if an error occured.</returns>
+    private static Dictionary<string, string>? ExecutePipeline(Func<Dictionary<string, string>> pipeline, string file, Action updateThreadCount, Action markDone)
     {
         try
         {
@@ -40,6 +48,11 @@ public static class BaseExtraction
         }
     }
     
+    /// <summary>
+    /// Function selecting the pipeline for a file based on its format.
+    /// </summary>
+    /// <param name="format">Format of the file.</param>
+    /// <returns>The pipeline function.</returns>
     public static Func<SingleFile, Action, Action, Dictionary<string, string>?>? SelectPipeline(string format)
     {
         if (FormatCodes.PronomCodesImages.Contains(format))
@@ -48,6 +61,13 @@ public static class BaseExtraction
         return null;
     }
 
+    /// <summary>
+    /// Data extraction pipeline for image files.
+    /// </summary>
+    /// <param name="file">File that is to be worked on.</param>
+    /// <param name="updateThreads">Function adding the thread back to the budget.</param>
+    /// <param name="markDone">Function marking the file as done.</param>
+    /// <returns>All data in a name-to-value dictionary, or null if an error occured.</returns>
     private static Dictionary<string, string>? ImageExtractionPipeline(SingleFile file, Action updateThreads, Action markDone)
     {
         var res = ExecutePipeline(() =>
@@ -70,6 +90,13 @@ public static class BaseExtraction
         return res;
     }
 
+    /// <summary>
+    /// Data extraction pipeline for spreadsheet files.
+    /// </summary>
+    /// <param name="file">The file that is to be worked on.</param>
+    /// <param name="updateThreads">Function adding the thread back to the budget.</param>
+    /// <param name="markDone">Function marking the file as done.</param>
+    /// <returns>All data in a name-to-value dictionary, or null if an error occured.</returns>
     private static Dictionary<string, string>? SpreadsheetExtractionPipeline(SingleFile file, Action updateThreads,
         Action markDone)
     {
