@@ -22,6 +22,7 @@ public partial class HomeView : UserControl
     private string InputPath { get; set; }
     private string OutputPath { get; set; }
     private string CheckpointPath { get; set; }
+    private string ExtractionPath { get; set; }
     private bool Working { get; set; } = false;
     
     //Progress bar
@@ -37,6 +38,7 @@ public partial class HomeView : UserControl
         UiControlService.Instance.UpdateProgressBar += FileDone;
         InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
+        ExtractionButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
         DataContext = new SettingsViewModel();
 
         LoadPaths();
@@ -69,6 +71,10 @@ public partial class HomeView : UserControl
                     OutputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     OutputButton.Content = "Selected";
                     GlobalVariables.Paths.NewFilesPath = OutputPath;
+                    break;
+                case "ExtractionButton":
+                    ExtractionPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
+                    ExtractionButton.Content = "Selected";
                     break;
             }
             GlobalVariables.Paths.SavePaths();
@@ -159,7 +165,10 @@ public partial class HomeView : UserControl
                 if (string.IsNullOrEmpty(CheckpointPath)) return;
                 CheckpointButton.Content = CheckpointPath;
                 break;
-
+            case "ExtractionButton":
+                if (string.IsNullOrEmpty(ExtractionPath)) return;
+                ExtractionButton.Content = ExtractionPath;
+                break;
         }
     }
 
@@ -176,6 +185,9 @@ public partial class HomeView : UserControl
                 break;
             case "CheckpointButton":
                 CheckpointButton.Content = string.IsNullOrEmpty(CheckpointPath) ? "Select" : "Selected";
+                break;
+            case "ExtractionButton":
+                ExtractionButton.Content = string.IsNullOrEmpty(ExtractionPath) ? "Select" : "Selected";
                 break;
         }
     }
@@ -429,6 +441,11 @@ public partial class HomeView : UserControl
             if (message != null)
                 AppendConsole(message);
         });
+    }
+
+    private void ExtractionStartButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        throw new NotImplementedException();
     }
 }
 
