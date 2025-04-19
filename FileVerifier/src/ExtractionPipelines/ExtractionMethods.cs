@@ -7,6 +7,11 @@ namespace AvaloniaDraft.ExtractionPipelines;
 
 public static class ExtractionMethods
 {
+    /// <summary>
+    /// Gets some metadata from images and returns them as a dictionary.
+    /// </summary>
+    /// <param name="file">The file to be worked on.</param>
+    /// <returns>Data in a name-to-value dictionary, or null if an error occured.</returns>
     public static Dictionary<string, string>? GetImageMetadataInfo(SingleFile file)
     {
         //Get metadata
@@ -31,6 +36,11 @@ public static class ExtractionMethods
         return metaDict;
     }
 
+    /// <summary>
+    /// Checks if a spreadsheet has a risk of a table-break, and returns the result as a dictionary. 
+    /// </summary>
+    /// <param name="file">The file to be worked on.</param>
+    /// <returns>Name-to-Value dictionary regarding table-breaks.</returns>
     public static Dictionary<string, string> CheckSpreadsheetBreak(SingleFile file)
     {
         var result = new Dictionary<string, string>();

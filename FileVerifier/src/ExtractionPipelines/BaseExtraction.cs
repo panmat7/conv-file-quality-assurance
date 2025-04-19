@@ -57,6 +57,9 @@ public static class BaseExtraction
     {
         if (FormatCodes.PronomCodesImages.Contains(format))
             return ImageExtractionPipeline;
+        
+        if(FormatCodes.PronomCodesSpreadsheets.Contains(format))
+            return SpreadsheetExtractionPipeline;
 
         return null;
     }
