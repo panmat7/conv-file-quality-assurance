@@ -75,6 +75,7 @@ public partial class HomeView : UserControl
                 case "ExtractionButton":
                     ExtractionPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     ExtractionButton.Content = "Selected";
+                    GlobalVariables.Paths.DataExtractionFilesPath = ExtractionPath;
                     break;
             }
             GlobalVariables.Paths.SavePaths();
@@ -108,7 +109,7 @@ public partial class HomeView : UserControl
         {
             var file = result[0];
 
-            if (sender is not Button button) return;
+            if (sender is not Button) return;
             CheckpointButton.Content = "Selected";
             CheckpointPath = file.TryGetLocalPath() ?? throw new InvalidOperationException();
             GlobalVariables.Paths.CheckpointPath = CheckpointPath;
@@ -127,6 +128,7 @@ public partial class HomeView : UserControl
         var oPath = GlobalVariables.Paths.OriginalFilesPath;
         var nPath = GlobalVariables.Paths.NewFilesPath;
         var cpPath = GlobalVariables.Paths.CheckpointPath;
+        var dePath = GlobalVariables.Paths.DataExtractionFilesPath;
 
         if (oPath != null)
         {
@@ -144,6 +146,12 @@ public partial class HomeView : UserControl
         {
             CheckpointPath = cpPath;
             CheckpointButton.Content = "Selected";
+        }
+
+        if (dePath != null)
+        {
+            ExtractionPath = dePath;
+            ExtractionButton.Content = "Selected";
         }
     }
 
