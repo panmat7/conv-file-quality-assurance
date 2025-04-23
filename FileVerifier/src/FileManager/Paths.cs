@@ -75,7 +75,7 @@ public class Paths
                 if (Path.Exists(paths.OriginalFilesPath)) this.OriginalFilesPath = paths.OriginalFilesPath;
                 if (Path.Exists(paths.NewFilesPath)) this.NewFilesPath = paths.NewFilesPath;
                 if (Path.Exists(paths.CheckpointPath)) this.CheckpointPath = paths.CheckpointPath;
-                if (Path.Exists(paths.CheckpointPath)) this.DataExtractionFilesPath = paths.DataExtractionFilesPath;
+                if (Path.Exists(paths.DataExtractionFilesPath)) this.DataExtractionFilesPath = paths.DataExtractionFilesPath;
             }
         }
         catch (Exception ex)
