@@ -509,13 +509,6 @@ public static class DocumentVisualOperations
     //
     //         var dominanceRatio = (counts[0] + counts[1]) / (double)totalPixels;
     //
-    //         var res = (dominanceRatio < 0.8) ? "DROPPED" : "KEPT";
-    //         
-    //         CvInvoke.PutText(img, res, new Point(img.Width / 2, img.Height / 2), FontFace.HersheyPlain, 2.0, new MCvScalar(255, 15, 25), 2);
-    //         CvInvoke.Imshow("img", img);
-    //         CvInvoke.WaitKey(0);
-    //         CvInvoke.DestroyAllWindows();
-    //
     //         return dominanceRatio < 0.8;
     //     }
     //     catch

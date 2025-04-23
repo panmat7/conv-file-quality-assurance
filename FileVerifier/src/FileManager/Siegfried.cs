@@ -127,4 +127,75 @@ public static class Siegfried
         }
         process.WaitForExit();
     }
+
+    /// <summary>
+    /// Method <c>GetFileFormats</c> is to called run siegfried on one directories and assign PRONOM formats to files.
+    /// </summary>
+    /// <param name="inputDir">The directory containing the files.</param>
+    /// <param name="files">The list of single files.</param>
+    public static void GetFileFormats(string inputDir, ref List<SingleFile> files)
+    {
+        var terminal = "";
+        var arguments = "";
+        const string windowsTerminal = "powershell.exe";
+        const string linuxTerminal = "/bin/bash";
+        var windowsArguments = $"-ExecutionPolicy Bypass -Command \"sf -json \"{inputDir}\";";
+        var linuxArguments = $"-c \"sf -json '{inputDir}';\"";
+
+        if (OperatingSystem.IsWindows())
+        {
+            terminal = windowsTerminal;
+            arguments = windowsArguments;
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            terminal = linuxTerminal;
+            arguments = linuxArguments;
+        }
+        
+        var processInfo = new ProcessStartInfo
+        {
+            FileName = terminal,
+            Arguments = arguments,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8, //Otherwise causes errors with certain characters
+            StandardErrorEncoding = Encoding.UTF8,
+        };
+        
+        using var process = new Process();
+        process.StartInfo = processInfo;
+
+        try { process.Start(); }
+        catch(Exception ex)
+        {
+            throw new Exception($"Unable to start {terminal} and Siegfried: {ex.Message}");
+        }
+        
+        var output = process.StandardOutput.ReadToEnd();
+        var error = process.StandardError.ReadToEnd();
+        
+        if (!string.IsNullOrEmpty(error)) UiControlService.Instance.OverwriteConsoleOutput("There occurred an error when using Siegried.");
+        
+        var outObj = JsonSerializer.Deserialize<SiegfriedOutputJson>(output);
+        
+        if (outObj == null)
+        {
+            throw new Exception("Invalid Siegfried output");
+        }
+        
+        outObj.Files = outObj.Files.Where(f => f.Matches.Count > 0).ToList();
+        
+        foreach (var file in files)
+        {
+            var format = outObj.Files.FirstOrDefault(f => f.Name == file.FilePath);
+            
+            if(format != null)
+                file.FileFormat = format.Matches[0].id;
+        }
+        
+        process.WaitForExit();
+    }
 }
