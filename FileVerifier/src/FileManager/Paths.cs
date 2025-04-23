@@ -73,6 +73,7 @@ public class Paths
             {
                 if (Path.Exists(paths.OriginalFilesPath)) this.OriginalFilesPath = paths.OriginalFilesPath;
                 if (Path.Exists(paths.NewFilesPath)) this.NewFilesPath = paths.NewFilesPath;
+                if (Path.Exists(paths.CheckpointPath)) this.CheckpointPath = paths.CheckpointPath;
             }
         }
         catch (Exception ex)
