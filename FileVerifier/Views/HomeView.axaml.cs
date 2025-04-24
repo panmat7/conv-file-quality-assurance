@@ -155,11 +155,11 @@ public partial class HomeView : UserControl
         {
             case "InputButton":
                 if (string.IsNullOrEmpty(InputPath)) return;
-                InputButton.Content = InputPath;
+                InputButton.Content = Path.GetFileName(Path.DirectorySeparatorChar + InputPath.TrimEnd(Path.DirectorySeparatorChar));
                 break;
             case "OutputButton":
                 if (string.IsNullOrEmpty(OutputPath)) return;
-                OutputButton.Content = OutputPath;
+                OutputButton.Content = Path.GetFileName(Path.DirectorySeparatorChar + OutputPath.TrimEnd(Path.DirectorySeparatorChar));
                 break;
             case "CheckpointButton":
                 if (string.IsNullOrEmpty(CheckpointPath)) return;

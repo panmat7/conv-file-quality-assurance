@@ -19,7 +19,7 @@
                 <TextBlock Text="Process Completed" HorizontalAlignment="Center" FontSize="16"/>
 
                 <Button Name="OkButton" Click="OKButton_OnClick_" Background="#139A43" Foreground="White"
-                        BorderBrush="#0DAB76" BorderThickness="1" 
+                        BorderBrush="#0DAB76" BorderThickness="1" FontSize="14" 
                         Padding="20,5" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center">
                         OK
                 </Button>
