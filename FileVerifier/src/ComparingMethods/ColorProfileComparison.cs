@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AvaloniaDraft.FileManager;
-using AvaloniaDraft.Helpers;
 using ImageMagick;
 using ImageMagick.Formats;
 using UglyToad.PdfPig.Content;
 
-// NOTE: COLOR PROFILE COMPARISON WILL NOT WORK CORRECTLY WHEN IMAGES ARE IN DIFFERENT ORDER BETWEEN ORIGINAL AND NEW
+// NOTE: COLOR PROFILE COMPARISON WILL NOT WORK CORRECTLY WHEN IMAGES ARE IN DIFFERENT ORDER BETWEEN ORIGINAL AND NEW FILE
 // THERE IS STILL A CHANCE IT ENDS UP GIVING THE CORRECT RESULT IF PROFILES HAPPEN TO MATCH, BUT THERE IS NO GUARANTEE
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -183,15 +180,11 @@ public static class ColorProfileComparison
     {
         var settings = new MagickReadSettings();
 
-        switch (format)
+        settings.Defines = format switch
         {
-            case MagickFormat.Png:
-                settings.Defines = new PngReadDefines { PreserveiCCP = true };
-                break;
-            default:
-                // do nothing
-                break;
-        }
+            MagickFormat.Png => new PngReadDefines { PreserveiCCP = true },
+            _ => settings.Defines
+        };
         return settings;
     }
 }

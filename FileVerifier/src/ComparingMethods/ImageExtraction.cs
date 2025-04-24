@@ -10,7 +10,6 @@ using System.Xml.Linq;
 using AvaloniaDraft.Helpers;
 using MimeKit;
 using UglyToad.PdfPig.Content;
-using UglyToad.PdfPig.Graphics;
 using RtfDomParser;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
@@ -19,7 +18,6 @@ using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Tiff;
-using SixLabors.ImageSharp;
 
 namespace AvaloniaDraft.ComparingMethods;
 
