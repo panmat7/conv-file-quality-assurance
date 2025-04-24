@@ -19,7 +19,7 @@ public abstract class ZipHelper
     /// <param name="directory"></param>
     /// <param name="tempDirectory"></param>
     /// <param name="fileManager"></param>
-    internal static void ExtractCompressedFiles(string directory, string tempDirectory, FileManager.FileManager fileManager)
+    public static void ExtractCompressedFiles(string directory, string tempDirectory, FileManager.FileManager fileManager)
     {
         var filesys = fileManager.GetFilesystem();
         var files = CompressedFilesExtensions.SelectMany(ext => filesys.Directory.GetFiles(directory, ext, SearchOption.AllDirectories));

@@ -114,6 +114,12 @@ public static class ColorProfileComparison
                                         !CompareColorProfiles(t, convertedNImages[i])).Any();
     }
 
+    /// <summary>
+    /// Compares the color profile between two images on disk
+    /// </summary>
+    /// <param name="oFolderPath"></param>
+    /// <param name="nFolderPath"></param>
+    /// <returns></returns>
     public static bool CompareColorProfilesFromDisk(string oFolderPath, string nFolderPath)
     {
         var oFiles = Directory.GetFiles(oFolderPath).OrderBy(File.GetCreationTime).ToArray();
@@ -168,6 +174,11 @@ public static class ColorProfileComparison
         };
     }
     
+    /// <summary>
+    /// Creates format specific settings for reading images correctly
+    /// </summary>
+    /// <param name="format"></param>
+    /// <returns></returns>
     public static MagickReadSettings CreateFormatSpecificSettings(MagickFormat? format)
     {
         var settings = new MagickReadSettings();

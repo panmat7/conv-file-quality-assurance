@@ -717,7 +717,11 @@ public static class ImageExtraction
         }
     }
     
-    public static void DeleteSavedImages(string directory)
+    /// <summary>
+    /// Deletes all saved files/images in the given directory.
+    /// </summary>
+    /// <param name="directory"></param>
+    public static void DeleteSavedFiles(string directory)
     {
         if (!Directory.Exists(directory)) return;
         var files = Directory.GetFiles(directory);
@@ -727,6 +731,12 @@ public static class ImageExtraction
         }
     }
 
+    /// <summary>
+    /// Checks if two directories have the same number of images.
+    /// </summary>
+    /// <param name="dir1"></param>
+    /// <param name="dir2"></param>
+    /// <returns></returns>
     public static bool CheckIfEqualNumberOfImages(string dir1, string dir2)
     {
         var oFiles = Directory.GetFiles(dir1).ToArray();

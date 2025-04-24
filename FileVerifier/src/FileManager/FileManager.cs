@@ -103,7 +103,7 @@ public sealed class FileManager
     private readonly string _tempODirectory;
     private readonly string _tempNDirectory;
     private readonly string _checkpoint;
-    internal List<IgnoredFile> IgnoredFiles { get; set; }
+    public List<IgnoredFile> IgnoredFiles { get; set; }
     private List<FilePair> _filePairs;
     private readonly List<string> _pairlessFiles;
     private readonly IFileSystem _fileSystem;
@@ -244,12 +244,9 @@ public sealed class FileManager
 
     private static void CleanupTempDirectories(params string[] tempDirectories)
     {
-        foreach (var tempDir in tempDirectories)
+        foreach (var tempDir in tempDirectories.Where(Directory.Exists))
         {
-            if (Directory.Exists(tempDir))
-            {
-                Directory.Delete(tempDir, true);
-            }
+            Directory.Delete(tempDir, true);
         }
     }
 
