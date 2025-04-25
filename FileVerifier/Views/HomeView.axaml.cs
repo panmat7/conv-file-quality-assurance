@@ -300,6 +300,7 @@ public partial class HomeView : UserControl
                     OverwriteConsole(null);
                 });
 
+                GlobalVariables.Logger.Initialize();
                 GlobalVariables.Logger.Start();
 
                 await Task.Run(() =>
