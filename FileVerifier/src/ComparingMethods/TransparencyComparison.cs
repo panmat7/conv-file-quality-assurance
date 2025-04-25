@@ -8,6 +8,7 @@ using UglyToad.PdfPig.Tokens;
 
 namespace AvaloniaDraft.ComparingMethods;
 
+[Obsolete("Transparency check is no longer its own method, but part of metadata check.")]
 public static class TransparencyComparison
 {
     /// <summary>
