@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ImageMagick;
@@ -29,6 +30,7 @@ public static class ColorProfileComparison
     /// <param name="oImages"></param>
     /// <param name="nImages"></param>
     /// <returns></returns>
+    [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
     public static bool PdfToPdfColorProfileComparison(List<IPdfImage> oImages, List<IPdfImage> nImages)
     {
         var convertedOImages = ImageExtraction.ConvertPdfImagesToMagickImages(oImages);
@@ -58,6 +60,7 @@ public static class ColorProfileComparison
     /// <param name="oImage"></param>
     /// <param name="nImages"></param>
     /// <returns></returns>
+    [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
     public static bool ImageToPdfColorProfileComparison(MagickImage oImage, List<IPdfImage> nImages)
     {
         // Convert from IPdfImage to MagickImage
@@ -74,6 +77,7 @@ public static class ColorProfileComparison
     /// <param name="oImages"></param>
     /// <param name="nImages"></param>
     /// <returns></returns>
+    [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
     public static bool GeneralDocsToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
         // Convert from IPdfImage to MagickImage
@@ -92,6 +96,7 @@ public static class ColorProfileComparison
     /// <param name="nImages"></param>
     /// <param name="imagesOverCells"></param>
     /// <returns></returns>
+    [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
     public static bool XlsxToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages, 
         List<string> imagesOverCells)
     {
