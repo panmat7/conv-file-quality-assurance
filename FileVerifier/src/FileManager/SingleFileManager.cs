@@ -52,10 +52,13 @@ public class SingleFileManager
         {
             _files.Add(new SingleFile { FilePath = file });
         }
-        
-        Siegfried.GetFileFormats(_inputDirectory, ref _files);
     }
 
+    public void SetSiegfriedFormats()
+    {
+        Siegfried.GetFileFormats(_inputDirectory, ref _files);
+    }
+    
     /// <summary>
     /// Starts the extraction process
     /// </summary>

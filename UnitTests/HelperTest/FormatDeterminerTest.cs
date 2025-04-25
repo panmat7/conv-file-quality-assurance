@@ -33,23 +33,23 @@ public class FormatDeterminerTest
         {
             {
                 _testFileDirectory + @"Images\225x225.png",
-                "png"
+                ".png"
             },
             {
                 _testFileDirectory + @"Images\600x450.jpg",
-                "jpeg"
+                ".jpeg"
             },
             {
                 _testFileDirectory + @"Images\450x600.tiff",
-                "tiff"
+                ".tiff"
             },
             {
                 _testFileDirectory + @"Images\600x450.bmp",
-                "bmp"
+                ".bmp"
             },
             {
                 _testFileDirectory + @"Images\gif-animated.gif",
-                "gif"
+                ".gif"
             },
             {
                 _testFileDirectory + @"ODT\odt-with-no-images.odt",
