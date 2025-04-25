@@ -342,7 +342,7 @@ public partial class HomeView : UserControl
             var filePairs = GlobalVariables.Logger.GetFilePairs();
 
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath, filePairs);
-            GlobalVariables.FileManager.GetSiegfriedFormats();
+            GlobalVariables.FileManager.SetSiegfriedFormats();
             GlobalVariables.FileManager.FilterOutDisabledFileFormats();
             SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
         }
@@ -407,6 +407,7 @@ public partial class HomeView : UserControl
             AppendConsole("Starting extraction...\n\n");
 
             GlobalVariables.SingleFileManager = new SingleFileManager(ExtractionPath);
+            GlobalVariables.SingleFileManager.SetSiegfriedFormats();
             await Task.Run(() =>
             {
                 GlobalVariables.SingleFileManager.StartProcessing();

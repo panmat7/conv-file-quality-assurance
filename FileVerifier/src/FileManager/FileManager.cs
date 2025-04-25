@@ -171,7 +171,7 @@ public sealed class FileManager
             //If file with matching name is found, adding pair
             if (newFileLookupDir.TryGetValue(_fileSystem.Path.GetFileNameWithoutExtension(oFile), out var nFile))
             {
-                var pair = new FilePair(nFile, "", oFile, "");
+                var pair = new FilePair(oFile, "", nFile, "");
 
                 if (!checkpointFilePairs.Any(fp => fp.OriginalFilePath == pair.OriginalFilePath 
                     && fp.NewFilePath == pair.NewFilePath))
@@ -208,7 +208,7 @@ public sealed class FileManager
             }
         }
         
-        //Adding all files that do not have a pair from newfiles to pairless
+        //Adding all files that do not have a pair in newfiles to pairless
         _pairlessFiles.AddRange(newFiles.FindAll(f => !_filePairs.Select(fp => fp.NewFilePath).Contains(f)));
         
         // Register cleanup of temporary directories on application exit
@@ -256,7 +256,7 @@ public sealed class FileManager
     /// <summary>
     /// Calls Siegfried to identify format of files in both directories
     /// </summary>
-    public void GetSiegfriedFormats()
+    public void SetSiegfriedFormats()
     {
         Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs);
     }
