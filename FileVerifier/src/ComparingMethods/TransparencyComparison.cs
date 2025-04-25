@@ -141,22 +141,32 @@ public static class TransparencyComparison
     /// <returns></returns>
     private static bool CheckNonPdfImageTransparency(MagickImage image)
     {
+        // Get the pixel data from the image
         using var pixels = image.GetPixels();
+    
+        // If the image does not have an alpha channel, it is not transparent
         if (!image.HasAlpha)
             return false;
-
+    
+        // Retrieve the pixel values and determine the number of channels in the image
         var values = pixels.GetValues();
         var channels = (int)image.ChannelCount;
+    
+        // Determine the comparison value based on the image depth (16-bit or 8-bit)
         var compValue = image.Depth == 16 ? 65535 : 255;
-        
-        
+    
+        // If no pixel values are retrieved, return false
         if (values == null) return false;
+    
+        // Iterate through the alpha channel values of the pixels
         for (var i = 3; i < values.Length; i += channels)
         {
+            // If any alpha value is less than the comparison value, the image is transparent
             if (values[i] < compValue)
                 return true;
         }
-
+    
+        // If no transparency is detected, return false
         return false;
     }
 }
