@@ -359,7 +359,7 @@ public partial class HomeView : UserControl
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var errWindow = new ErrorWindow(
-                    "Duplicate file names in the folder containing converted files! Ensure all files have unique names, matching their original counterpart. " + err.Message
+                    "Duplicate file names in the folder containing converted files! Ensure all files have unique names, matching their original counterpart."
                 );
                 errWindow.ShowDialog((this.VisualRoot as Window)!);
             });
