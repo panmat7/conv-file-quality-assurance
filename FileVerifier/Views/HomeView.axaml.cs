@@ -352,7 +352,6 @@ public partial class HomeView : UserControl
 
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath, filePairs);
             GlobalVariables.FileManager.SetSiegfriedFormats();
-            GlobalVariables.FileManager.FilterOutDisabledFileFormats();
             SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
         }
         catch (InvalidOperationException err)
@@ -360,7 +359,7 @@ public partial class HomeView : UserControl
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var errWindow = new ErrorWindow(
-                    "Duplicate file names in the folder containing converted files! Ensure all files have unique names, matching their original counterpart."
+                    "Duplicate file names in the folder containing converted files! Ensure all files have unique names, matching their original counterpart. " + err.Message
                 );
                 errWindow.ShowDialog((this.VisualRoot as Window)!);
             });
