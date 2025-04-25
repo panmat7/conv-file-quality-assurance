@@ -472,6 +472,14 @@ public static class ComperingMethods
                 ErrorSeverity.Low,
                 ErrorType.Visual
             ));
+
+            if (result.BgColorsOnlyInOriginal.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Background colors only in original:");
+                foreach (var c in result.BgColorsOnlyInOriginal) bld.Append($"\n#{c}");
+                comments.Add(bld.ToString());
+            }
         }
 
 
@@ -483,6 +491,14 @@ public static class ComperingMethods
                 ErrorSeverity.Low,
                 ErrorType.Visual
             ));
+
+            if (result.TextColorsOnlyInOriginal.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Text colors only in original:");
+                foreach (var c in result.TextColorsOnlyInOriginal) bld.Append($"\n#{c}");
+                comments.Add(bld.ToString());
+            }
         }
 
         GlobalVariables.Logger.AddTestResult(fp, Methods.Fonts.Name, result.Pass, null, comments, errors);
