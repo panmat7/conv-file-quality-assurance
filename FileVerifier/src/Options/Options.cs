@@ -156,8 +156,10 @@ public class Options
     /// Get if a file format is enabled or not
     /// </summary>
     /// /// <param name="pronomUID">The file type</param>
-    public bool? GetFileFormat(string pronomUID)
+    public bool? GetFileFormat(string? pronomUID)
     {
+        if (pronomUID == null) return false;
+
         foreach (var ft in FileFormatsEnabled.Keys)
         {
             if (FileFormatsEnabled[ft].ContainsKey(pronomUID))

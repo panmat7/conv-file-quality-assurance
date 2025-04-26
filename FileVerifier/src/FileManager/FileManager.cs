@@ -255,7 +255,8 @@ public sealed class FileManager
     /// </summary>
     public void SetSiegfriedFormats()
     {
-        Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs);
+        var ignoredFiles = IgnoredFiles;
+        Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs, ref ignoredFiles);
     }
 
 
@@ -264,14 +265,14 @@ public sealed class FileManager
     /// </summary>
     public void FilterOutDisabledFileFormats()
     {
-        var filteredOut = _filePairs.Where(fp => !GlobalVariables.Options.FormatsAreEnabled(fp)).ToList();
+        /*var filteredOut = _filePairs.Where(fp => !GlobalVariables.Options.FormatsAreEnabled(fp)).ToList();
         _filePairs = _filePairs.Except(filteredOut).ToList();
         foreach (var fp in filteredOut)
         {
             var reason = ReasonForIgnoring.Filtered;
             IgnoredFiles.Add(new IgnoredFile(fp.OriginalFilePath, reason));
             IgnoredFiles.Add(new IgnoredFile(fp.NewFilePath, reason));
-        }
+        }*/
     }
 
     /// <summary>
