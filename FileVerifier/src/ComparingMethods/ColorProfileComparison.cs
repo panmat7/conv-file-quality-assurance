@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AvaloniaDraft.FileManager;
-using AvaloniaDraft.Helpers;
 using ImageMagick;
 using ImageMagick.Formats;
 using UglyToad.PdfPig.Content;
 
-// NOTE: COLOR PROFILE COMPARISON WILL NOT WORK CORRECTLY WHEN IMAGES ARE IN DIFFERENT ORDER BETWEEN ORIGINAL AND NEW
+// NOTE: COLOR PROFILE COMPARISON WILL NOT WORK CORRECTLY WHEN IMAGES ARE IN DIFFERENT ORDER BETWEEN ORIGINAL AND NEW FILE
 // THERE IS STILL A CHANCE IT ENDS UP GIVING THE CORRECT RESULT IF PROFILES HAPPEN TO MATCH, BUT THERE IS NO GUARANTEE
 
 namespace AvaloniaDraft.ComparingMethods;
@@ -32,6 +30,7 @@ public static class ColorProfileComparison
     /// <param name="oImages"></param>
     /// <param name="nImages"></param>
     /// <returns></returns>
+    [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
     public static bool PdfToPdfColorProfileComparison(List<IPdfImage> oImages, List<IPdfImage> nImages)
     {
         var convertedOImages = ImageExtraction.ConvertPdfImagesToMagickImages(oImages);
@@ -61,6 +60,7 @@ public static class ColorProfileComparison
     /// <param name="oImage"></param>
     /// <param name="nImages"></param>
     /// <returns></returns>
+    [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
     public static bool ImageToPdfColorProfileComparison(MagickImage oImage, List<IPdfImage> nImages)
     {
         // Convert from IPdfImage to MagickImage
@@ -77,6 +77,7 @@ public static class ColorProfileComparison
     /// <param name="oImages"></param>
     /// <param name="nImages"></param>
     /// <returns></returns>
+    [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
     public static bool GeneralDocsToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
         // Convert from IPdfImage to MagickImage
@@ -95,6 +96,7 @@ public static class ColorProfileComparison
     /// <param name="nImages"></param>
     /// <param name="imagesOverCells"></param>
     /// <returns></returns>
+    [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
     public static bool XlsxToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages, 
         List<string> imagesOverCells)
     {
@@ -114,6 +116,12 @@ public static class ColorProfileComparison
                                         !CompareColorProfiles(t, convertedNImages[i])).Any();
     }
 
+    /// <summary>
+    /// Compares the color profile between two images on disk
+    /// </summary>
+    /// <param name="oFolderPath"></param>
+    /// <param name="nFolderPath"></param>
+    /// <returns></returns>
     public static bool CompareColorProfilesFromDisk(string oFolderPath, string nFolderPath)
     {
         var oFiles = Directory.GetFiles(oFolderPath).OrderBy(File.GetCreationTime).ToArray();
@@ -168,19 +176,20 @@ public static class ColorProfileComparison
         };
     }
     
+    /// <summary>
+    /// Creates format specific settings for reading images correctly
+    /// </summary>
+    /// <param name="format"></param>
+    /// <returns></returns>
     public static MagickReadSettings CreateFormatSpecificSettings(MagickFormat? format)
     {
         var settings = new MagickReadSettings();
 
-        switch (format)
+        settings.Defines = format switch
         {
-            case MagickFormat.Png:
-                settings.Defines = new PngReadDefines { PreserveiCCP = true };
-                break;
-            default:
-                // do nothing
-                break;
-        }
+            MagickFormat.Png => new PngReadDefines { PreserveiCCP = true },
+            _ => settings.Defines
+        };
         return settings;
     }
 }

@@ -19,10 +19,10 @@ public abstract class ZipHelper
     /// <param name="directory"></param>
     /// <param name="tempDirectory"></param>
     /// <param name="fileManager"></param>
-    internal static void ExtractCompressedFiles(string directory, string tempDirectory, FileManager.FileManager fileManager)
+    public static void ExtractCompressedFiles(string directory, string tempDirectory, FileManager.FileManager fileManager)
     {
-        var filesys = fileManager.GetFilesystem();
-        var files = CompressedFilesExtensions.SelectMany(ext => filesys.Directory.GetFiles(directory, ext, SearchOption.AllDirectories));
+        var fileSystem = fileManager.GetFilesystem();
+        var files = CompressedFilesExtensions.SelectMany(ext => fileSystem.Directory.GetFiles(directory, ext, SearchOption.AllDirectories));
         foreach (var file in files)
         {
             if (EncryptionChecker.IsCompressedEncrypted(file))
@@ -33,7 +33,7 @@ public abstract class ZipHelper
             {
                 var extractPath = Path.Combine(tempDirectory, Path.GetFileNameWithoutExtension(file));
 
-                filesys.Directory.CreateDirectory(extractPath);
+                fileSystem.Directory.CreateDirectory(extractPath);
 
                 using var archive = ArchiveFactory.Open(file);
                 foreach (var entry in archive.Entries)
