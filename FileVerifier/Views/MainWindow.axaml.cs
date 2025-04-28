@@ -60,6 +60,7 @@ public partial class MainWindow : Window
         HomeButton.Background = new SolidColorBrush(Colors.Transparent);
         SettingsButton.Background = new SolidColorBrush(Colors.Transparent);
         ReportButton.Background = new SolidColorBrush(Colors.Transparent);
+        TestAnalysisButton.Background = new SolidColorBrush(Colors.Transparent);
 
 
         // Set active button style
@@ -93,6 +94,16 @@ public partial class MainWindow : Window
             DataContext = _settingsViewModel
         };
         MainContent.Content = reportView;
+        SetActiveButton((Button)sender);
+    }
+
+    private void TestAnalysisButton_Click(object sender, RoutedEventArgs e)
+    {
+        var testAnalysisView = new TestAnalysisView
+        {
+            DataContext = _settingsViewModel
+        };
+        MainContent.Content = testAnalysisView;
         SetActiveButton((Button)sender);
     }
 }
