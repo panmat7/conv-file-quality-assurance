@@ -17,18 +17,28 @@
 
 		<!-- Top Button Row -->
 		<StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
+			
 			<Button x:Name="LoadCurrentReportButton" VerticalAlignment="Center" FontSize="18" Margin="5"
                     Background="#139A43" Foreground="White"
                     BorderBrush="#0DAB76" BorderThickness="2"
 					Click="LoadCurrentReport">
 				Load current report
 			</Button>
+			
 			<Button VerticalAlignment="Center" FontSize="18" Margin="5"
                     Background="#139A43" Foreground="White"
                     BorderBrush="#0DAB76" BorderThickness="2"
 					Click="LoadJson">
 				Load from JSON
 			</Button>
+
+			<Button x:Name="ClearButton" VerticalAlignment="Center" FontSize="18" Margin="5"
+					Background="#139A43" Foreground="White"
+					BorderBrush="#0DAB76" BorderThickness="2"
+					Click="Clear">
+				Clear
+			</Button>
+			
 		</StackPanel>
 
 

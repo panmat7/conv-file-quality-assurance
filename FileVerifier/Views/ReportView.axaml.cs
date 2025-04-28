@@ -37,6 +37,8 @@ public partial class ReportView : UserControl
         AllResultExpanders = [];
         ResultExpanders = [];
 
+        ClearButton.IsEnabled = false;
+
         if (GlobalVariables.Logger.HasFinished())
         {
             Logger = GlobalVariables.Logger;
@@ -96,6 +98,20 @@ public partial class ReportView : UserControl
         DisplayReport();
     }
 
+
+    private void Clear(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Logger = new Logger.Logger();
+
+        AllResultExpanders.Clear();
+        ResultExpanders.Clear();
+
+        ReportStackPanel.Children.Clear();
+        ReportSummary.Text = "";
+
+        ClearButton.IsEnabled = false;
+    }
+
     private void CreateElements()
     {
         AllResultExpanders.Clear();
@@ -116,6 +132,9 @@ public partial class ReportView : UserControl
     {
         ReportStackPanel.Children.Clear();
 
+        if (ResultExpanders.Count == 0) return;
+
+        ClearButton.IsEnabled = true;
         foreach (var expander in ResultExpanders)
         {
             ReportStackPanel.Children.Add(expander);
