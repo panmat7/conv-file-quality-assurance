@@ -64,17 +64,20 @@ public partial class HomeView : UserControl
             {
                 case "InputButton":
                     InputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
-                    InputButton.Content = "Selected";
+                    InputButton.Content = Path.GetFileName(InputPath.TrimEnd(Path.DirectorySeparatorChar));
+                    InputTip.Content = InputPath;
                     GlobalVariables.Paths.OriginalFilesPath = InputPath;
                     break;
                 case "OutputButton":
                     OutputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
-                    OutputButton.Content = "Selected";
+                    OutputButton.Content = Path.GetFileName(OutputPath.TrimEnd(Path.DirectorySeparatorChar));
+                    OutputTip.Content = OutputPath;
                     GlobalVariables.Paths.NewFilesPath = OutputPath;
                     break;
                 case "ExtractionButton":
                     ExtractionPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
-                    ExtractionButton.Content = "Selected";
+                    ExtractionButton.Content = Path.GetFileName(ExtractionPath.TrimEnd(Path.DirectorySeparatorChar));
+                    ExtractionTip.Content = ExtractionPath;
                     GlobalVariables.Paths.DataExtractionFilesPath = ExtractionPath;
                     break;
             }
@@ -110,8 +113,9 @@ public partial class HomeView : UserControl
             var file = result[0];
 
             if (sender is not Button) return;
-            CheckpointButton.Content = "Selected";
             CheckpointPath = file.TryGetLocalPath() ?? throw new InvalidOperationException();
+            CheckpointButton.Content = Path.GetFileName(CheckpointPath.TrimEnd(Path.DirectorySeparatorChar));
+            CheckpointTip.Content = CheckpointPath;
             GlobalVariables.Paths.CheckpointPath = CheckpointPath;
             GlobalVariables.Paths.SavePaths();
         }
@@ -133,70 +137,29 @@ public partial class HomeView : UserControl
         if (oPath != null)
         {
             InputPath = oPath;
-            InputButton.Content = "Selected";
+            InputButton.Content = Path.GetFileName(InputPath.TrimEnd(Path.DirectorySeparatorChar));
+            InputTip.Content = InputPath;
         }
 
         if (nPath != null)
         {
             OutputPath = nPath;
-            OutputButton.Content = "Selected";
+            OutputButton.Content = Path.GetFileName(OutputPath.TrimEnd(Path.DirectorySeparatorChar));
+            OutputTip.Content = OutputPath;
         }
 
         if (cpPath != null)
         {
             CheckpointPath = cpPath;
-            CheckpointButton.Content = "Selected";
+            CheckpointButton.Content = Path.GetFileName(CheckpointPath.TrimEnd(Path.DirectorySeparatorChar));
+            CheckpointTip.Content = CheckpointPath;
         }
 
         if (dePath != null)
         {
             ExtractionPath = dePath;
-            ExtractionButton.Content = "Selected";
-        }
-    }
-
-
-    private void InputButton_OnPointerEntered(object? sender, PointerEventArgs e)
-    {
-        if (sender is not Button button) return;
-        switch (button.Name)
-        {
-            case "InputButton":
-                if (string.IsNullOrEmpty(InputPath)) return;
-                InputButton.Content = Path.GetFileName(Path.DirectorySeparatorChar + InputPath.TrimEnd(Path.DirectorySeparatorChar));
-                break;
-            case "OutputButton":
-                if (string.IsNullOrEmpty(OutputPath)) return;
-                OutputButton.Content = Path.GetFileName(Path.DirectorySeparatorChar + OutputPath.TrimEnd(Path.DirectorySeparatorChar));
-                break;
-            case "CheckpointButton":
-                if (string.IsNullOrEmpty(CheckpointPath)) return;
-                CheckpointButton.Content = CheckpointPath;
-                break;
-            case "ExtractionButton":
-                if (string.IsNullOrEmpty(ExtractionPath)) return;
-                ExtractionButton.Content = ExtractionPath;
-                break;
-        }
-    }
-
-    private void InputButton_OnPointerExited(object? sender, PointerEventArgs e)
-    {
-        if (sender is not Button button) return;
-        switch (button.Name)
-        {
-            case "InputButton":
-                InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
-                break;
-            case "OutputButton":
-                OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
-                break;
-            case "CheckpointButton":
-                CheckpointButton.Content = string.IsNullOrEmpty(CheckpointPath) ? "Select" : "Selected";
-                break;
-            case "ExtractionButton":
-                ExtractionButton.Content = string.IsNullOrEmpty(ExtractionPath) ? "Select" : "Selected";
-                break;
+            ExtractionButton.Content = Path.GetFileName(ExtractionPath.TrimEnd(Path.DirectorySeparatorChar));
+            ExtractionTip.Content = ExtractionPath;
         }
     }
 

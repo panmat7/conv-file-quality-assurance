@@ -10,28 +10,36 @@
         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5" Foreground="White">Original file Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="0" Margin="5"
                 Name="InputButton" Click="InputButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
                 Padding="10,5" Width="100"
                 HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center">
             Select
+
+            <ToolTip.Tip>
+                <ToolTip Name="InputTip">
+                    <TextBlock Text="No folder selected."/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
 
         <!-- Output -->
         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="5" Foreground="White">New file Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="1" Margin="5"
                 Name="OutputButton" Click="InputButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
                 Padding="10,5" Width="100"
                 HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center">
             Select
+            
+            <ToolTip.Tip>
+                <ToolTip Name="OutputTip">
+                    <TextBlock Text="No folder selected."/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
 
         <!-- Checkpoint -->
@@ -39,28 +47,36 @@
 			Start from checkpoint</CheckBox>
         <Button Grid.Column="1" Grid.Row="2" Margin="5"
                 Name="CheckpointButton" Click="CheckpointButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
                 Padding="10,5" Width="100"
                 HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center">
             Select
+            
+            <ToolTip.Tip>
+                <ToolTip Name="CheckpointTip">
+                    <TextBlock Text="No folder selected."/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
         
         <!-- Extraction -->
         <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Data Extraction Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="3" Margin="5"
                 Name="ExtractionButton" Click="InputButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
                 Padding="10,5" Width="100"
                 HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center">
             Select
+            
+            <ToolTip.Tip>
+                <ToolTip Name="ExtractionTip">
+                    <TextBlock Text="No folder selected."/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
         
         <!-- Load -->
