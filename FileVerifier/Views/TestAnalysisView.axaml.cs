@@ -108,7 +108,7 @@ public partial class TestAnalysisView : UserControl
         var failedComparisonsCount = new Dictionary<string, int>();
         var stringBuilders = new Dictionary<string, StringBuilder>();
         var methods = Methods.GetList();
-        foreach (var method in methods)
+        foreach (var method in methods.Select(m => m.Name))
         {
             var content = new TextBlock { Foreground = Brushes.White };
             var expander = new Expander
@@ -117,9 +117,9 @@ public partial class TestAnalysisView : UserControl
                 HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch
             };
 
-            failedComparisonsCount[method.Name] = 0;
-            stringBuilders[method.Name] = new StringBuilder();
-            testExpanders[method.Name] = expander;
+            failedComparisonsCount[method] = 0;
+            stringBuilders[method] = new StringBuilder();
+            testExpanders[method] = expander;
         }
 
 
