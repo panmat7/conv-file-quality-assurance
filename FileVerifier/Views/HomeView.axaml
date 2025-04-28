@@ -56,7 +56,7 @@
             
             <ToolTip.Tip>
                 <ToolTip Name="CheckpointTip">
-                    <TextBlock Text="No folder selected." FontSize="14"/>
+                    <TextBlock Text="No file selected." FontSize="14"/>
                 </ToolTip>
             </ToolTip.Tip>
         </Button>
