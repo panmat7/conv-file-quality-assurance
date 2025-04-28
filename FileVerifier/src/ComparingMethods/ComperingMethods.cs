@@ -333,13 +333,15 @@ public static class ComperingMethods
 
             var (res, pairlessO, pairlessN) = DocumentVisualOperations.PairAndGetOverlapSegments(rectsO, rectsN);
             
+            var currPage = pageIndex + pageStart ?? 0 + 1;
+            
             //Mismatched number of segments
             if(pairlessO.Count > 0 || pairlessN.Count > 0)
-                errorPages[0].Add(pageIndex + pageStart ?? 0);
+                errorPages[0].Add(currPage);
                 
             //Segments in different positions
             if (res.Any(r => r.Item3 < 0.7))
-                errorPages[1].Add(pageIndex + pageStart ?? 0);
+                errorPages[1].Add(currPage);
             
             //Point by point
             if (GlobalVariables.Options == null || !GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name)) continue;
@@ -351,11 +353,11 @@ public static class ComperingMethods
                 nRects: res.Select(r => r.Item2).ToList()
             );
             
-            if(visualSegCompRes == null) errorPages[2].Add(pageIndex + pageStart ?? 0);
+            if(visualSegCompRes == null) errorPages[2].Add(currPage);
             else
             {
-                if(visualSegCompRes.Item1) errorPages[2].Add(pageIndex + pageStart ?? 0);
-                if(visualSegCompRes.Item2) errorPages[3].Add(pageIndex + pageStart ?? 0);
+                if(visualSegCompRes.Item1) errorPages[2].Add(currPage);
+                if(visualSegCompRes.Item2) errorPages[3].Add(currPage);
             }
         }
             

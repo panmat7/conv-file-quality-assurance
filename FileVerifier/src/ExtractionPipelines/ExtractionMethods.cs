@@ -31,7 +31,10 @@ public static class ExtractionMethods
         metaDict["ColorType"] = $"{standardized.ColorType.ToString()}";
         metaDict["BitDepth"] = $"{standardized.BitDepth}";
         if(FormatCodes.PronomCodesGIF.Contains(file.FileFormat)) metaDict["FrameCount"] = $"{standardized.FrameCount}";
-        metaDict["PhysicalUnits"] = $"{standardized.PPUnitX}x{standardized.PPUnitY} per {standardized.PUnit}";
+        if (!string.IsNullOrEmpty(standardized.PUnit))
+            metaDict["PhysicalUnits"] = $"{standardized.PPUnitX}x{standardized.PPUnitY} per {standardized.PUnit}";
+        
+        
         
         return metaDict;
     }
