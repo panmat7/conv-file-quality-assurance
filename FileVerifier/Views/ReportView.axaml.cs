@@ -40,8 +40,6 @@ public partial class ReportView : UserControl
         if (GlobalVariables.Logger.HasFinished())
         {
             Logger = GlobalVariables.Logger;
-            CreateElements();
-            DisplayReport();
         }
         else
         {
