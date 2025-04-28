@@ -254,7 +254,7 @@ public static class PPFontExtraction
         // Get fonts
         var csRef = runProp?.Descendants<RightToLeft>().Any() ?? false;
         var langIsZh = (!string.IsNullOrEmpty(lang) && lang.Contains("zh"));
-        (var classifications, var foreignChars) = GetFontClassifications(run.InnerText, csRef, false, langIsZh, false);
+        (var slots, var foreignChars) = MSOffice.GetFontSlots(run.InnerText, csRef, false, langIsZh, false, true);
         if (foreignChars) textInfo.ForeignWriting = true;
 
         var rLatinFont = runProp?.GetFirstChild<LatinFont>()?.Typeface?.Value;
@@ -262,10 +262,9 @@ public static class PPFontExtraction
         var rCsFont = runProp?.GetFirstChild<ComplexScriptFont>()?.Typeface?.Value;
 
 
-
-        foreach (var classification in classifications)
+        foreach (var slot in slots)
         {
-            string? font = classification switch
+            string? font = slot switch
             {
                 "latin" => rLatinFont ?? sldLayoutStyle.latinFont ?? sldMasterStyle.latinFont,
                 "eastAsia" => rEaFont ?? sldLayoutStyle.eaFont ?? sldMasterStyle.eaFont,
@@ -331,136 +330,6 @@ public static class PPFontExtraction
 
             if (!string.IsNullOrEmpty(fontUsed)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(fontUsed));
         }
-    }
-
-
-    /// <summary>
-    /// Get the correct font classifications for a run. Will also return whether or not the text contains any foreign characers
-    /// </summary>
-    /// <param name="txt">The run text</param>
-    /// <param name="csRef">Whether or not there is a reference to complex scrip (<w:cs/> or <w:rtl/>)</param>
-    /// <param name="eaHint">Whether or not the hint is set to 'eastAsia'</param>
-    /// <param name="langIsZH">Whether or not the language is 'zh'</param>
-    /// <param name="fontIsBig5orGB2312">Whether or not the font is 'Big5' or 'GB2312'</param>
-    /// <returns></returns>
-    private static (HashSet<string> classifications, bool foreignWriting) GetFontClassifications(string txt, bool csRef, bool eaHint, bool langIsZH, bool fontIsBig5orGB2312)
-    {
-        if (string.IsNullOrWhiteSpace(txt)) return ([], false);
-
-        bool foreignChars = false;
-
-        const string latin = "latin";
-        const string ea = "eastAsia";
-        const string cs = "cs";
-
-        var asciiRanges = new List<(int, int)>()
-        {
-            (0x0, 0x7F),
-            (0x590, 0x7BF),
-            (0xFB1D, 0xFB4F),
-            (0xFB50, 0xFDFF),
-            (0xFE70, 0xFEFE)
-        };
-
-        var eaRanges = new List<(int, int)>()
-        {
-            (0x1100, 0x11FF),
-            (0x2E80, 0xDFFF),
-            (0xF900, 0xFAFF),
-            (0xFB00, 0xFB1C),
-            (0xFE30, 0xFE6F),
-            (0xFF00, 0xFFEF),
-        };
-
-        var hansiRanges = new List<(int, int)>() {
-            (0x1F00, 0x1FFF),
-            (0xA0, 0xFF)
-        };
-
-        var hansiOrEaIfHintRanges = new List<(int, int)>()
-        {
-            (0xA1, 0xA1),
-            (0xA4, 0xA4),
-            (0xA7, 0xA8),
-            (0xAA, 0xAA),
-            (0xAD, 0xAD),
-            (0xAF, 0xAF),
-            (0xB0, 0xB4),
-            (0xB6, 0xBA),
-            (0xBC, 0xBF),
-            (0xD7, 0xD7),
-            (0xF7, 0xF7),
-            (0x02B0, 0x04FF),
-            (0x1100, 0x11FF),
-            (0x1E00, 0x1EFF),
-            (0x2000, 0x27BF),
-            (0xE000, 0xF8FF)
-        };
-
-        var eaIfZHRanges = new List<(int, int)>()
-        {
-            (0xE0, 0xE1),
-            (0xE8, 0xEA),
-            (0xEC, 0xED),
-            (0xF2, 0xF3),
-            (0xF9, 0xFA),
-            (0xFC, 0xFC)
-        };
-
-        var eaIfZHOrBig5orGB2312Ranges = new List<(int, int)>()
-        {
-            (0x0100, 0x02AF)
-        };
-
-
-        var classifications = new HashSet<string>();
-        foreach (var c in txt)
-        {
-            if (FontComparison.IsForeign(c)) foreignChars = true;
-
-            // East Asian if language is zh or font is Big5 or GB2312, otherwise High Ansi
-            if (FontComparison.InRange(c, eaIfZHOrBig5orGB2312Ranges))
-            {
-                classifications.Add((eaHint && (langIsZH || fontIsBig5orGB2312)) ? ea : latin);
-                continue;
-            }
-
-            // East Asian if language is zh, otherwise High Ansi
-            if (FontComparison.InRange(c, eaIfZHRanges))
-            {
-                classifications.Add((eaHint && langIsZH) ? ea : latin);
-                continue;
-            }
-
-            // East Asian if hint, otherwise High Ansi
-            if (FontComparison.InRange(c, hansiOrEaIfHintRanges))
-            {
-                classifications.Add((eaHint) ? ea : latin);
-                continue;
-            }
-
-            // East Asian
-            if (FontComparison.InRange(c, eaRanges))
-            {
-                classifications.Add((csRef) ? cs : ea);
-                continue;
-            }
-
-            // ASCII
-            if (FontComparison.InRange(c, asciiRanges))
-            {
-                classifications.Add((csRef) ? cs : latin);
-                continue;
-            }
-
-            // High Ansi
-            if (FontComparison.InRange(c, hansiRanges))
-            {
-                classifications.Add((csRef) ? cs : latin);
-            }
-        }
-
-        return (classifications, foreignChars);
     }
 
 

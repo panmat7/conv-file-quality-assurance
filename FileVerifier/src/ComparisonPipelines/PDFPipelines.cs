@@ -143,27 +143,6 @@ public static class PdfPipelines
                         e.Add(error);
                     }
                 }
-            
-                if (GlobalVariables.Options.GetMethod(Methods.Transparency.Name))
-                {
-                    if (equalNumberOfImages)
-                    {
-                        BasePipeline.CheckTransparency(tempFoldersForImages.Item1,
-                            tempFoldersForImages.Item2, pair);
-                    }
-                    else
-                    {
-                        error = new Error(
-                            "Unequal number of images",
-                            "The comparison of transparency could not be performed " +
-                            "because the number of images in the original and new file is different.",
-                            ErrorSeverity.High,
-                            ErrorType.FileError
-                        );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
-                        e.Add(error);
-                    }
-                }
             }
             else
             {

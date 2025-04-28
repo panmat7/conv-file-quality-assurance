@@ -3,51 +3,43 @@
              x:Class="AvaloniaDraft.Views.HomeView"
              x:DataType="viewModels:SettingsViewModel"
              xmlns:viewModels="clr-namespace:AvaloniaDraft.ViewModels">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="4*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-			<RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Grid ColumnDefinitions="Auto,Auto,*,4*"
+          RowDefinitions="Auto,Auto,Auto,Auto,2*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
         <!-- Input -->
         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5" Foreground="White">Original file Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="0" Margin="5"
                 Name="InputButton" Click="InputButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
-                Padding="10,5">
+                Padding="10,5" Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Select
+
+            <ToolTip.Tip>
+                <ToolTip Name="InputTip">
+                    <TextBlock Text="No folder selected." FontSize="14"/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
 
         <!-- Output -->
         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="5" Foreground="White">New file Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="1" Margin="5"
                 Name="OutputButton" Click="InputButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
-                Padding="10,5">
+                Padding="10,5" Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Select
+            
+            <ToolTip.Tip>
+                <ToolTip Name="OutputTip">
+                    <TextBlock Text="No folder selected." FontSize="14"/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
 
         <!-- Checkpoint -->
@@ -55,24 +47,36 @@
 			Start from checkpoint</CheckBox>
         <Button Grid.Column="1" Grid.Row="2" Margin="5"
                 Name="CheckpointButton" Click="CheckpointButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
-                Padding="10,5">
+                Padding="10,5" Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Select
+            
+            <ToolTip.Tip>
+                <ToolTip Name="CheckpointTip">
+                    <TextBlock Text="No file selected." FontSize="14"/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
         
         <!-- Extraction -->
         <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Data Extraction Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="3" Margin="5"
                 Name="ExtractionButton" Click="InputButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
-                Padding="10,5">
+                Padding="10,5" Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Select
+            
+            <ToolTip.Tip>
+                <ToolTip Name="ExtractionTip">
+                    <TextBlock Text="No folder selected." FontSize="14"/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
         
         <!-- Load -->
@@ -80,7 +84,9 @@
                 Name="LoadButton" Click="LoadButton_OnClick"
                 Background="#139A43" Foreground="White"
                 BorderBrush="#0DAB76" BorderThickness="1" 
-                Padding="20,5" VerticalAlignment="Center">
+                Padding="20,5" VerticalAlignment="Center" Width="90"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Load
         </Button>
         
@@ -89,7 +95,9 @@
                 Name="ExtractionStartButton" Click="ExtractionStartButton_OnClick"
                 Background="#139A43" Foreground="White"
                 BorderBrush="#0DAB76" BorderThickness="1" 
-                Padding="20,5" VerticalAlignment="Center">
+                Padding="20,5" VerticalAlignment="Center" Width="90"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Extract
         </Button>
 

@@ -444,7 +444,7 @@ public static class ComperingMethods
             errors.Add(new Error(
                 "Font difference", 
                 "Different fonts were detected in the two files.",
-                ErrorSeverity.Medium,
+                ErrorSeverity.Low,
                 ErrorType.Visual)
             );
 
@@ -471,9 +471,17 @@ public static class ComperingMethods
             errors.Add(new Error(
                 "Background color difference",
                 "Different background colors were detected in the two files.",
-                ErrorSeverity.Medium,
+                ErrorSeverity.Low,
                 ErrorType.Visual
             ));
+
+            if (result.BgColorsOnlyInOriginal.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Background colors only in original:");
+                foreach (var c in result.BgColorsOnlyInOriginal) bld.Append($"\n#{c}");
+                comments.Add(bld.ToString());
+            }
         }
 
 
@@ -482,9 +490,17 @@ public static class ComperingMethods
             errors.Add(new Error(
                 "Text color difference",
                 "Different text colors were detected in the two files.",
-                ErrorSeverity.Medium,
+                ErrorSeverity.Low,
                 ErrorType.Visual
             ));
+
+            if (result.TextColorsOnlyInOriginal.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Text colors only in original:");
+                foreach (var c in result.TextColorsOnlyInOriginal) bld.Append($"\n#{c}");
+                comments.Add(bld.ToString());
+            }
         }
 
         GlobalVariables.Logger.AddTestResult(fp, Methods.Fonts.Name, result.Pass, null, comments, errors);

@@ -103,7 +103,7 @@ public sealed class FileManager
     private readonly string _tempODirectory;
     private readonly string _tempNDirectory;
     private readonly string _checkpoint;
-    internal List<IgnoredFile> IgnoredFiles { get; set; }
+    public List<IgnoredFile> IgnoredFiles { get; set; }
     private List<FilePair> _filePairs;
     private readonly List<string> _pairlessFiles;
     private readonly IFileSystem _fileSystem;
@@ -244,12 +244,9 @@ public sealed class FileManager
 
     private static void CleanupTempDirectories(params string[] tempDirectories)
     {
-        foreach (var tempDir in tempDirectories)
+        foreach (var tempDir in tempDirectories.Where(Directory.Exists))
         {
-            if (Directory.Exists(tempDir))
-            {
-                Directory.Delete(tempDir, true);
-            }
+            Directory.Delete(tempDir, true);
         }
     }
 
@@ -258,23 +255,8 @@ public sealed class FileManager
     /// </summary>
     public void SetSiegfriedFormats()
     {
-        Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs);
-    }
-
-
-    /// <summary>
-    /// Filter out file pairs containing file formats that is not to be checked
-    /// </summary>
-    public void FilterOutDisabledFileFormats()
-    {
-        var filteredOut = _filePairs.Where(fp => !GlobalVariables.Options.FormatsAreEnabled(fp)).ToList();
-        _filePairs = _filePairs.Except(filteredOut).ToList();
-        foreach (var fp in filteredOut)
-        {
-            var reason = ReasonForIgnoring.Filtered;
-            IgnoredFiles.Add(new IgnoredFile(fp.OriginalFilePath, reason));
-            IgnoredFiles.Add(new IgnoredFile(fp.NewFilePath, reason));
-        }
+        var ignoredFiles = IgnoredFiles;
+        Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs, ref ignoredFiles);
     }
 
     /// <summary>

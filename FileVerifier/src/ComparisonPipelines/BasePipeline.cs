@@ -90,6 +90,10 @@ public static class BasePipeline
         return null;
     }
 
+    /// <summary>
+    /// This function creates a single temporary folder where extracted images can be stored.
+    /// </summary>
+    /// <returns></returns>
     public static string CreateTempFolderForImages()
     {
         var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
@@ -99,6 +103,10 @@ public static class BasePipeline
         return tempDirectory;
     }
     
+    /// <summary>
+    /// This function creates both temporary folders where extracted images can be stored.
+    /// </summary>
+    /// <returns></returns>
     public static (string, string) CreateTempFoldersForImages()
     {
         var tempFolder1 = CreateTempFolderForImages();
@@ -106,6 +114,10 @@ public static class BasePipeline
         return (tempFolder1, tempFolder2);
     }
 
+    /// <summary>
+    /// This function deletes the temporary folder where images were stored.
+    /// </summary>
+    /// <param name="tempDirectory"></param>
     private static void DeleteTempFolder(string tempDirectory)
     {
         var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
@@ -115,12 +127,18 @@ public static class BasePipeline
             fileSystem.Directory.Delete(tempDirectory, true);
     }
     
+    /// <summary>
+    /// This function deletes both temporary folders where images were stored.
+    /// </summary>
+    /// <param name="tempODirectory"></param>
+    /// <param name="tempNDirectory"></param>
     public static void DeleteTempFolders(string tempODirectory, string tempNDirectory)
     {
         DeleteTempFolder(tempODirectory);
         DeleteTempFolder(tempNDirectory);
     }
 
+    [Obsolete("Transparency check is no longer its own method, but part of metadata check.")]
     public static void CheckTransparency(string tempFolder, string tempFolder2, FilePair pair)
     {
         var res = false;
@@ -162,6 +180,12 @@ public static class BasePipeline
         }
     }
 
+    /// <summary>
+    /// This function compares the color profiles between images stored in two temporary folders.
+    /// </summary>
+    /// <param name="tempFolder"></param>
+    /// <param name="tempFolder2"></param>
+    /// <param name="pair"></param>
     public static void CheckColorProfiles(string tempFolder, string tempFolder2, FilePair pair)
     {
         var res = false;

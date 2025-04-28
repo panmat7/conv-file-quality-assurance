@@ -64,17 +64,21 @@ public partial class HomeView : UserControl
             {
                 case "InputButton":
                     InputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
-                    InputButton.Content = "Selected";
+                    InputButton.Content = Path.GetFileName(InputPath.TrimEnd(Path.DirectorySeparatorChar));
+                    InputTip.Content = new TextBlock { Text = InputPath, FontSize = 14 };
                     GlobalVariables.Paths.OriginalFilesPath = InputPath;
                     break;
                 case "OutputButton":
                     OutputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
-                    OutputButton.Content = "Selected";
+                    OutputButton.Content = Path.GetFileName(OutputPath.TrimEnd(Path.DirectorySeparatorChar));
+                    OutputTip.Content = new TextBlock { Text = OutputPath, FontSize = 14 };
                     GlobalVariables.Paths.NewFilesPath = OutputPath;
                     break;
                 case "ExtractionButton":
                     ExtractionPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
-                    ExtractionButton.Content = "Selected";
+                    ExtractionButton.Content = Path.GetFileName(ExtractionPath.TrimEnd(Path.DirectorySeparatorChar));
+                    ExtractionTip.Content = new TextBlock { Text = ExtractionPath, FontSize = 14 };
+                    GlobalVariables.Paths.DataExtractionFilesPath = ExtractionPath;
                     break;
             }
             GlobalVariables.Paths.SavePaths();
@@ -108,9 +112,10 @@ public partial class HomeView : UserControl
         {
             var file = result[0];
 
-            if (sender is not Button button) return;
-            CheckpointButton.Content = "Selected";
+            if (sender is not Button) return;
             CheckpointPath = file.TryGetLocalPath() ?? throw new InvalidOperationException();
+            CheckpointButton.Content = Path.GetFileName(CheckpointPath.TrimEnd(Path.DirectorySeparatorChar));
+            CheckpointTip.Content = new TextBlock { Text = CheckpointPath, FontSize = 14 };
             GlobalVariables.Paths.CheckpointPath = CheckpointPath;
             GlobalVariables.Paths.SavePaths();
         }
@@ -127,68 +132,34 @@ public partial class HomeView : UserControl
         var oPath = GlobalVariables.Paths.OriginalFilesPath;
         var nPath = GlobalVariables.Paths.NewFilesPath;
         var cpPath = GlobalVariables.Paths.CheckpointPath;
+        var dePath = GlobalVariables.Paths.DataExtractionFilesPath;
 
         if (oPath != null)
         {
             InputPath = oPath;
-            InputButton.Content = "Selected";
+            InputButton.Content = Path.GetFileName(InputPath.TrimEnd(Path.DirectorySeparatorChar));
+            InputTip.Content = new TextBlock { Text = InputPath, FontSize = 14 };
         }
 
         if (nPath != null)
         {
             OutputPath = nPath;
-            OutputButton.Content = "Selected";
+            OutputButton.Content = Path.GetFileName(OutputPath.TrimEnd(Path.DirectorySeparatorChar));
+            OutputTip.Content = new TextBlock { Text = OutputPath, FontSize = 14 };
         }
 
         if (cpPath != null)
         {
             CheckpointPath = cpPath;
-            CheckpointButton.Content = "Selected";
+            CheckpointButton.Content = Path.GetFileName(CheckpointPath.TrimEnd(Path.DirectorySeparatorChar));
+            CheckpointTip.Content = new TextBlock { Text = CheckpointPath, FontSize = 14 };
         }
-    }
 
-
-    private void InputButton_OnPointerEntered(object? sender, PointerEventArgs e)
-    {
-        if (sender is not Button button) return;
-        switch (button.Name)
+        if (dePath != null)
         {
-            case "InputButton":
-                if (string.IsNullOrEmpty(InputPath)) return;
-                InputButton.Content = InputPath;
-                break;
-            case "OutputButton":
-                if (string.IsNullOrEmpty(OutputPath)) return;
-                OutputButton.Content = OutputPath;
-                break;
-            case "CheckpointButton":
-                if (string.IsNullOrEmpty(CheckpointPath)) return;
-                CheckpointButton.Content = CheckpointPath;
-                break;
-            case "ExtractionButton":
-                if (string.IsNullOrEmpty(ExtractionPath)) return;
-                ExtractionButton.Content = ExtractionPath;
-                break;
-        }
-    }
-
-    private void InputButton_OnPointerExited(object? sender, PointerEventArgs e)
-    {
-        if (sender is not Button button) return;
-        switch (button.Name)
-        {
-            case "InputButton":
-                InputButton.Content = string.IsNullOrEmpty(InputPath) ? "Select" : "Selected";
-                break;
-            case "OutputButton":
-                OutputButton.Content = string.IsNullOrEmpty(OutputPath) ? "Select" : "Selected";
-                break;
-            case "CheckpointButton":
-                CheckpointButton.Content = string.IsNullOrEmpty(CheckpointPath) ? "Select" : "Selected";
-                break;
-            case "ExtractionButton":
-                ExtractionButton.Content = string.IsNullOrEmpty(ExtractionPath) ? "Select" : "Selected";
-                break;
+            ExtractionPath = dePath;
+            ExtractionButton.Content = Path.GetFileName(ExtractionPath.TrimEnd(Path.DirectorySeparatorChar));
+            ExtractionTip.Content = new TextBlock { Text = ExtractionPath, FontSize = 14 };
         }
     }
 
@@ -292,6 +263,7 @@ public partial class HomeView : UserControl
                     OverwriteConsole(null);
                 });
 
+                GlobalVariables.Logger.Initialize();
                 GlobalVariables.Logger.Start();
 
                 await Task.Run(() =>
@@ -343,7 +315,6 @@ public partial class HomeView : UserControl
 
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath, filePairs);
             GlobalVariables.FileManager.SetSiegfriedFormats();
-            GlobalVariables.FileManager.FilterOutDisabledFileFormats();
             SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
         }
         catch (InvalidOperationException err)
