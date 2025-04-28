@@ -19,7 +19,7 @@
 
             <ToolTip.Tip>
                 <ToolTip Name="InputTip">
-                    <TextBlock Text="No folder selected."/>
+                    <TextBlock Text="No folder selected." FontSize="14"/>
                 </ToolTip>
             </ToolTip.Tip>
         </Button>
@@ -37,7 +37,7 @@
             
             <ToolTip.Tip>
                 <ToolTip Name="OutputTip">
-                    <TextBlock Text="No folder selected."/>
+                    <TextBlock Text="No folder selected." FontSize="14"/>
                 </ToolTip>
             </ToolTip.Tip>
         </Button>
@@ -56,7 +56,7 @@
             
             <ToolTip.Tip>
                 <ToolTip Name="CheckpointTip">
-                    <TextBlock Text="No folder selected."/>
+                    <TextBlock Text="No folder selected." FontSize="14"/>
                 </ToolTip>
             </ToolTip.Tip>
         </Button>
@@ -74,7 +74,7 @@
             
             <ToolTip.Tip>
                 <ToolTip Name="ExtractionTip">
-                    <TextBlock Text="No folder selected."/>
+                    <TextBlock Text="No folder selected." FontSize="14"/>
                 </ToolTip>
             </ToolTip.Tip>
         </Button>

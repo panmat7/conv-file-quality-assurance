@@ -65,19 +65,19 @@ public partial class HomeView : UserControl
                 case "InputButton":
                     InputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     InputButton.Content = Path.GetFileName(InputPath.TrimEnd(Path.DirectorySeparatorChar));
-                    InputTip.Content = InputPath;
+                    InputTip.Content = new TextBlock { Text = InputPath, FontSize = 14 };
                     GlobalVariables.Paths.OriginalFilesPath = InputPath;
                     break;
                 case "OutputButton":
                     OutputPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     OutputButton.Content = Path.GetFileName(OutputPath.TrimEnd(Path.DirectorySeparatorChar));
-                    OutputTip.Content = OutputPath;
+                    OutputTip.Content = new TextBlock { Text = OutputPath, FontSize = 14 };
                     GlobalVariables.Paths.NewFilesPath = OutputPath;
                     break;
                 case "ExtractionButton":
                     ExtractionPath = folder.TryGetLocalPath() ?? throw new InvalidOperationException();
                     ExtractionButton.Content = Path.GetFileName(ExtractionPath.TrimEnd(Path.DirectorySeparatorChar));
-                    ExtractionTip.Content = ExtractionPath;
+                    ExtractionTip.Content = new TextBlock { Text = ExtractionPath, FontSize = 14 };
                     GlobalVariables.Paths.DataExtractionFilesPath = ExtractionPath;
                     break;
             }
@@ -115,7 +115,7 @@ public partial class HomeView : UserControl
             if (sender is not Button) return;
             CheckpointPath = file.TryGetLocalPath() ?? throw new InvalidOperationException();
             CheckpointButton.Content = Path.GetFileName(CheckpointPath.TrimEnd(Path.DirectorySeparatorChar));
-            CheckpointTip.Content = CheckpointPath;
+            CheckpointTip.Content = new TextBlock { Text = CheckpointPath, FontSize = 14 };
             GlobalVariables.Paths.CheckpointPath = CheckpointPath;
             GlobalVariables.Paths.SavePaths();
         }
@@ -138,28 +138,28 @@ public partial class HomeView : UserControl
         {
             InputPath = oPath;
             InputButton.Content = Path.GetFileName(InputPath.TrimEnd(Path.DirectorySeparatorChar));
-            InputTip.Content = InputPath;
+            InputTip.Content = new TextBlock { Text = InputPath, FontSize = 14 };
         }
 
         if (nPath != null)
         {
             OutputPath = nPath;
             OutputButton.Content = Path.GetFileName(OutputPath.TrimEnd(Path.DirectorySeparatorChar));
-            OutputTip.Content = OutputPath;
+            OutputTip.Content = new TextBlock { Text = OutputPath, FontSize = 14 };
         }
 
         if (cpPath != null)
         {
             CheckpointPath = cpPath;
             CheckpointButton.Content = Path.GetFileName(CheckpointPath.TrimEnd(Path.DirectorySeparatorChar));
-            CheckpointTip.Content = CheckpointPath;
+            CheckpointTip.Content = new TextBlock { Text = CheckpointPath, FontSize = 14 };
         }
 
         if (dePath != null)
         {
             ExtractionPath = dePath;
             ExtractionButton.Content = Path.GetFileName(ExtractionPath.TrimEnd(Path.DirectorySeparatorChar));
-            ExtractionTip.Content = ExtractionPath;
+            ExtractionTip.Content = new TextBlock { Text = ExtractionPath, FontSize = 14 };
         }
     }
 
