@@ -127,7 +127,7 @@ public partial class TestAnalysisView : UserControl
         {
             var oFile = System.IO.Path.GetFileName(c.FilePair.OriginalFilePath);
             var nFile = System.IO.Path.GetFileName(c.FilePair.NewFilePath);
-            var filePairName = oFile + " -> " + nFile;
+            var filePairName = $"{oFile} -> {nFile}";
 
             var failedTests = c.Tests.Where(t => !t.Value.Pass).ToList();
             foreach (var method in failedTests.Select(t => t.Key))
@@ -144,7 +144,7 @@ public partial class TestAnalysisView : UserControl
             var method = e.Key;
             var expander = e.Value;
             TestExpanders.Add(expander);
-            expander.Header = new TextBlock { Text = method + " - " + failedComparisonsCount[method] };
+            expander.Header = new TextBlock { Text = $"{method} - {failedComparisonsCount[method]}" };
             expander.Content = new TextBlock { 
                 Text = stringBuilders[method].ToString().TrimEnd(),
                 Foreground = Brushes.White, 
@@ -153,7 +153,7 @@ public partial class TestAnalysisView : UserControl
         }
 
 
-        Summary.Text = $"Tests failed (Total {totalTestsFailed})";
+        Summary.Text = $"{totalTestsFailed} Tests failed";
     }
 
 
