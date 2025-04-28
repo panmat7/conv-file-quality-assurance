@@ -34,6 +34,7 @@ public static class ExtractedImageMetadata
         var failedCount = 0;
         var imgCount = oFiles.Count;
         var distinctErrors = new HashSet<Error>();
+        var transparency = false;
         for (var i = 0; i < oFiles.Count; i++)
         {
             var oExt = Path.GetExtension(oFiles[i]).TrimStart('.');
@@ -51,6 +52,16 @@ public static class ExtractedImageMetadata
             {
                 errCount++;
                 e.ForEach(err => distinctErrors.Add(err));
+                
+                //Specifying transparency differences.
+                if(!transparency && e.Any(err => err.Description.Contains("Transparency loss")))
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true,
+                        errors: [ new Error("Transparency difference detected",
+                                "The images contained in the documents have different transparencies.",
+                                ErrorSeverity.Medium,
+                                ErrorType.Visual
+                        )]
+                    );
             }
         }
 

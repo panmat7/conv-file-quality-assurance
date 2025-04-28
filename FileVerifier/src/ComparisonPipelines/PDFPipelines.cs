@@ -17,8 +17,10 @@ public static class PdfPipelines
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
     public static Action<FilePair, int, Action<int>, Action>? GetPdfPipelines(string outputFormat)
     {
-        if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
+        if (FormatCodes.PronomCodesAllPDF.Contains(outputFormat))
             return PdfToPdfPipeline;
+        if (FormatCodes.PronomCodesTextDocuments.Contains(outputFormat))
+            return PdfToTextDocPipeline;
         
         return null;
     }
@@ -221,6 +223,164 @@ public static class PdfPipelines
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
                         comments: ["Comparison not preformed due to page count differences."]);
+            }
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            {
+                if (equalNumberOfImages)
+                {
+                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2);
+                }
+                else
+                {
+                    error = new Error(
+                        "Unequal number of images",
+                        "The comparison of extracted image metadata could not be performed " +
+                        "because the number of images in the original and new file is different.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false, errors: [error]);
+                }
+            }
+            
+            BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
+            
+        }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
+    }
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pair"></param>
+    /// <param name="additionalThreads"></param>
+    /// <param name="updateThreadCount"></param>
+    /// <param name="markDone"></param>
+    private static void PdfToTextDocPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+        Action markDone)
+    {
+        BasePipeline.ExecutePipeline(() =>
+        {
+            Error error;
+
+            var failedToExtract = false;
+            var equalNumberOfImages = false;
+
+            var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
+            try
+            {
+                ImageExtraction.ExtractImagesToDisk(pair.OriginalFilePath, pair.OriginalFileFormat, tempFoldersForImages.Item1);
+                ImageExtraction.ExtractImagesToDisk(pair.NewFilePath, pair.NewFileFormat, tempFoldersForImages.Item2);
+                // Some checks will be skipped if the number of images is not equal
+                equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                    tempFoldersForImages.Item2);
+            }
+            catch (Exception)
+            {
+                failedToExtract = true;
+            }
+            
+            ComperingMethods.CompareFonts(pair);
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
+            {
+                var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
+                switch (diff)
+                {
+                    case null:
+                        error = new Error(
+                            "Could not get page count",
+                            "There was an error trying to get the page count from at least one of the files.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        break;
+                    case > 0:
+                        error = new Error(
+                            "Difference in page count",
+                            "The original and new document have a different page count.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError,
+                            $"{diff}"
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        break;
+                    default:
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
+                        break;
+                }
+            }
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
+            {
+                var res = ComperingMethods.CheckFileSizeDifference(pair);
+
+                if (res == null)
+                {
+                    error = new Error(
+                        "Could not get file size difference",
+                        "The tool was unable to get the file size difference for at least one file.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                } else if (res.Value)
+                {
+                    //For now only printing to console
+                    error = new Error(
+                        "File Size Difference",
+                        "The difference in size for the two files exceeds expected values.",
+                        ErrorSeverity.Medium,
+                        ErrorType.FileError
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                }
+                else
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
+                }
+            }
+
+            if (true)
+            {
+                //Visual comparison here ?
+            }
+
+            if (!failedToExtract)
+            {
+                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                {
+                    if (equalNumberOfImages)
+                    {
+                        BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
+                            tempFoldersForImages.Item2, pair);
+                    }
+                    else
+                    {
+                        error = new Error(
+                            "Unequal number of images",
+                            "The comparison of color profiles could not be performed " +
+                            "because the number of images in the original and new file is different.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                    }
+                
+                }
+            }
+            else
+            {
+                error = new Error(
+                    "Failed to extract images from files",
+                    "Comparisons involving extracted images can not be performed " +
+                    "because the tool was unable to extract images from at least one of the files.",
+                    ErrorSeverity.High,
+                    ErrorType.FileError
+                );
+                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))

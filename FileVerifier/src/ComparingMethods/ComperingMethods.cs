@@ -546,7 +546,7 @@ public static class ComperingMethods
             {
                 return new Error(
                     "Color type mismatch",
-                    "Mismatched color type between images. Transparency loss",
+                    "Mismatched color type between images. Transparency loss.",
                     ErrorSeverity.High,
                     ErrorType.Metadata
                 );

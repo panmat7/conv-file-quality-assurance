@@ -26,6 +26,29 @@ public static class ImageExtraction
     private const string ImageMimeTypePrefix = "image/";
     
     /****************************************************PDF IMAGES****************************************************/
+
+    public static void ExtractImagesToDisk(string filePath, string formatCode, string outputPath)
+    {
+        if (FormatCodes.PronomCodesAllPDF.Contains(formatCode))
+            ExtractImagesFromPdfToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesDOCX.Contains(formatCode))
+            ExtractImagesFromDocxToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(formatCode))
+            ExtractImagesFromXmlBasedPowerPointToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesXLSX.Contains(formatCode))
+            ExtractImagesFromXlsxToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesXML.Contains(formatCode))
+            ExtractImagesFromXlsxToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesODT.Contains(formatCode) || FormatCodes.PronomCodesODP.Contains(formatCode)
+           || FormatCodes.PronomCodesODS.Contains(formatCode))
+            ExtractImagesFromOpenDocumentsToDisk(filePath, outputPath);
+    }
+    
     
     /// <summary>
     /// This function extracts all images inside a pdf to disk.

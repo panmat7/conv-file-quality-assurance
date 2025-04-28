@@ -19,6 +19,8 @@ public static class XLSXPipelines
     {
         if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
             return XlsxToPdfPipeline;
+        if (!FormatCodes.PronomCodesCSV.Contains(outputFormat) && FormatCodes.PronomCodesSpreadsheets.Contains(outputFormat))
+            return XslxToSpreadsheetPipeline;
 
         return null;
     }
@@ -126,6 +128,128 @@ public static class XLSXPipelines
                     GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: res);
                 else
                     GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, true);
+            }
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            {
+                if (equalNumberOfImages)
+                {
+                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2);
+                }
+                else
+                {
+                    error = new Error(
+                        "Unequal number of images",
+                        "The comparison of extracted image metadata could not be performed " +
+                        "because the number of images in the original and new file is different.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                }
+            }
+            
+            BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
+            
+        }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
+    }
+    
+    /// <summary>
+    /// Pipeline responsible for comparing XLSX to other spreadsheets
+    /// </summary>
+    /// <param name="pair">The pair of files to compare</param>
+    /// <param name="additionalThreads">Number of threads available for usage</param>
+    /// <param name="updateThreadCount">Callback function used to update current thread count</param>
+    /// <param name="markDone">Function marking the FilePair as done</param>
+    private static void XslxToSpreadsheetPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+        Action markDone)
+    {
+        BasePipeline.ExecutePipeline(() =>
+        {
+            Error error;
+
+            var failedToExtract = false;
+            var equalNumberOfImages = false;
+
+            var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
+            try
+            {
+                ImageExtraction.ExtractImagesToDisk(pair.OriginalFilePath, pair.OriginalFileFormat, tempFoldersForImages.Item1);
+                ImageExtraction.ExtractImagesToDisk(pair.NewFilePath, pair.NewFileFormat, tempFoldersForImages.Item2);
+                // Some checks will be skipped if the number of images is not equal
+                equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                    tempFoldersForImages.Item2);
+            }
+            catch (Exception)
+            {
+                failedToExtract = true;
+            }
+            
+            ComperingMethods.CompareFonts(pair);
+            
+            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
+            {
+                var res = ComperingMethods.CheckFileSizeDifference(pair);
+
+                if (res == null)
+                {
+                    error = new Error(
+                            "Could not get file size difference",
+                            "The tool was unable to get the file size difference for at least one file.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                } else if (res.Value)
+                {
+                    //For now only printing to console
+                    error = new Error(
+                            "File Size Difference",
+                            "The difference in size for the two files exceeds expected values.",
+                            ErrorSeverity.Medium,
+                            ErrorType.FileError
+                        );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                }
+                else
+                {
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
+                }
+            }
+
+            if (!failedToExtract)
+            {
+                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                {
+                    if (equalNumberOfImages)
+                    {
+                        BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
+                            tempFoldersForImages.Item2, pair);
+                    }
+                    else
+                    {
+                        error = new Error(
+                            "Unequal number of images",
+                            "The comparison of color profiles could not be performed " +
+                            "because the number of images in the original and new file is different.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                    }
+                }
+            }
+            else
+            {
+                error = new Error(
+                    "Failed to extract images from files",
+                    "Comparisons involving extracted images can not be performed " +
+                    "because the tool was unable to extract images from at least one of the files.",
+                    ErrorSeverity.High,
+                    ErrorType.FileError
+                );
+                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
