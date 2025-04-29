@@ -181,7 +181,7 @@ public static class SpreadsheetComparison
     /// <returns>True/False whether a break can occur.</returns>
     private static bool CheckObjectBreaksOds(XDocument doc, double breakPoint)
     {
-        var drawNs = doc.Root.GetNamespaceOfPrefix("draw") ?? //Draw namespace
+        var drawNs = doc.Root!.GetNamespaceOfPrefix("draw") ?? //Draw namespace
                      XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:drawing:1.0");
         var svgNs = XNamespace.Get("urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0");
         

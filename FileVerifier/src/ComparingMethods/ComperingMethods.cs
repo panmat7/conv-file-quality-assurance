@@ -9,10 +9,14 @@ using System.Text.RegularExpressions;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using ClosedXML;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Emgu.CV.Aruco;
 using ICSharpCode.SharpZipLib.Zip;
+using ImageMagick;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using UglyToad.PdfPig.Content;
 using ColorType = AvaloniaDraft.Helpers.ColorType;
 using ZipArchive = SharpCompress.Archives.Zip.ZipArchive;
 using ZipFile = System.IO.Compression.ZipFile;
@@ -30,14 +34,17 @@ public static class ComperingMethods
     /// <returns>True/false whether the difference is too large. Null means that the size could not have been gotten.</returns>
     public static bool? CheckFileSizeDifference(FilePair files, double? toleranceValue = null)
     {
-        toleranceValue ??= (GlobalVariables.Options.SizeComparisonThreshold / 100.0);
+        if (GlobalVariables.Options != null) //Only relevant for tests
+            toleranceValue ??= (GlobalVariables.Options.SizeComparisonThreshold / 100.0);
+        else
+            toleranceValue ??= 0.75;
 
         try
         {
             var originalSize = new FileInfo(files.OriginalFilePath).Length;
             var newSize = new FileInfo(files.NewFilePath).Length;
-        
-            return (long.Abs(originalSize - newSize) > originalSize * toleranceValue);
+
+            return Math.Abs(originalSize - newSize) > originalSize * toleranceValue;
         }
         catch { return null; }
     }
@@ -174,6 +181,17 @@ public static class ComperingMethods
         var originalStandardized = MetadataStandardizer.StandardizeImageMetadata(metaOriginal, files.OriginalFileFormat);
         var newStandardized = MetadataStandardizer.StandardizeImageMetadata(metaNew, files.NewFileFormat);
         
+        if(originalStandardized == null || newStandardized == null) 
+            return
+            [
+                new Error(
+                    "Unsupported image format",
+                    "At least one of the files is of a non-supported image format",
+                    ErrorSeverity.Medium,
+                    ErrorType.FileError
+                )
+            ];
+        
         var errors = new List<Error>();
         
         //Check properties, note errors and mismatches
@@ -197,15 +215,7 @@ public static class ComperingMethods
             ));
         }
         
-        if (!originalStandardized.CompareResolution(newStandardized))
-        {
-            errors.Add(new Error(
-                "Image resolution difference (metadata)",
-                "Mismatched resolution between images in metadata.",
-                ErrorSeverity.High,
-                ErrorType.Metadata
-            ));
-        }
+        errors.AddRange(originalStandardized.CompareResolution(newStandardized));
 
         if (!originalStandardized.VerifyBitDepth())
         {
@@ -227,15 +237,7 @@ public static class ComperingMethods
             ));
         }
 
-        if (!originalStandardized.CompareBitDepth(newStandardized))
-        {
-            errors.Add(new Error(
-                "Bit-depth mismatch",
-                "Mismatched bit-depth between images.",
-                ErrorSeverity.Medium,
-                ErrorType.Metadata
-            ));
-        }
+        errors.AddRange(originalStandardized.CompareBitDepth(newStandardized));
         
         if (!originalStandardized.VerifyColorType())
         {
@@ -296,10 +298,12 @@ public static class ComperingMethods
     /// <returns>List of potential errors. Null meaning error during the process. Empty list meaning no errors.</returns>
     public static List<Error>? VisualDocumentComparison(FilePair pair, int? pageStart = null, int? pageEnd = null)
     {
-        var errorPages = new List<List<int>> //Storing pages at which error occurs
+        var errorPages = new List<HashSet<int>> //Storing pages at which error occurs
         {
-            new (),
-            new (),
+            new (), //Mismatch number
+            new (), //Mismatch alignment
+            new (), //Error for segment comp
+            new (), //Failed seg comp
         };
         
         //Get page images
@@ -336,30 +340,80 @@ public static class ComperingMethods
             //Segments in different positions
             if (res.Any(r => r.Item3 < 0.7))
                 errorPages[1].Add(pageIndex + pageStart ?? 0);
-        }
-        
-        //Writing errors
-        var errors = new List<Error>();
-        if (errorPages[0].Count > 0)
-            errors.Add(new Error(
-                "Mismatch in detected points of interest",
-                "The original or/and new document contain points of interest that could not have been paired. " +
-                "This could be cause by added/removed noise in the resulting file or something being missing/added.",
-                ErrorSeverity.High,
-                ErrorType.Visual,
-                "Pages: " + string.Join(", ", errorPages[0])
-            ));
-
-        if (errorPages[1].Count > 1)
-            errors.Add(new Error(
-                "Misaligned points of interest",
-                "Some segments of the document have been moved above the allowed value.",
-                ErrorSeverity.High,
-                ErrorType.Visual,
-                "Pages: " + string.Join(", ", errorPages[0])
-            ));
             
-        return errors;
+            //Point by point
+            if (GlobalVariables.Options == null || !GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name)) continue;
+
+            var visualSegCompRes = VisualSegmentComparison(
+                oPage: pagesOriginal[pageIndex],
+                oRects: res.Select(r => r.Item1).ToList(),
+                nPage: pagesNew[pageIndex],
+                nRects: res.Select(r => r.Item2).ToList()
+            );
+            
+            if(visualSegCompRes == null) errorPages[2].Add(pageIndex + pageStart ?? 0);
+            else
+            {
+                if(visualSegCompRes.Item1) errorPages[2].Add(pageIndex + pageStart ?? 0);
+                if(visualSegCompRes.Item2) errorPages[3].Add(pageIndex + pageStart ?? 0);
+            }
+        }
+            
+        return DocumentVisualOperations.WriteErrors(errorPages);
+    }
+    
+    /// <summary>
+    /// Preforms the visual point by point comparison between segments on a page.
+    /// </summary>
+    /// <param name="oPage">Original page.</param>
+    /// <param name="oRects">Segments extracted from the original page.</param>
+    /// <param name="nPage">New page.</param>
+    /// <param name="nRects">Segments extracted from the new page.</param>
+    /// <returns>
+    /// A tuple of bools, first representing if an error occured and second if the comparison failed for at least
+    /// one of the segments.
+    /// </returns>
+    private static Tuple<bool, bool>? VisualSegmentComparison(byte[] oPage, List<System.Drawing.Rectangle> oRects, byte[] nPage,
+        List<System.Drawing.Rectangle> nRects)
+    {
+        var err = false;
+        var failed = false;
+        
+        //Comparing only paired segments
+        for(var i = 0; i < oRects.Count; i++)
+        {
+            var segO = DocumentVisualOperations.GetSegmentPictures(oPage, oRects[i]);
+            var segN = DocumentVisualOperations.GetSegmentPictures(nPage, nRects[i]);
+
+            if (segO == null || segN == null)
+            {
+                err = true;
+                continue;
+            }
+
+            var relevance = DocumentVisualOperations.DetermineSegmentRelevance(segO);
+
+            if (relevance == null)
+            {
+                err = true;
+                continue;
+            }
+            if(!relevance ?? true) continue;
+
+            var res = PbpComparisonMagick.CalculateImageSimilarity(segO, segN);
+
+            if (Math.Abs(res - (-1)) < 0.001)
+            {
+                err = true;
+                continue;
+            }
+            
+            if(res < 0.15) failed = true;
+            
+            if(failed && err) return new Tuple<bool, bool>(err, failed); //Everything failed already, no point continuing
+        }                                                                              //it cannot get worse (or better)
+        
+        return new Tuple<bool, bool>(err, failed);
     }
     
     /// <summary>
@@ -388,7 +442,7 @@ public static class ComperingMethods
             errors.Add(new Error(
                 "Font difference", 
                 "Different fonts were detected in the two files.",
-                ErrorSeverity.Medium,
+                ErrorSeverity.Low,
                 ErrorType.Visual)
             );
 
@@ -415,9 +469,17 @@ public static class ComperingMethods
             errors.Add(new Error(
                 "Background color difference",
                 "Different background colors were detected in the two files.",
-                ErrorSeverity.Medium,
+                ErrorSeverity.Low,
                 ErrorType.Visual
             ));
+
+            if (result.BgColorsOnlyInOriginal.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Background colors only in original:");
+                foreach (var c in result.BgColorsOnlyInOriginal) bld.Append($"\n#{c}");
+                comments.Add(bld.ToString());
+            }
         }
 
 
@@ -426,9 +488,17 @@ public static class ComperingMethods
             errors.Add(new Error(
                 "Text color difference",
                 "Different text colors were detected in the two files.",
-                ErrorSeverity.Medium,
+                ErrorSeverity.Low,
                 ErrorType.Visual
             ));
+
+            if (result.TextColorsOnlyInOriginal.Count > 0)
+            {
+                StringBuilder bld = new StringBuilder();
+                bld.Append("Text colors only in original:");
+                foreach (var c in result.TextColorsOnlyInOriginal) bld.Append($"\n#{c}");
+                comments.Add(bld.ToString());
+            }
         }
 
         GlobalVariables.Logger.AddTestResult(fp, Methods.Fonts.Name, result.Pass, null, comments, errors);
@@ -453,7 +523,7 @@ public static class ComperingMethods
             using var reader = new StreamReader(contentXml.Open());
             var content = reader.ReadToEnd();
 
-            return Regex.Matches(content, "<draw:page ").Count;
+            return Regex.Matches(content, "<draw:page ", RegexOptions.None, TimeSpan.FromSeconds(2)).Count;
         }
         catch { return null; }
     }

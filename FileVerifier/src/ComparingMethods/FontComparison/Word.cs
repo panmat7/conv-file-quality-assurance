@@ -1,5 +1,8 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+﻿using Avalonia.Animation.Easings;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,17 +16,16 @@ public static class WordFontExtraction
 {
     public static TextInfo? GetTextInfoWord(string src)
     {
-        var foreignWriting = false;
-        var fonts = new HashSet<string>();
-        var altFonts = new HashSet<HashSet<string>>();
-        var textColors = new HashSet<string>();
-        var bgColors = new HashSet<string>();
+        var textInfo = new TextInfo();
 
         WordprocessingDocument doc = WordprocessingDocument.Open(src, false);
         var mainDocPart = doc.MainDocumentPart;
 
+        var themePart = mainDocPart?.ThemePart;
+        if (themePart == null) return null;
+
         // Get default fonts
-        var fontScheme = mainDocPart?.ThemePart?.Theme?.ThemeElements?.GetFirstChild<DocumentFormat.OpenXml.Drawing.FontScheme>();
+        var fontScheme = themePart?.Theme?.ThemeElements?.GetFirstChild<DocumentFormat.OpenXml.Drawing.FontScheme>();
         if (fontScheme == null) return null;
 
         var fontSchemeXml = XElement.Parse(fontScheme?.OuterXml ?? "");
@@ -32,10 +34,9 @@ public static class WordFontExtraction
 
         var majFonts = defFonts.Value.major;
         var minFonts = defFonts.Value.minor;
-
         var themeFontLang = mainDocPart?.DocumentSettingsPart?.Settings?.GetFirstChild<ThemeFontLanguages>();
-
         var fontTable = mainDocPart?.FontTablePart?.Fonts;
+        if (minFonts == null || majFonts == null || themeFontLang == null || fontTable == null) return null;
 
         // Look through each paragraph
         var paragraphs = mainDocPart?.Document?.Body?.Elements<Paragraph>() ?? [];
@@ -45,54 +46,17 @@ public static class WordFontExtraction
             string? pColor = p.ParagraphProperties?.Shading?.Fill;
             if (pColor != null)
             {
-                bgColors.Add(pColor);
+                textInfo.BgColors.Add(pColor);
             }
 
             // Go through each run
             foreach (var run in p.Elements<Run>())
             {
-                // Ignore if whitespace
-                if (String.IsNullOrWhiteSpace(run.InnerText)) continue;
-
-                var runProperties = run.RunProperties;
-
-                // Check text color
-                string? textCol = runProperties?.Color?.Val?.Value;
-                if (textCol != null)
-                {
-                    textColors.Add(textCol);
-                }
-                else
-                {
-                    textColors.Add("000000"); // Default black
-                }
-
-                // Check hightlight color
-                var highlightCol = runProperties?.Highlight?.Val;
-                if (highlightCol != null)
-                {
-                    var hex = MSOffice.GetOfficeColorFromName(highlightCol);
-                    if (hex != null) bgColors.Add(hex);
-                }
-
-                // Check shading color
-                string? shadingCol = runProperties?.Shading?.Fill;
-                if (pColor != null)
-                {
-                    bgColors.Add(pColor);
-                }
-
-                // Font
-                (var runFonts, var fw) = GetFontWordRun(run, themeFontLang, fontTable, majFonts, minFonts);
-                if (fw) foreignWriting = true;
-                if (runFonts != null) foreach (var font in runFonts)
-                {
-                    if (!string.IsNullOrEmpty(font)) fonts.Add(FontComparison.NormalizeFontName(font));
-                }
+                CheckRun(run, themePart, themeFontLang, fontTable, majFonts, minFonts, textInfo);
             }
         }
 
-        var styles = mainDocPart?.StyleDefinitionsPart?.Styles?.Descendants<DocumentFormat.OpenXml.Wordprocessing.Style>();
+        var styles = mainDocPart?.StyleDefinitionsPart?.Styles?.Descendants<Style>();
         if (styles == null) return null;
 
         // Hyperlink colors are only stored in styles, so check there
@@ -101,22 +65,193 @@ public static class WordFontExtraction
             var name = style.StyleName;
             if (name == null || name?.Val?.Value != "Hyperlink") continue;
 
-            var hex = style.StyleRunProperties?.Color?.Val?.Value;
+            var hex = GetColor(style.StyleRunProperties?.Color, themePart);
             if (hex != null)
             {
-                textColors.Add(hex);
+                textInfo.TextColors.Add(hex);
             }
         }
 
-        TextInfo textInfo = new TextInfo(fonts, textColors, bgColors, altFonts, foreignWriting);
         return textInfo;
     }
 
 
 
-    private static (List<string?>? fonts, bool foreignWriting) GetFontWordRun(Run r, ThemeFontLanguages themeFontLang, Fonts fontTable, Dictionary<string, string> major, Dictionary<string, string> minor)
+    /// <summary>
+    /// Get the hex of a color
+    /// </summary>
+    /// <param name="col"></param>
+    /// <param name="themePart"></param>
+    /// <returns></returns>
+    private static string? GetColor(Color? col, ThemePart? themePart)
+    {
+        var valHex = col?.Val?.Value;
+        if (valHex != null) return valHex;
+
+        var themeCol = col?.ThemeColor?.Value;
+
+        var themColString = (themeCol is ThemeColorValues c) ?
+        ((IEnumValue)c).Value : null;
+        if (themColString == null) return null;
+
+        var scheme = themePart?.Theme?.ThemeElements?.ColorScheme;
+        if (scheme == null) return null;
+
+        var themeTint = col?.ThemeTint?.Value;
+        var themeShade = col?.ThemeShade?.Value;
+
+        var themeColHex = themColString.ToLower() switch
+        {
+            "accent1" => scheme.Accent1Color?.RgbColorModelHex?.Val?.Value,
+            "accent2" => scheme.Accent2Color?.RgbColorModelHex?.Val?.Value,
+            "accent3" => scheme.Accent3Color?.RgbColorModelHex?.Val?.Value,
+            "accent4" => scheme.Accent4Color?.RgbColorModelHex?.Val?.Value,
+            "accent5" => scheme.Accent5Color?.RgbColorModelHex?.Val?.Value,
+            "accent6" => scheme.Accent6Color?.RgbColorModelHex?.Val?.Value,
+            
+            "dark1" => scheme.Dark1Color?.RgbColorModelHex?.Val?.Value,
+            "dark2" => scheme.Dark2Color?.RgbColorModelHex?.Val?.Value,
+            "light1" => scheme.Light1Color?.RgbColorModelHex?.Val?.Value,
+            "light2" => scheme.Light1Color?.RgbColorModelHex?.Val?.Value,
+
+            "hyperlink" => scheme.Hyperlink?.RgbColorModelHex?.Val?.Value,
+            "followedhyperlink" => scheme.FollowedHyperlinkColor?.RgbColorModelHex?.Val?.Value,
+
+            _ => null,
+        };
+
+        return GetThemeColor(themeColHex, themeShade, themeTint);
+    }
+
+
+    /// <summary>
+    /// Get the theme colro with the theme tint and theme shade applied
+    /// </summary>
+    /// <param name="themeHex"></param>
+    /// <param name="themeShade"></param>
+    /// <param name="themeTint"></param>
+    /// <returns></returns>
+    private static string? GetThemeColor(string? themeHex, string? themeShade, string? themeTint)
+    {
+        if (themeHex == null) return null;
+
+        var r = Convert.ToInt32(themeHex.Substring(0, 2), 16);
+        var g = Convert.ToInt32(themeHex.Substring(2, 2), 16);
+        var b = Convert.ToInt32(themeHex.Substring(4, 2), 16);
+
+        try
+        {
+            var themeTintFactor = int.Parse(themeTint, System.Globalization.NumberStyles.HexNumber) / 255.0;
+            r *= ApplyThemeTint(r, themeTintFactor);
+            g *= ApplyThemeTint(g, themeTintFactor);
+            b *= ApplyThemeTint(b, themeTintFactor);
+
+            return FontComparison.GetHex((r, g, b));
+        }
+        catch
+        {
+            // Nothing
+        }
+
+        try
+        {
+            var themeShadeFactor = int.Parse(themeShade, System.Globalization.NumberStyles.HexNumber) / 255.0;
+            r = ApplyThemeShade(r, themeShadeFactor);
+            g = ApplyThemeShade(g, themeShadeFactor);
+            b = ApplyThemeShade(b, themeShadeFactor);
+
+            return FontComparison.GetHex((r, g, b));
+        }
+        catch
+        {
+            // Nothing
+        }
+
+        return null;
+    }
+
+
+
+    /// <summary>
+    /// Apply a theme tint
+    /// </summary>
+    /// <param name="c"></param>
+    /// <param name="tint"></param>
+    /// <returns></returns>
+    private static int ApplyThemeTint(int c, double tint)
+    {
+        return (int)((1.0 - tint) * (255 - c) + c);
+    }
+
+
+    /// <summary>
+    /// Apply a theme shade
+    /// </summary>
+    /// <param name="c"></param>
+    /// <param name="shade"></param>
+    /// <returns></returns>
+    private static int ApplyThemeShade(int c, double shade)
+    {
+        return (int)((1.0 - shade) * c);
+    }
+
+
+    /// <summary>
+    /// Check a run
+    /// </summary>
+    /// <param name="run"></param>
+    /// <param name="themePart"></param>
+    /// <param name="themeFontLang"></param>
+    /// <param name="fontTable"></param>
+    /// <param name="majFonts"></param>
+    /// <param name="minFonts"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckRun(Run run, ThemePart themePart, ThemeFontLanguages themeFontLang, Fonts fontTable, 
+        Dictionary<string, string> majFonts, Dictionary<string, string> minFonts, TextInfo textInfo)
+    {
+        var runProperties = run.RunProperties;
+
+        // Check hightlight color
+        var highlightCol = runProperties?.Highlight?.Val;
+        var hex = MSOffice.GetHighlightColor(highlightCol);
+        if (hex != null) textInfo.BgColors.Add(hex);
+
+        if (string.IsNullOrWhiteSpace(run.InnerText)) return;
+
+        // Check text color
+        var textCol = GetColor(runProperties?.Color, themePart);
+        textInfo.TextColors.Add(textCol ?? "000000");
+
+        // Check shading color
+        string? shadingCol = runProperties?.Shading?.Fill;
+        if (shadingCol != null)
+        {
+            textInfo.BgColors.Add(shadingCol);
+        }
+
+        // Font
+        (var runFonts, var fw) = GetFontsFromRun(run, themeFontLang, fontTable, majFonts, minFonts);
+        if (fw) textInfo.ForeignWriting = true;
+        if (runFonts != null) foreach (var font in runFonts)
+        {
+            if (!string.IsNullOrEmpty(font)) textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
+        }
+    }
+
+
+    /// <summary>
+    /// Get the fonts used for a run
+    /// </summary>
+    /// <param name="r"></param>
+    /// <param name="themeFontLang"></param>
+    /// <param name="fontTable"></param>
+    /// <param name="major"></param>
+    /// <param name="minor"></param>
+    /// <returns></returns>
+    private static (List<string?>? fonts, bool foreignWriting) GetFontsFromRun(Run r, ThemeFontLanguages themeFontLang, Fonts? fontTable, Dictionary<string, string> major, Dictionary<string, string> minor)
     {
         var txt = r.InnerText;
+        if (fontTable == null) return (null, FontComparison.IsForeign(txt));
 
         var rPr = r.RunProperties;
         if (rPr == null) return (null, FontComparison.IsForeign(txt));
@@ -149,9 +284,10 @@ public static class WordFontExtraction
         // The theme font takes priority over specified font
         var eaFont = GetThemeFont(themeLangs, eaTheme, major, minor) ?? rFonts?.EastAsia;
 
-        var ic = StringComparison.OrdinalIgnoreCase;
         var lang = rPr.Languages;
-        bool langIsZh = ((lang?.Val?.Value != null && lang.Val.Value.Contains("zh", ic)) || (eaLang != null && eaLang.Contains("zh", ic)));
+
+        bool fontIsBig5OrGB2312 = FontIsBig5OrGB2312(eaFont, eaTheme, major, minor);
+        bool langIsZh = LangIsZh(lang, eaLang);
 
         var hint = rFonts?.Hint?.Value;
         bool eaHint = false;
@@ -159,35 +295,15 @@ public static class WordFontExtraction
 
         var csRef = (rPr.RightToLeftText != null || rPr.ComplexScript != null); // A reference to complex script
 
-        // Check if the font is Big5 or GB2312 - this may affect font classification
-        bool fontIsBig5OrGB2312 = false;
-        if (eaFont == "Big5" || eaFont == "GB2312")
-        {
-            fontIsBig5OrGB2312 = true;
-        }
-        else if (eaTheme != null)
-        {
-            if (eaTheme == "majorEastAsia" && major.ContainsKey("eastAsia"))
-            {
-                var majEA = major["eastAsia"];
-                if (majEA == "Big5" || majEA == "GB2312") fontIsBig5OrGB2312 = true;
-            }
-            else if (eaTheme == "minorEastAsia" && minor.ContainsKey("eastAsia"))
-            {
-                var minEA = minor["eastAsia"];
-                if (minEA == "Big5" || minEA == "GB2312") fontIsBig5OrGB2312 = true;
-            }
-        }
-
         var fonts = new List<string?>();
 
-        var result = GetFontClassifications(txt, csRef, eaHint, langIsZh, fontIsBig5OrGB2312);
-        var classifications = result.classifications;
+        var result = MSOffice.GetFontSlots(txt, csRef, eaHint, langIsZh, fontIsBig5OrGB2312, false);
+        var slots = result.slots;
         var foreignWriting = result.foreignWriting;
 
-        foreach (var classification in classifications)
+        foreach (var slot in slots)
         {
-            var font = classification.ToLower() switch
+            var font = slot.ToLower() switch
             {
                 "ascii" => rFonts?.Ascii ?? GetThemeFont(themeLangs, asciiTheme, major, minor),
                 "hansi" => rFonts?.HighAnsi ?? GetThemeFont(themeLangs, hansiTheme, major, minor),
@@ -199,22 +315,60 @@ public static class WordFontExtraction
 
 
             // Check that the font exists in the font table, and that it is using its primary and not alternative name.
-            bool existsInFontTable = false;
-            foreach (var f in fontTable.Descendants<Font>())
-            {
-                if (font == f.Name?.Value) existsInFontTable = true;
-
-                if (font == f.AltName?.Val?.Value)
-                {
-                    font = f.Name?.Value ?? font;
-                    existsInFontTable = true;
-                    break;
-                }
-            }
+            bool existsInFontTable = fontTable.Descendants<Font>()
+                .Any(f => font == f.Name?.Value || font == f.AltName?.Val?.Value);
             if (existsInFontTable) fonts.Add(font);
         }
-
+            
         return (fonts, foreignWriting);
+    }
+
+
+    /// <summary>
+    /// Determine if the font is "Big5" or "GB2312"
+    /// </summary>
+    /// <param name="font"></param>
+    /// <param name="fontTheme"></param>
+    /// <param name="majorFonts"></param>
+    /// <param name="minorFonts"></param>
+    /// <returns></returns>
+    private static bool FontIsBig5OrGB2312(string? font, string? fontTheme, Dictionary<string, string> majorFonts, Dictionary<string, string> minorFonts)
+    {
+        bool fontIsBig5OrGB2312 = false;
+        if (font == "Big5" || font == "GB2312")
+        {
+            fontIsBig5OrGB2312 = true;
+        }
+        else if (fontTheme != null)
+        {
+            if (fontTheme == "majorEastAsia" && majorFonts.ContainsKey("eastAsia"))
+            {
+                var majEA = majorFonts["eastAsia"];
+                if (majEA == "Big5" || majEA == "GB2312") fontIsBig5OrGB2312 = true;
+            }
+            else if (fontTheme == "minorEastAsia" && minorFonts.ContainsKey("eastAsia"))
+            {
+                var minEA = minorFonts["eastAsia"];
+                if (minEA == "Big5" || minEA == "GB2312") fontIsBig5OrGB2312 = true;
+            }
+        }
+
+        return fontIsBig5OrGB2312;
+    }
+
+
+    /// <summary>
+    /// Determine if the language is "zh"
+    /// </summary>
+    /// <param name="lang"></param>
+    /// <param name="eaLang"></param>
+    /// <returns></returns>
+    private static bool LangIsZh (Languages? languages, string? eaLang)
+    {
+        var ic = StringComparison.OrdinalIgnoreCase;
+        bool langIsZh = ((languages?.Val?.Value != null && languages.Val.Value.Contains("zh", ic)) || 
+            (eaLang != null && eaLang.Contains("zh", ic)));
+        return langIsZh;
     }
 
 
@@ -228,68 +382,30 @@ public static class WordFontExtraction
     /// <returns></returns>
     private static string? GetThemeFont(Dictionary<string, string> themeLangs, string? theme, Dictionary<string, string> major, Dictionary<string, string> minor)
     {
-        string? classification;
-        string? lang;
-        Dictionary<string, string> dic;
+        string? font;
 
-        if (theme == null)
-        {
-            classification = null;
-            dic = minor;
-            lang = null;
-        }
-        else
-        {
-            classification = theme.Substring("m**or".Count());
-            dic = theme.Contains("major") ? major : minor;
-            lang = themeLangs[classification.ToLower()];
-        }
-
-        string? font = null;
-        string? script = null;
+        var classification = theme?.Substring("m**or".Count());
+        var dic = (theme?.Contains("major") ?? false) ? major : minor;
+        themeLangs.TryGetValue(classification?.ToLower() ?? "", out var lang);
 
         // Get the language's corresponding script
-        if (!string.IsNullOrEmpty(lang))
-        {
-            var langParts = lang.Split("-");
-            if (ScriptCodes.Scripts.TryGetValue(langParts[0], out var languageScripts))
-            {
-                string key = "";
-                if (langParts.Length == 2)
-                {
-                    key = langParts[1];
-                }
-
-                if (!languageScripts.TryGetValue(key, out script))
-                {
-                    languageScripts.TryGetValue("", out script);
-                }
-            }
-        }
+        var script = ScriptCodes.GetScript(lang);
 
         // Get the correct font for the script
         if (!string.IsNullOrEmpty(script))
         {
-            if (script == "Latn")
-            {
-                dic.TryGetValue("Latin", out font);
-            }
-            else
-            {
-                dic.TryGetValue(script, out font);
-            }
+            dic.TryGetValue(script == "Latn" ? "Latin" : script, out font);
         }
         else
         {
-            font = classification switch
+            font = classification?.ToLower() switch
             {
-                "Ascii" or "HAnsi" => dic["Latin"] ?? null,
-                "EastAsia" => dic["EastAsia"] ?? null,
+                "ascii" or "hansi" => dic["Latin"] ?? null,
+                "eastasia" => dic["EastAsia"] ?? null,
                 "cs" => dic["ComplexScript"] ?? null,
                 _ => null,
             };
         }
-
 
         return font;
     }
@@ -315,180 +431,5 @@ public static class WordFontExtraction
         if (v == ThemeFontValues.MajorEastAsia) return "majorEastAsia";
 
         return null;
-    }
-
-
-
-    /// <summary>
-    /// Get the correct font classifications for a run. Will also return whether or not the text contains any foreign characers
-    /// </summary>
-    /// <param name="txt">The run text</param>
-    /// <param name="csRef">Whether or not there is a reference to complex scrip (<w:cs/> or <w:rtl/>)</param>
-    /// <param name="eaHint">Whether or not the hint is set to 'eastAsia'</param>
-    /// <param name="langIsZH">Whether or not the language is 'zh'</param>
-    /// <param name="fontIsBig5orGB2312">Whether or not the font is 'Big5' or 'GB2312'</param>
-    /// <returns></returns>
-    private static (HashSet<string> classifications, bool foreignWriting) GetFontClassifications(string txt, bool csRef, bool eaHint, bool langIsZH, bool fontIsBig5orGB2312)
-    {
-        if (string.IsNullOrWhiteSpace(txt)) return (null, false);
-
-        bool foreignChars = false;
-
-        const string ascii = "ascii";
-        const string hansi = "hAnsi";
-        const string ea = "eastAsia";
-        const string cs = "cs";
-
-        var asciiRanges = new List<(int, int)>()
-        {
-            (0x0, 0x7F),
-            (0x590, 0x7BF),
-            (0xFB1D, 0xFB4F),
-            (0xFB50, 0xFDFF),
-            (0xFE70, 0xFEFE)
-        };
-
-        var eaRanges = new List<(int, int)>()
-        {
-            (0x1100, 0x11FF),
-            (0x2E80, 0xDFFF),
-            (0xF900, 0xFAFF),
-            (0xFB00, 0xFB1C),
-            (0xFE30, 0xFE6F),
-            (0xFF00, 0xFFEF),
-        };
-
-        var hansiRanges = new List<(int, int)>() {
-            (0x1F00, 0x1FFF),
-            (0xA0, 0xFF)
-        };
-
-        var hansiOrEaIfHintRanges = new List<(int, int)>()
-        {
-            (0xA1, 0xA1),
-            (0xA4, 0xA4),
-            (0xA7, 0xA8),
-            (0xAA, 0xAA),
-            (0xAD, 0xAD),
-            (0xAF, 0xAF),
-            (0xB0, 0xB4),
-            (0xB6, 0xBA),
-            (0xBC, 0xBF),
-            (0xD7, 0xD7),
-            (0xF7, 0xF7),
-            (0x02B0, 0x04FF),
-            (0x1100, 0x11FF),
-            (0x1E00, 0x1EFF),
-            (0x2000, 0x27BF),
-            (0xE000, 0xF8FF)
-        };
-
-        var eaIfZHRanges = new List<(int, int)>()
-        {
-            (0xE0, 0xE1),
-            (0xE8, 0xEA),
-            (0xEC, 0xED),
-            (0xF2, 0xF3),
-            (0xF9, 0xFA),
-            (0xFC, 0xFC)
-        };
-
-        var eaIfZHOrBig5orGB2312Ranges = new List<(int, int)>()
-        {
-            (0x0100, 0x02AF)
-        };
-
-
-        var classifications = new HashSet<string>();
-        foreach (var c in txt)
-        {
-            if (FontComparison.IsForeign(c)) foreignChars = true;
-
-            // East Asian if language is zh or font is Big5 or GB2312, otherwise High Ansi
-            if (FontComparison.InRange(c, eaIfZHOrBig5orGB2312Ranges))
-            {
-                if (eaHint && (langIsZH || fontIsBig5orGB2312))
-                {
-                    classifications.Add(ea);
-                }
-                else
-                {
-                    classifications.Add(hansi);
-                }
-                continue;
-            }
-
-            // East Asian if language is zh, otherwise High Ansi
-            if (FontComparison.InRange(c, eaIfZHRanges))
-            {
-                if (eaHint && langIsZH)
-                {
-                    classifications.Add(ea);
-                }
-                else
-                {
-                    classifications.Add(hansi);
-                }
-                continue;
-            }
-
-            // East Asian if hint, otherwise High Ansi
-            if (FontComparison.InRange(c, hansiOrEaIfHintRanges))
-            {
-                if (eaHint)
-                {
-                    classifications.Add(ea);
-                }
-                else
-                {
-                    classifications.Add(hansi);
-                }
-                continue;
-            }
-
-            // East Asian
-            if (FontComparison.InRange(c, eaRanges))
-            {
-                if (csRef)
-                {
-                    classifications.Add(cs);
-                }
-                else
-                {
-                    classifications.Add(ea);
-                }
-
-                continue;
-            }
-
-            // ASCII
-            if (FontComparison.InRange(c, asciiRanges))
-            {
-                if (csRef)
-                {
-                    classifications.Add(cs);
-                }
-                else
-                {
-                    classifications.Add(ascii);
-                }
-                continue;
-            }
-
-            // High Ansi
-            if (FontComparison.InRange(c, hansiRanges))
-            {
-                if (csRef)
-                {
-                    classifications.Add(cs);
-                }
-                else
-                {
-                    classifications.Add(hansi);
-                }
-            }
-        }
-
-        return (classifications, foreignChars);
     }
 }

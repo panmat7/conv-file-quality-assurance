@@ -100,8 +100,8 @@ public class MetadataStandardizerTest : TestBase
         if(obj1.VerifyColorType() || !obj2.VerifyColorType()) Assert.Fail();
         if(obj1.VerifyPhysicalUnits() || !obj2.VerifyPhysicalUnits()) Assert.Fail();
         
-        if(obj2.CompareResolution(obj1)) Assert.Fail();
-        if(obj2.CompareBitDepth(obj1)) Assert.Fail();
+        if(obj2.CompareResolution(obj1).Count == 0) Assert.Fail();
+        if(obj2.CompareBitDepth(obj1).Count == 0) Assert.Fail();
         if(obj2.CompareColorType(obj1)) Assert.Fail();
         if(obj2.ComparePhysicalUnits(obj1)) Assert.Fail();
         if(obj2.ComparePhysicalUnitsFlexible(obj1)) Assert.Fail();

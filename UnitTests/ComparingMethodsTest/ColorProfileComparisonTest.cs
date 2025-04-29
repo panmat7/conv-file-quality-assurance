@@ -305,8 +305,8 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
         }
         finally
         {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionNDirectory);
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
@@ -403,8 +403,8 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
         }
         finally
         {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionNDirectory);
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
@@ -514,8 +514,8 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
         }
         finally
         {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionNDirectory);
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
@@ -586,8 +586,8 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
         }
         finally
         {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionNDirectory);
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
@@ -684,8 +684,8 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
         }
         finally
         {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionNDirectory);
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
@@ -744,8 +744,8 @@ public class GeneralDocsToPdfColorProfileComparisonTest : TestBase
         }
         finally
         {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionNDirectory);
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
@@ -814,8 +814,7 @@ public class XlsxToPdfColorProfileComparison : TestBase
             {
                 Assert.That(Directory.Exists(TestExtractionODirectory), Is.True);
                 Assert.That(Directory.Exists(TestExtractionNDirectory), Is.True);
-                // Assert.That(Directory.GetFiles(TestExtractionODirectory), Has.Length.EqualTo(2));
-                // Assert.That(Directory.GetFiles(TestExtractionNDirectory), Has.Length.EqualTo(2));
+                Assert.That(ImageExtraction.CheckIfEqualNumberOfImages(TestExtractionODirectory, TestExtractionNDirectory), Is.True);
             });
     
             var result = ColorProfileComparison.CompareColorProfilesFromDisk(TestExtractionODirectory, TestExtractionNDirectory);
@@ -823,8 +822,8 @@ public class XlsxToPdfColorProfileComparison : TestBase
         }
         finally
         {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionNDirectory);
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);

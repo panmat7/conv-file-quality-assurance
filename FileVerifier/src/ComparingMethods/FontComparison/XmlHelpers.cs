@@ -9,8 +9,9 @@ namespace AvaloniaDraft.ComparingMethods;
 
 public static class XmlHelpers
 {
-    public static string? GetAttributeByLocalName(XElement element, string localName)
+    public static string? GetAttributeByLocalName(XElement? element, string localName)
     {
+        if (element == null) return null;
         return element.Attributes().FirstOrDefault(a => a.Name.LocalName == localName)?.Value;
     }
 

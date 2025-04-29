@@ -3,49 +3,80 @@
              x:Class="AvaloniaDraft.Views.HomeView"
              x:DataType="viewModels:SettingsViewModel"
              xmlns:viewModels="clr-namespace:AvaloniaDraft.ViewModels">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="4*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Grid ColumnDefinitions="Auto,Auto,*,4*"
+          RowDefinitions="Auto,Auto,Auto,Auto,2*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
         <!-- Input -->
         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5" Foreground="White">Original file Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="0" Margin="5"
                 Name="InputButton" Click="InputButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
-                Padding="10,5">
+                Padding="10,5" Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Select
+
+            <ToolTip.Tip>
+                <ToolTip Name="InputTip">
+                    <TextBlock Text="No folder selected." FontSize="14"/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
 
         <!-- Output -->
         <TextBlock Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" Margin="5" Foreground="White">New file Folder</TextBlock>
         <Button Grid.Column="1" Grid.Row="1" Margin="5"
                 Name="OutputButton" Click="InputButton_OnClick"
-                PointerEntered="InputButton_OnPointerEntered"
-                PointerExited="InputButton_OnPointerExited"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
-                Padding="10,5">
+                Padding="10,5" Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Select
+            
+            <ToolTip.Tip>
+                <ToolTip Name="OutputTip">
+                    <TextBlock Text="No folder selected." FontSize="14"/>
+                </ToolTip>
+            </ToolTip.Tip>
+        </Button>
+
+        <!-- Checkpoint -->
+        <CheckBox x:Name="CheckpointCheckbox" Grid.Column="0" Grid.Row="2" VerticalAlignment="Center" Margin="5" Foreground="White">
+			Start from checkpoint</CheckBox>
+        <Button Grid.Column="1" Grid.Row="2" Margin="5"
+                Name="CheckpointButton" Click="CheckpointButton_OnClick"
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="1" 
+                Padding="10,5" Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
+            Select
+            
+            <ToolTip.Tip>
+                <ToolTip Name="CheckpointTip">
+                    <TextBlock Text="No file selected." FontSize="14"/>
+                </ToolTip>
+            </ToolTip.Tip>
+        </Button>
+        
+        <!-- Extraction -->
+        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Data Extraction Folder</TextBlock>
+        <Button Grid.Column="1" Grid.Row="3" Margin="5"
+                Name="ExtractionButton" Click="InputButton_OnClick"
+                Background="#139A43" Foreground="White" 
+                BorderBrush="#0DAB76" BorderThickness="1" 
+                Padding="10,5" Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
+            Select
+            
+            <ToolTip.Tip>
+                <ToolTip Name="ExtractionTip">
+                    <TextBlock Text="No folder selected." FontSize="14"/>
+                </ToolTip>
+            </ToolTip.Tip>
         </Button>
         
         <!-- Load -->
@@ -53,73 +84,86 @@
                 Name="LoadButton" Click="LoadButton_OnClick"
                 Background="#139A43" Foreground="White"
                 BorderBrush="#0DAB76" BorderThickness="1" 
-                Padding="20,5" VerticalAlignment="Center">
+                Padding="20,5" VerticalAlignment="Center" Width="90"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Load
+        </Button>
+        
+        <!-- Extraction start -->
+        <Button Grid.Column="2" Grid.Row="3" Margin="5"
+                Name="ExtractionStartButton" Click="ExtractionStartButton_OnClick"
+                Background="#139A43" Foreground="White"
+                BorderBrush="#0DAB76" BorderThickness="1" 
+                Padding="20,5" VerticalAlignment="Center" Width="90"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
+            Extract
         </Button>
 
 
         <!-- Quick Settings -->
-        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Settings</TextBlock>
-        <Border Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" BorderBrush="White" BorderThickness="0,0,0,1" Margin="5,0"/>
+        <TextBlock Grid.Column="0" Grid.Row="5" VerticalAlignment="Center" Margin="5" Foreground="White">Quick Settings</TextBlock>
+        <Border Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2" BorderBrush="White" BorderThickness="0,0,0,1" Margin="5,0"/>
         
-        <StackPanel Grid.Column="0" Grid.Row="4" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Column="0" Grid.Row="6" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures no differences in size across files" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Size Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding IsSizeEnabled, Mode=TwoWay}" Margin="5"/>
         
-        <StackPanel Grid.Column="0" Grid.Row="5" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Column="0" Grid.Row="7" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures no differences in resolution across files" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Resolution Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Grid.Row="5" Grid.Column="1" IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="7" Grid.Column="1" IsChecked="{Binding IsResolutionEnabled, Mode=TwoWay}" Margin="5"/>
         
-        <StackPanel Grid.Column="0" Grid.Row="6" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Column="0" Grid.Row="8" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures color profiles stay consistent across files" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Color Profile Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Grid.Row="6" Grid.Column="1" IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="8" Grid.Column="1" IsChecked="{Binding IsColorProfileEnabled, Mode=TwoWay}" Margin="5"/>
         
-        <StackPanel Grid.Column="0" Grid.Row="7" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Column="0" Grid.Row="9" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures no differences in font across files" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Font Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Grid.Row="7" Grid.Column="1" IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding IsFontEnabled, Mode=TwoWay}" Margin="5"/>
         
-        <StackPanel Grid.Column="0" Grid.Row="8" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Column="0" Grid.Row="10" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures that visually both files look the same" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Point by Point Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Grid.Row="8" Grid.Column="1" IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Margin="5"/>
         
-        <StackPanel Grid.Column="0" Grid.Row="9" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Column="0" Grid.Row="11" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures both files have same page count" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Page Count Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Grid.Row="9" Grid.Column="1" IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="11" Grid.Column="1" IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Margin="5"/>
         
-        <StackPanel Grid.Column="0" Grid.Row="10" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Column="0" Grid.Row="12" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method flags PowerPoint files that use animations which will result in lost context when converted" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Animation Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="12" Grid.Column="1" IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Margin="5"/>
 
         <!-- Console -->
-        <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="5" Margin="7" 
+        <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="7" Margin="7" 
                  IsReadOnly="True" VerticalContentAlignment="Bottom"
                  FontFamily="Consolas" Name="Console"
                  Background="Black" BorderBrush="White" Foreground="White">
         </TextBox>
         
         <!-- Progress Bar -->
-        <ProgressBar Grid.Column="3" Grid.Row="5" Margin="0 10" Height="20" 
+        <ProgressBar Grid.Column="3" Grid.Row="7" Margin="0 10" Height="20" 
                      Name="ProgressBar"
                      Minimum="0" Maximum="100" Value="0"
                      ShowProgressText="True"
                      Background="#1E3A5F"/>
 
         <!-- Start Button -->
-        <Button Grid.Column="3" Grid.Row="8" HorizontalAlignment="Right" 
+        <Button Grid.Column="3" Grid.Row="10" HorizontalAlignment="Right" 
                 Name="StartButton"
                 IsEnabled="False"
                 VerticalAlignment="Center"

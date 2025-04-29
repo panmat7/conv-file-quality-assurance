@@ -1,7 +1,6 @@
 using AvaloniaDraft.FileManager;
 using UnitTests.ComparingMethodsTest;
 using AvaloniaDraft.Helpers;
-using Assert = Xunit.Assert;
 
 namespace UnitTests.HelperTest;
 
@@ -13,7 +12,7 @@ public class IsCompressedEncryptedTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.zip");
         var result = EncryptionChecker.IsCompressedEncrypted(filePath);
-        Assert.True(result);
+        Assert.That(result, Is.True);
     }
 
     [Test]
@@ -21,7 +20,7 @@ public class IsCompressedEncryptedTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.zip");
         var result = EncryptionChecker.IsCompressedEncrypted(filePath);
-        Assert.False(result);
+        Assert.That(result, Is.False);
     }
     
     [Test]
@@ -29,7 +28,7 @@ public class IsCompressedEncryptedTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.rar");
         var result = EncryptionChecker.IsCompressedEncrypted(filePath);
-        Assert.True(result);
+        Assert.That(result, Is.True);
     }
 
     [Test]
@@ -37,7 +36,7 @@ public class IsCompressedEncryptedTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.rar");
         var result = EncryptionChecker.IsCompressedEncrypted(filePath);
-        Assert.False(result);
+        Assert.That(result, Is.False);
     }
 }
 
@@ -49,7 +48,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.pdf");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.Encrypted, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.Encrypted));
     }
 
     [Test]
@@ -57,7 +56,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.pdf");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.None, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.None));
     }
     
     [Test]
@@ -65,7 +64,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.odt");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.Encrypted, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.Encrypted));
     }
 
     [Test]
@@ -73,7 +72,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.odt");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.None, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.None));
     }
     
     [Test]
@@ -81,7 +80,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.docx");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.Encrypted, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.Encrypted));
     }
 
     [Test]
@@ -89,7 +88,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "nonencrypted.docx");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.None, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.None));
     }
     
     [Test]
@@ -97,7 +96,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.pptx");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.Encrypted, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.Encrypted));
     }
     
     [Test]
@@ -105,7 +104,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "encrypted.odp");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.Encrypted, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.Encrypted));
     }
     
     [Test]
@@ -113,7 +112,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "corrupted.odt");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.None, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.None));
     }
     
     [Test]
@@ -121,7 +120,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "corrupted.pdf");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.None, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.None));
     }
     
     [Test]
@@ -129,7 +128,7 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "corrupted.docx");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.None, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.None));
     }
 
     [Test]
@@ -137,6 +136,6 @@ public class CheckFileEncryptionOrCorruptionTest : TestBase
     {
         var filePath = Path.Combine(TestFileDirectory, "CorruptedFiles", "225x225.png");
         var result = EncryptionChecker.CheckForEncryption(filePath);
-        Assert.Equal(ReasonForIgnoring.None, result);
+        Assert.That(result, Is.EqualTo(ReasonForIgnoring.None));
     }
 }

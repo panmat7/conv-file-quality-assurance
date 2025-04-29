@@ -41,7 +41,7 @@ public static class Siegfried
     /// <param name="originalDir">The directory containing the original files</param>
     /// <param name="newDir">The directory contacting the newly converted files</param>
     /// <param name="files">The list of file pairs from both directories</param>
-    public static void GetFileFormats(string originalDir, string newDir, string tempOriginalDir, string tempNewDir, ref List<FilePair> files)
+    public static void GetFileFormats(string originalDir, string newDir, string tempOriginalDir, string tempNewDir, ref List<FilePair> files, ref List<IgnoredFile> ignoredFiles)
     {
         var terminal = "";
         var arguments = "";
@@ -108,6 +108,8 @@ public static class Siegfried
         tempOriginalOutput.Files = tempOriginalOutput.Files.Where(f => f.Matches.Count > 0).ToList();
         tempNewOutput.Files = tempNewOutput.Files.Where(f => f.Matches.Count > 0).ToList();
 
+        var filesToRemove = new List<FilePair>();
+
         foreach (var file in files)
         {
             var originalFile = originalOutput.Files.FirstOrDefault(f => f.Name == file.OriginalFilePath) ??
@@ -115,16 +117,107 @@ public static class Siegfried
             var newFile = newOutput.Files.FirstOrDefault(f => f.Name == file.NewFilePath) ??
                           tempNewOutput.Files.FirstOrDefault(f => f.Name == file.NewFilePath);
 
-            if (originalFile != null)
-            {
-                file.OriginalFileFormat = originalFile.Matches[0].id;
-            }
+            var oFmt = originalFile?.Matches[0].id;
+            var nFmt = newFile?.Matches[0].id;
 
-            if (newFile != null)
+            // Filter out files in file pairs with at least one file of a disabled format
+            var oFmtDisabled = (GlobalVariables.Options.GetFileFormat(oFmt) is not true);
+            var nFmtDisabled = (GlobalVariables.Options.GetFileFormat(nFmt) is not true);
+            if (oFmtDisabled || nFmtDisabled)
             {
-                file.NewFileFormat = newFile.Matches[0].id;
+                filesToRemove.Add(file);
+
+                var reason = ReasonForIgnoring.Filtered;
+                ignoredFiles.Add(new IgnoredFile(file.OriginalFilePath, reason));
+                ignoredFiles.Add(new IgnoredFile(file.NewFilePath, reason));
+            } 
+            else
+            {
+                if (oFmt != null)
+                {
+                    file.OriginalFileFormat = oFmt;
+                }
+
+                if (nFmt != null)
+                {
+                    file.NewFileFormat = nFmt;
+                }
             }
         }
+
+        foreach (var file in filesToRemove) files.Remove(file);
+
+        process.WaitForExit();
+    }
+
+    /// <summary>
+    /// Method <c>GetFileFormats</c> is to called run siegfried on one directories and assign PRONOM formats to files.
+    /// </summary>
+    /// <param name="inputDir">The directory containing the files.</param>
+    /// <param name="files">The list of single files.</param>
+    public static void GetFileFormats(string inputDir, ref List<SingleFile> files)
+    {
+        var terminal = "";
+        var arguments = "";
+        const string windowsTerminal = "powershell.exe";
+        const string linuxTerminal = "/bin/bash";
+        var windowsArguments = $"-ExecutionPolicy Bypass -Command \"sf -json \"{inputDir}\";";
+        var linuxArguments = $"-c \"sf -json '{inputDir}';\"";
+
+        if (OperatingSystem.IsWindows())
+        {
+            terminal = windowsTerminal;
+            arguments = windowsArguments;
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            terminal = linuxTerminal;
+            arguments = linuxArguments;
+        }
+        
+        var processInfo = new ProcessStartInfo
+        {
+            FileName = terminal,
+            Arguments = arguments,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8, //Otherwise causes errors with certain characters
+            StandardErrorEncoding = Encoding.UTF8,
+        };
+        
+        using var process = new Process();
+        process.StartInfo = processInfo;
+
+        try { process.Start(); }
+        catch(Exception ex)
+        {
+            throw new Exception($"Unable to start {terminal} and Siegfried: {ex.Message}");
+        }
+        
+        var output = process.StandardOutput.ReadToEnd();
+        var error = process.StandardError.ReadToEnd();
+        
+        if (!string.IsNullOrEmpty(error)) UiControlService.Instance.OverwriteConsoleOutput("There occurred an error when using Siegried.");
+        
+        var outObj = JsonSerializer.Deserialize<SiegfriedOutputJson>(output);
+        
+        if (outObj == null)
+        {
+            throw new Exception("Invalid Siegfried output");
+        }
+        
+        outObj.Files = outObj.Files.Where(f => f.Matches.Count > 0).ToList();
+        
+        foreach (var file in files)
+        {
+            var format = outObj.Files.FirstOrDefault(f => f.Name == file.FilePath);
+            
+            if(format != null)
+                file.FileFormat = format.Matches[0].id;
+        }
+        
         process.WaitForExit();
     }
 }

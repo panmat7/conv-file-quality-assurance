@@ -35,45 +35,82 @@ public static class EmlPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            List<Error> e = [];
             Error error;
             
+            var failedToExtract = false;
+            var equalNumberOfImages = false;
+
             var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
-            ImageExtraction.ExtractImagesFromEmlToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
-            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
-            
-            // Some checks will be skipped if the number of images is not equal
-            var equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
-                tempFoldersForImages.Item2);
-            
-            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+            try
+            {
+                ImageExtraction.ExtractImagesFromEmlToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+                ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
+                // Some checks will be skipped if the number of images is not equal
+                equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                    tempFoldersForImages.Item2);
+            }
+            catch (Exception)
+            {
+                failedToExtract = true;
+            }
+
+            if (!failedToExtract)
+            {
+                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                {
+                    if (equalNumberOfImages)
+                    {
+                        BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
+                            tempFoldersForImages.Item2, pair);
+                    }
+                    else
+                    {
+                        error = new Error(
+                            "Unequal number of images",
+                            "The comparison of color profiles could not be performed " +
+                            "because the number of images in the original and new file is different.",
+                            ErrorSeverity.High,
+                            ErrorType.FileError
+                        );
+                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                    }
+                }
+            }
+            else
+            {
+                error = new Error(
+                    "Failed to extract images from files",
+                    "Comparisons involving extracted images can not be performed " +
+                    "because the tool was unable to extract images from at least one of the files.",
+                    ErrorSeverity.High,
+                    ErrorType.FileError
+                );
+                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
+            }
+
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
             {
                 if (equalNumberOfImages)
                 {
-                    BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                        tempFoldersForImages.Item2, pair, e);
+                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                        tempFoldersForImages.Item2);
                 }
                 else
                 {
                     error = new Error(
                         "Unequal number of images",
-                        "The comparison of color profiles could not be performed " +
+                        "The comparison of extracted image metadata could not be performed " +
                         "because the number of images in the original and new file is different.",
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
-                    e.Add(error);
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
                 }
             }
             
-            UiControlService.Instance.AppendToConsole(
-                $"Result for {Path.GetFileName(pair.OriginalFilePath)}-{Path.GetFileName(pair.NewFilePath)} Comparison: \n" +
-                e.GenerateErrorString() + "\n\n");
-            
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
 
-            e.AddRange(ComperingMethods.CompareFonts(pair));
+            ComperingMethods.CompareFonts(pair);
 
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

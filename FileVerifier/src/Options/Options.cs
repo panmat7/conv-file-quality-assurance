@@ -12,6 +12,7 @@ using System.IO;
 using System.Text.Json.Serialization;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using AvaloniaDraft.FileManager;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AvaloniaDraft.Options;
 
@@ -26,20 +27,23 @@ public enum SettingsProfile
 /// <summary>
 /// Contains options for conversion
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class Options
 {
     public SettingsProfile Profile { get; set; }
 
-    private string? dir; // The directory where settings are stored
+    private string? Dir; // The directory where settings are stored
 
     public double SizeComparisonThreshold { get; set; }
     public double PbpComparisonThreshold { get; set; }
 
-    public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; }
-    public Dictionary<string, bool> MethodsEnabled { get; set; }
+    public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; } = new();
+    public Dictionary<string, bool> MethodsEnabled { get; set; } = new();
 
     public int? SpecifiedThreadCount { get; set; }
     public bool IgnoreUnsupportedFileType { get; set; }
+
+    private JsonSerializerOptions? SerializerOptions;
 
 
     /// <summary>
@@ -47,6 +51,8 @@ public class Options
     /// </summary>
     public void Initialize()
     {
+        SerializerOptions = null;
+
         SetDirPath();
         Profile = SettingsProfile.Default;
 
@@ -68,14 +74,26 @@ public class Options
             var ff = fld.GetValue(null);
             if (ff is FileFormat fileFormat)
             {
-                if (fileFormat.FormatCodes.Count != 1) continue;
+                var fmtCodes = fileFormat.FormatCodes;
 
-                var type = fileFormat.FormatCodes[0].ToLower();
-
-                if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
-                foreach (var fmt in fileFormat.PronomCodes)
+                if (fmtCodes.ToHashSet().SetEquals(["jpg", "jpeg"]))
                 {
-                    FileFormatsEnabled[type][fmt] = true;
+                    var type = "jpeg/jpg";
+                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                    foreach (var fmt in fileFormat.PronomCodes)
+                    {
+                        FileFormatsEnabled[type][fmt] = true;
+                    }
+                } 
+                else if (fmtCodes.Count == 1)
+                {
+                    var type = fileFormat.FormatCodes[0].ToLower();
+
+                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                    foreach (var fmt in fileFormat.PronomCodes)
+                    {
+                        FileFormatsEnabled[type][fmt] = true;
+                    }
                 }
             }
         }
@@ -138,8 +156,10 @@ public class Options
     /// Get if a file format is enabled or not
     /// </summary>
     /// /// <param name="pronomUID">The file type</param>
-    public bool? GetFileFormat(string pronomUID)
+    public bool? GetFileFormat(string? pronomUID)
     {
+        if (pronomUID == null) return false;
+
         foreach (var ft in FileFormatsEnabled.Keys)
         {
             if (FileFormatsEnabled[ft].ContainsKey(pronomUID))
@@ -205,7 +225,7 @@ public class Options
 
         InitializeEnabledFormats();
 
-        SizeComparisonThreshold = 0.0;
+        SizeComparisonThreshold = 75.0;
         PbpComparisonThreshold = 0.0;
 
         SpecifiedThreadCount = null;
@@ -218,7 +238,7 @@ public class Options
     /// </summary>
     public void SaveSettings()
     {
-        if (dir != null) ExportJSON(GetFilePath());
+        if (Dir != null) ExportJSON(GetFilePath());
     }
 
 
@@ -227,7 +247,7 @@ public class Options
     /// </summary>
     public void LoadSettings()
     {
-        if (dir != null) ImportJSON(GetFilePath());
+        if (Dir != null) ImportJSON(GetFilePath());
     }
 
 
@@ -243,7 +263,7 @@ public class Options
         {
             if (Path.GetFileName(currentDir) == "FileVerifier")
             {
-                dir = Path.Join(currentDir, "settings");
+                Dir = Path.Join(currentDir, "settings");
                 return;
             }
             currentDir = Directory.GetParent(currentDir)?.FullName;
@@ -256,7 +276,7 @@ public class Options
     /// <returns></returns>
     private string GetFilePath()
     {
-        return dir + "/" + Profile switch
+        return Dir + "/" + Profile switch
         {
             SettingsProfile.Default => "default",
             SettingsProfile.Custom1 => "custom1",
@@ -295,15 +315,9 @@ public class Options
 
             if (File.Exists(src))
             {
-                var seralizerOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                };
-
                 var jsonString = File.ReadAllText(src);
 
-                var o = JsonSerializer.Deserialize<Options>(jsonString, seralizerOptions);
+                var o = JsonSerializer.Deserialize<Options>(jsonString, GetJsonSerializerOptions());
                 if (o is Options opt)
                 {
                     this.FileFormatsEnabled = opt.FileFormatsEnabled;
@@ -323,5 +337,19 @@ public class Options
         {
             Console.WriteLine($"Error trying to load settings: {ex}");
         }
+    }
+
+
+    /// <summary>
+    /// Get JSON serializer options
+    /// </summary>
+    /// <returns></returns>
+    private JsonSerializerOptions GetJsonSerializerOptions()
+    {
+        return SerializerOptions ?? new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
     }
 }

@@ -99,7 +99,6 @@ public class FontComparisonTest
             var comparisonResult = FontComparison.CompareFiles(fp);
             (bool pass, bool foreignChars) result = (comparisonResult.Pass, comparisonResult.ContainsForeignCharacters);
 
-
             try
             {
                 Assert.That(result, Is.EqualTo(expectedResult), $"Test failed: ({testName})");
@@ -116,7 +115,6 @@ public class FontComparisonTest
                         Console.WriteLine(e.Description);
                     }
                 }
-
 
                 PrintList("Fonts only in original:", comparisonResult.FontsOnlyInOriginal);
                 PrintList("Fonts only in converted:", comparisonResult.FontsOnlyInConverted);

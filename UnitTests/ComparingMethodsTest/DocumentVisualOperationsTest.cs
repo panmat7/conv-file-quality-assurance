@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO.Enumeration;
 using AvaloniaDraft.ComparingMethods;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 using DocumentFormat.OpenXml.Office2013.PowerPoint;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -61,12 +62,18 @@ public class DocumentVisualOperationsTest
         var segments2 = DocumentVisualOperations.GetSegmentPictures(file2, rects2);
         var segments3 = DocumentVisualOperations.GetSegmentPictures("", rects3);
         var segments4 = DocumentVisualOperations.GetSegmentPictures(path4, []);
+        var singleSegment = DocumentVisualOperations.GetSegmentPictures(file2, rects2[0]);
         
         if(segments3 is not null || segments4 is not null) Assert.Fail();
         
-        if(segments1 is null || segments2 is null) Assert.Fail();
+        if(segments1 is null || segments2 is null || singleSegment is null) Assert.Fail();
         
         if(segments1!.Count != rects1!.Count || segments2!.Count != rects2.Count) Assert.Fail();
+
+        var relevanceRes = DocumentVisualOperations.DetermineSegmentRelevance(singleSegment);
+        var failedRes = DocumentVisualOperations.DetermineSegmentRelevance([]);
+        
+        if(relevanceRes is null || failedRes is not null) Assert.Fail();
         
         Assert.Pass();
     }
@@ -101,6 +108,16 @@ public class DocumentVisualOperationsTest
             Assert.That(pairless2.Count, Is.EqualTo(1));
         });
 
+        Assert.Pass();
+    }
+
+    [Test]
+    public void GetPageCheckIndexesTest()
+    {
+        var res = DocumentVisualOperations.GetPageCheckIndexes(25, 5);
+        
+        if(res[0].Item1 != 0 || res[0].Item2 != 4 || res[1].Item1 != 5 || res[1].Item2 != 9) Assert.Fail();
+        
         Assert.Pass();
     }
 }

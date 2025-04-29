@@ -1,9 +1,7 @@
-﻿using AvaloniaDraft.FileManager;
-using System;
+﻿using System;
 using System.IO.Compression;
 using System.Linq;
 using System.Xml.Linq;
-using AvaloniaDraft.Helpers;
 
 namespace AvaloniaDraft.ComparingMethods;
 

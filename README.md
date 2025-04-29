@@ -2,6 +2,8 @@
 This application performs quality checks on files mostly for files converted from a fileformat to an archival format. 
 The checks consists of metadata, size, color space, pixelvalue, fonts, number of pages and animations. 
 
+![Home Screen](https://github.com/panmat7/conv-file-quality-assurance/blob/main/Program.png?raw=true)
+
 ## Comparing methods
 * File Size: Compares the file sizes of each file.
 
@@ -15,7 +17,7 @@ The checks consists of metadata, size, color space, pixelvalue, fonts, number of
 
 * Animations: Checks if presenting formats include animations.
 
-* Image resolution: Checks for different resolkution in images
+* Image resolution: Checks for different resolution in images.
 
 * Visual Document comparison: 
 
@@ -32,21 +34,21 @@ The checks consists of metadata, size, color space, pixelvalue, fonts, number of
 
 ## Supported file formats
 
-![Supported File formats](https://github.com/panmat7/conv-file-quality-assurance/blob/pbp/SupportedFileFormats.png?raw=true)
+![Supported File formats](https://github.com/panmat7/conv-file-quality-assurance/blob/main/SupportedFileFormats.png?raw=true)
 
 ## Supported comparison methods
 
-![Supported Comparison methods](https://github.com/panmat7/conv-file-quality-assurance/blob/pbp/SupportedComparisonMethods.png?raw=true)
+![Supported Comparison methods](https://github.com/panmat7/conv-file-quality-assurance/blob/main/SupportedComparisonMethods.png?raw=true)
 
 
 
 ## Windows
 ### Dependencies Windows
-- .NET 8+
-- Siegfried 
-- Other dependencies
+* .NET 8+
+* Siegfried 
 
 ### Installation Windows
+1. Install .Net 8 from Microsoft's website (https://dotnet.microsoft.com/en-us/download)
 1. Install Siegfried from their website (https://www.itforarchivists.com/) and add it to path enviromental variables. 
 2. Clone the repository 
 ```sh
@@ -57,15 +59,15 @@ git clone https://github.com/panmat7/conv-file-quality-assurance.git
 
 ## Ubuntu 22.04
 ### Dependencies Ubuntu
-- .NET 8+
-- Siegfried
-- Emgu.cv - Emgu.cv 
-- ExifTool
+* .NET 8+
+* Siegfried
+* Emgu.cv - Emgu.cv 
+* ExifTool
 
 ### Installation Ubuntu
 1. Install Siegfried from their website (https://www.itforarchivists.com/)
 2. Install Emgu.cv (https://www.emgu.com/wiki/index.php/Download_And_Installation)
- - If you can't run the Point by point comparison, check for missing dependencies (https://www.emgu.com/wiki/index.php/Download_And_Installation#System.DllNotFoundException)
+    - If you can't run the Point by point or Visual document comparison, check for missing dependencies (https://www.emgu.com/wiki/index.php/Download_And_Installation#System.DllNotFoundException)
 3. Install ExifTool (https://exiftool.org/install.html#Unix)
 
 4. Clone the repository 
@@ -79,18 +81,31 @@ dotnet build
 ```
 
 
-
 ## Usage
+### Usage NB!
+
+* The console window will print the progress of the verification every 5 minutes, and a estimated time left.
+* If you try to load and verify many thousands of files, it may take a while for the loading and verification to finnish.
 
 
+### Usage guide
 
-## Comparison criteria
-This is a preliminary draft of what can be used to compare a converted file with an original in another format:
+1. Choose the folder for original files, and for the new files.
+2. Click the "Load" button to create the file pairs.
+3. Use the Quick settings or the "Settings" tab to choose what comparison methods you want to run. 
+    - In the settings tab you can ignore File formats to verify.
 
-- Size: If the size of the document (image) is stated - do the sizes of the original and copy match?
-- Image resolution: is it possible to identify image resolution in the two formats being compared and is the resolution the same? (dots per inch)
-- Color space: If possible, we want to identify the color profile in the original against the color profile in the copy. Do these match?
-- Fonts Are fonts built into the copy? And does it match the original's use of fonts?
-- Point by point - comparison: If we look at the original and converted file as two point matrices - Do the pixels in the two files match in terms of color? (requires size and resolution to match)
-- Number of pages: Same number of pages in original and copy.
-- Animations: Identify if the original uses animations. This will often disappear upon conversion.
+
+The Settings tab:
+![Home Screen](https://github.com/panmat7/conv-file-quality-assurance/blob/main/Settings.png?raw=true)
+
+
+4. Click the "Start" button to start the verfication process. 
+
+5. After the process is done, a JSON report will be genereated in the reports folder. The folder will be generated in the working directory.
+
+6. To view the report in the application go to the "Report" tab click the "Load from JSON" button and choose the report.
+
+The Report tab with an JSON report imported:
+![Home Screen](https://github.com/panmat7/conv-file-quality-assurance/blob/main/ReportTab.png?raw=true)
+

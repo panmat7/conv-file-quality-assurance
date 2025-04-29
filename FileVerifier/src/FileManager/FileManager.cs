@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading;
+using Avalonia.Threading;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.ComparisonPipelines;
 using AvaloniaDraft.Helpers;
@@ -83,6 +84,7 @@ public enum ReasonForIgnoring
 {
     Encrypted,
     Filtered,
+    AlreadyChecked,
     Corrupted,
     EncryptedOrCorrupted,
     UnsupportedFormat,
@@ -100,10 +102,10 @@ public sealed class FileManager
     private readonly string _nDirectory;
     private readonly string _tempODirectory;
     private readonly string _tempNDirectory;
-    internal List<IgnoredFile> IgnoredFiles { get; set; }
+    private readonly string _checkpoint;
+    public List<IgnoredFile> IgnoredFiles { get; set; }
     private List<FilePair> _filePairs;
     private readonly List<string> _pairlessFiles;
-    private readonly List<string> _fileDuplicates;
     private readonly IFileSystem _fileSystem;
     
     public List<string> GetPairlessFiles() => _pairlessFiles;
@@ -116,17 +118,20 @@ public sealed class FileManager
     private static readonly object ListLock = new object();
     private readonly List<Thread> _threads = [];
     
-    public FileManager(string originalDirectory, string newDirectory, IFileSystem? fileSystem = null)
+    //Progress reporting
+    private DateTime _startTime;
+    
+    public FileManager(string originalDirectory, string newDirectory, List<FilePair> checkpointFilePairs, IFileSystem? fileSystem = null)
     {
         _fileSystem = fileSystem ?? new FileSystem();
         _oDirectory = originalDirectory;
         _nDirectory = newDirectory;
-        
+
         IgnoredFiles = [];
         
         _filePairs = new List<FilePair>();
         _pairlessFiles = new List<string>();
-        _fileDuplicates = new List<string>();
+        var fileDuplicates = new List<string>();
         
         _tempODirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), _fileSystem.Path.GetRandomFileName());
         _tempNDirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), _fileSystem.Path.GetRandomFileName());
@@ -140,60 +145,70 @@ public sealed class FileManager
         var originalFiles = ProcessFiles(_oDirectory, _tempODirectory);
         var newFiles = ProcessFiles(_nDirectory, _tempNDirectory);
         
-        //If any file name appears more than once - inform
+        //If any file name appears more than once - add to duplicate list
         if (originalFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() !=
             originalFiles.Count)
         {
-            _fileDuplicates.AddRange(
+            fileDuplicates.AddRange(
                 originalFiles.GroupBy(x => _fileSystem.Path.GetFileNameWithoutExtension(x))
                     .Where(g => g.Count() > 1)
                     .SelectMany(g => g)
             );
         }
         
-        
         if (newFiles.Select(_fileSystem.Path.GetFileNameWithoutExtension).Distinct().Count() != newFiles.Count)
             throw new InvalidOperationException("FILENAME DUPLICATES IN NEW DIRECTORY");
+
+        //Lookup directory
+        var newFileLookupDir = newFiles
+            .ToDictionary(
+                f => _fileSystem.Path.GetFileNameWithoutExtension(f),
+                f => f
+            );
         
-        foreach (var iFile in originalFiles)
+        foreach (var oFile in originalFiles)
         {
-            try
+            //If file with matching name is found, adding pair
+            if (newFileLookupDir.TryGetValue(_fileSystem.Path.GetFileNameWithoutExtension(oFile), out var nFile))
             {
-                //Creating the file-to-file dictionary, getting first result of outputfiles containing file name 
-                var oFile = newFiles.First(f =>
-                    _fileSystem.Path.GetFileNameWithoutExtension(f) ==
-                    _fileSystem.Path.GetFileNameWithoutExtension(iFile));
-                _filePairs.Add(new FilePair(iFile, "", oFile, ""));
+                var pair = new FilePair(oFile, "", nFile, "");
+
+                if (!checkpointFilePairs.Any(fp => fp.OriginalFilePath == pair.OriginalFilePath 
+                    && fp.NewFilePath == pair.NewFilePath))
+                {
+                    _filePairs.Add(pair);
+                } 
+                else
+                {
+                    var reason = ReasonForIgnoring.AlreadyChecked;
+                    IgnoredFiles.Add(new IgnoredFile(nFile, reason));
+                    IgnoredFiles.Add(new IgnoredFile(oFile, reason));
+                }
             }
-            catch
+            else
             {
                 //Checking if its one of the duplicates, if not - to pairless
-                if (_fileDuplicates.Contains(iFile))
+                if (fileDuplicates.Contains(oFile)) //This is done to mimic the naming method used by the conversion tool
                 {
                     //Constructing the name using the same method as the conversion tool
-                    var constructedName = _fileSystem.Path.GetFileNameWithoutExtension(iFile) + "_" +
-                                          _fileSystem.Path.GetExtension(iFile).TrimStart('.').ToUpper();
+                    var constructedName = _fileSystem.Path.GetFileNameWithoutExtension(oFile) + "_" +
+                                          _fileSystem.Path.GetExtension(oFile).TrimStart('.').ToUpper();
                     
                     //We have a match, create pair, otherwise add to pairless
-                    if (newFiles.Any(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName))
-                    {
-                        _filePairs.Add(new FilePair(iFile, "",
-                            newFiles.First(f => _fileSystem.Path.GetFileNameWithoutExtension(f) == constructedName),
-                            ""));
-                    }
-                    else
-                    {
-                        _pairlessFiles.Add(iFile);
+                    if (newFileLookupDir.TryGetValue(constructedName, out var nFileMatch)) {
+                        _filePairs.Add(new FilePair(oFile, "", nFileMatch, ""));
+                    } else {
+                        _pairlessFiles.Add(oFile);
                     }
                 }
                 else
                 {
-                    _pairlessFiles.Add(iFile);
+                    _pairlessFiles.Add(oFile);
                 }
             }
         }
         
-        //Adding all files that do not have a pair from newfiles to pairless
+        //Adding all files that do not have a pair in newfiles to pairless
         _pairlessFiles.AddRange(newFiles.FindAll(f => !_filePairs.Select(fp => fp.NewFilePath).Contains(f)));
         
         // Register cleanup of temporary directories on application exit
@@ -229,37 +244,19 @@ public sealed class FileManager
 
     private static void CleanupTempDirectories(params string[] tempDirectories)
     {
-        foreach (var tempDir in tempDirectories)
+        foreach (var tempDir in tempDirectories.Where(Directory.Exists))
         {
-            if (Directory.Exists(tempDir))
-            {
-                Directory.Delete(tempDir, true);
-            }
+            Directory.Delete(tempDir, true);
         }
     }
-    
+
     /// <summary>
     /// Calls Siegfried to identify format of files in both directories
     /// </summary>
-    public void GetSiegfriedFormats()
+    public void SetSiegfriedFormats()
     {
-        Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs);
-    }
-
-
-    /// <summary>
-    /// Filter out file pairs containing file formats that is not to be checked
-    /// </summary>
-    public void FilterOutDisabledFileFormats()
-    {
-        var filteredOut = _filePairs.Where(fp => !GlobalVariables.Options.FormatsAreEnabled(fp)).ToList();
-        _filePairs = _filePairs.Except(filteredOut).ToList();
-        foreach (var fp in filteredOut)
-        {
-            var reason = ReasonForIgnoring.Filtered;
-            IgnoredFiles.Add(new IgnoredFile(fp.OriginalFilePath, reason));
-            IgnoredFiles.Add(new IgnoredFile(fp.NewFilePath, reason));
-        }
+        var ignoredFiles = IgnoredFiles;
+        Siegfried.GetFileFormats(_oDirectory, _nDirectory, _tempODirectory, _tempNDirectory,  ref _filePairs, ref ignoredFiles);
     }
 
     /// <summary>
@@ -268,7 +265,15 @@ public sealed class FileManager
     public void StartVerification()
     {
         var maxThreads = GlobalVariables.Options.SpecifiedThreadCount ?? 8;
-        
+        _startTime = DateTime.Now;
+        var timer = new Timer(WriteProgressToConsole, null, (int)TimeSpan.FromMinutes(5).TotalMilliseconds, 
+            (int)TimeSpan.FromMinutes(5).TotalMilliseconds);
+
+
+        var checkPointInterval = (int)TimeSpan.FromMinutes(15).TotalMilliseconds; // Change later based on settings
+        var checkpointTimer = new Timer(_ => GlobalVariables.Logger.SaveReport(true), null,
+            checkPointInterval, checkPointInterval);
+
         //Continuing until done with all files
         while (true)
         {
@@ -304,13 +309,11 @@ public sealed class FileManager
             
             Thread.Sleep(150);
         }
-
+    
         AwaitThreads(); //Awaiting all remaining threads
-        
-        foreach (var file in _filePairs)
-        {
-            Console.WriteLine($"This file is verified: {file.Done}");
-        }
+        UiControlService.Instance.AppendToConsole("\n" + $@"Verification completed in {(DateTime.Now - _startTime):hh\:mm\:ss}." + "\n");
+        timer.Dispose();
+        checkpointTimer.Dispose();
     }
     
     /// <summary>
@@ -419,14 +422,10 @@ public sealed class FileManager
     /// </summary>
     public void WritePairs()
     {
-        Console.WriteLine("PAIRS:");
-
         var pronomFormat = new Dictionary<string, Tuple<string, int>>();
 
         foreach (var pair in _filePairs)
         {
-            Console.WriteLine($"{pair.OriginalFilePath} ({pair.OriginalFileFormat}) - {pair.NewFilePath} ({pair.NewFileFormat})");
-
             var extension = pair.OriginalFileFormat;
             var fileExtension = Path.GetExtension(pair.OriginalFilePath);
 
@@ -441,17 +440,57 @@ public sealed class FileManager
                 pronomFormat.Add(extension, new Tuple<string, int>(fileExtension, 1));
             }
         }
+    }
+    
+    /// <summary>
+    /// Writes the current progress to console, used as a callback for a timer
+    /// </summary>
+    private void WriteProgressToConsole(object? state)
+    {
+        var filesDone = _filePairs.Count(p => p.Done);
+        var time = DateTime.Now - _startTime;
+        var estimate = TimeSpan.Zero;
 
-        Console.WriteLine("PAIRLESS:");
-        foreach (var file in _pairlessFiles)
+        if (filesDone > 0)
         {
-            Console.WriteLine($"{file}");
+            estimate = (time / filesDone) * (filesDone - _filePairs.Count); 
         }
         
-        
-        foreach (KeyValuePair<string, Tuple<string, int>> kvp in pronomFormat)
+        var msg = $"Files completed: {filesDone}/{_filePairs.Count}, " +
+            $@"time elapsed: {time:hh\:mm\:ss}. Estimated time to completion: {estimate:hh\:mm\:ss}";
+        UiControlService.Instance.AppendToConsole(msg);
+    }
+    
+    /// <summary>
+    /// Returns a string detailing the formats for pairs.
+    /// </summary>
+    public string GetPairFormats()
+    {
+        var pairs = new Dictionary<string, int>();
+
+        foreach (var pair in _filePairs)
         {
-            UiControlService.Instance.OverwriteConsoleOutput($"{kvp.Key}  -  {kvp.Value.Item1}  -  {kvp.Value.Item2}");
+            try
+            {
+                var oCode = FormatCodes.AllCodes
+                    .First(c => c.PronomCodes.Contains(pair.OriginalFileFormat))
+                    .FormatCodes.FirstOrDefault() ?? "unk.";
+                var nCode = FormatCodes.AllCodes
+                    .First(c => c.PronomCodes.Contains(pair.NewFileFormat))
+                    .FormatCodes.FirstOrDefault() ?? "unk.";
+
+                var key = $"{oCode} - {nCode}";
+                if (!pairs.TryAdd(key, 1))
+                    pairs[key] += 1;
+            }
+            catch
+            {
+                var key = "unk.-unk.";
+                if (!pairs.TryAdd(key, 1))
+                    pairs[key] += 1;
+            }
         }
+        
+        return string.Join("\n", pairs.Select(pair => $"{pair.Key}:  {pair.Value}"));
     }
 }

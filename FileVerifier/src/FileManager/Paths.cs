@@ -18,7 +18,10 @@ public class Paths
 {
     public string? OriginalFilesPath { get; set; }
     public string? NewFilesPath { get; set; }
-    private string? JsonPath;
+    public string? CheckpointPath { get; set; }
+    public string? DataExtractionFilesPath { get; set; }
+
+    private readonly string? JsonPath;
 
     public Paths() 
     {
@@ -71,6 +74,8 @@ public class Paths
             {
                 if (Path.Exists(paths.OriginalFilesPath)) this.OriginalFilesPath = paths.OriginalFilesPath;
                 if (Path.Exists(paths.NewFilesPath)) this.NewFilesPath = paths.NewFilesPath;
+                if (Path.Exists(paths.CheckpointPath)) this.CheckpointPath = paths.CheckpointPath;
+                if (Path.Exists(paths.DataExtractionFilesPath)) this.DataExtractionFilesPath = paths.DataExtractionFilesPath;
             }
         }
         catch (Exception ex)

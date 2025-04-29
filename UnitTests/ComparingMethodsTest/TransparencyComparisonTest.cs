@@ -71,8 +71,8 @@ public class GeneralDocsToPdfTransparencyComparisonTest : TestBase
         }
         finally
         {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionNDirectory);
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);
@@ -117,8 +117,8 @@ public class GeneralDocsToPdfTransparencyComparisonTest : TestBase
         }
         finally
         {
-            ImageExtraction.DeleteSavedImages(TestExtractionODirectory);
-            ImageExtraction.DeleteSavedImages(TestExtractionNDirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionODirectory);
+            ImageExtraction.DeleteSavedFiles(TestExtractionNDirectory);
             Assert.Multiple(() =>
             {
                 Assert.That(Directory.GetFiles(TestExtractionODirectory), Is.Empty);

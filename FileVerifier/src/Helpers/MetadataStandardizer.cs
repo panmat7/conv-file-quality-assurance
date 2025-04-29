@@ -90,9 +90,21 @@ public class StandardizedImageMetadata
     /// </summary>
     /// <param name="img2">Image to compare with</param>
     /// <returns>True or false</returns>
-    public bool CompareResolution(StandardizedImageMetadata img2)
+    public List<Error> CompareResolution(StandardizedImageMetadata img2)
     {
-        return (img2.ImgWidth == ImgWidth && img2.ImgHeight == ImgHeight);
+        var e = new List<Error>();
+        
+        if (img2.ImgWidth != ImgWidth || img2.ImgHeight != ImgHeight)
+        {
+            e.Add(new Error(
+                "Image resolution difference (metadata)",
+                "Mismatched resolution between images in metadata.",
+                ErrorSeverity.High,
+                ErrorType.Metadata
+            ));
+        }
+
+        return e;
     }
     
     /// <summary>
@@ -100,9 +112,21 @@ public class StandardizedImageMetadata
     /// </summary>
     /// <param name="img2">Image to compare with</param>
     /// <returns>True or false</returns>
-    public bool CompareBitDepth(StandardizedImageMetadata img2)
+    public List<Error> CompareBitDepth(StandardizedImageMetadata img2)
     {
-        return (img2.BitDepth == BitDepth);
+        var e = new List<Error>();
+        
+        if (img2.BitDepth != BitDepth)
+        {
+            e.Add(new Error(
+                "Bit-depth mismatch",
+                "Mismatched bit-depth between images.",
+                ErrorSeverity.Medium,
+                ErrorType.Metadata
+            ));
+        }
+
+        return e;
     }
 
     /// <summary>
@@ -363,7 +387,7 @@ public static class MetadataStandardizer
     /// <param name="metadata">Metadata object to be standardized.</param>
     /// <param name="format">Pronom code of the image file.</param>
     /// <returns>Object containing all metadata in a standardized fashion.</returns>
-    public static StandardizedImageMetadata StandardizeImageMetadata(ImageMetadata metadata, string format)
+    public static StandardizedImageMetadata? StandardizeImageMetadata(ImageMetadata metadata, string format)
     {
         var standardized = new StandardizedImageMetadata
         {
@@ -396,6 +420,7 @@ public static class MetadataStandardizer
             ProcessGIF(metadata, ref standardized);
             standardized.Format = "gif";
         }
+        else return null;
         
         return standardized;
     }

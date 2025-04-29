@@ -33,6 +33,7 @@ public sealed class IgnoredFilesViewModel : INotifyPropertyChanged
                 {
                     ReasonForIgnoring.Encrypted => " | Encrypted",
                     ReasonForIgnoring.Filtered => " | Filtered out",
+                    ReasonForIgnoring.AlreadyChecked => " | Already checked",
                     ReasonForIgnoring.Corrupted => " | Corrupted",
                     ReasonForIgnoring.EncryptedOrCorrupted => " | Corrupted or Encrypted",
                     ReasonForIgnoring.UnsupportedFormat => " | Unsupported file format",

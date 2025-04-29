@@ -10,14 +10,15 @@ using System.Runtime.CompilerServices;
 using AvaloniaDraft.Helpers;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Avalonia.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AvaloniaDraft.Logger;
-
 
 
 /// <summary>
 /// A result of a single comparison test
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class TestResult
 {
     public bool Pass { get; set; }
@@ -37,6 +38,7 @@ public class TestResult
 /// <summary>
 /// A result of comparing two files
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class ComparisonResult
 {
     public FilePair FilePair { get; set; }
@@ -71,12 +73,13 @@ public class ComparisonResult
 /// <summary>
 /// A logger to store test results
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class Logger
 {
     public int FileComparisonCount { get; set; }
     public int FileComparisonsFailed { get; set; }
-    public Stopwatch Stopwatch { get; set; }
-    public List<ComparisonResult> Results { get; set; }
+    public Stopwatch Stopwatch { get; set; } = new();
+    public List<ComparisonResult> Results { get; set; } = [];
 
     private bool Active { get; set; }
     private bool Finished { get; set; }
@@ -110,9 +113,6 @@ public class Logger
     public void Start()
     {
         if (Active) return;
-
-        FileComparisonCount = 0;
-        FileComparisonsFailed = 0;
 
         Active = true;
         Stopwatch.Restart();
@@ -164,10 +164,25 @@ public class Logger
 
 
     /// <summary>
+    /// Return a list of all file pairs
+    /// </summary>
+    /// <returns></returns>
+    public List<FilePair> GetFilePairs()
+    {
+        return Results.Select(r => r.FilePair).ToList();
+    }
+
+
+    /// <summary>
     /// Save the report
     /// </summary>
-    public void SaveReport()
+    public void SaveReport(bool checkpoint = false)
     {
+        var reportsFolderName = "reports";
+        var reportName = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss") + ".json";
+        var checkpointName = "checkpoint.json";
+        var name = checkpoint ? checkpointName : reportName;
+
         // Get directory
         string? dir = null;
         var currentDir = Directory.GetCurrentDirectory();
@@ -175,20 +190,13 @@ public class Logger
         {
             if (Path.GetFileName(currentDir) == "FileVerifier")
             {
-                dir = Path.Join(currentDir, "reports");
+                dir = checkpoint ? currentDir : Path.Join(currentDir, reportsFolderName);
                 break;
             }
             currentDir = Directory.GetParent(currentDir)?.FullName;
         }
-
         if (dir == null) return;
 
-        var name = DateTime.Now.ToString();
-        name = name.Replace(' ', '_');
-        name = name.Replace('.', '-');
-        name = name.Replace('/', '-');
-        name = name.Replace(':', '-');
-        name += ".json";
         var path = Path.Join(dir, name);
 
         ExportJSON(path);
