@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Avalonia.Input;
 using Avalonia.Media.Immutable;
+using Avalonia.Interactivity;
 
 namespace AvaloniaDraft.Views;
 
@@ -48,6 +49,17 @@ public partial class ReportView : UserControl
             LoadCurrentReportButton.IsEnabled = false;
             Logger = new Logger.Logger();
             Logger.Initialize();
+        }
+    }
+
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+
+        if (GlobalVariables.Logger.HasFinished())
+        {
+            LoadCurrentReportButton.IsEnabled = true;
         }
     }
 

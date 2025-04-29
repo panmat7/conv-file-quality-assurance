@@ -23,11 +23,19 @@
 					Click="LoadFromCurrentReport">
 				Load From current report
 			</Button>
+			
 			<Button VerticalAlignment="Center" FontSize="18" Margin="5"
                     Background="#139A43" Foreground="White"
                     BorderBrush="#0DAB76" BorderThickness="2"
 					Click="LoadJson">
 				Load from JSON
+			</Button>
+
+			<Button x:Name="ClearButton" VerticalAlignment="Center" FontSize="18" Margin="5"
+					Background="#139A43" Foreground="White"
+					BorderBrush="#0DAB76" BorderThickness="2"
+					Click="Clear">
+				Clear
 			</Button>
 		</StackPanel>
 

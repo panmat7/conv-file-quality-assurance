@@ -23,6 +23,7 @@ using Avalonia.Input;
 using Avalonia.Media.Immutable;
 using AODL.Document.Content.Text;
 using System.Text;
+using Avalonia.Interactivity;
 
 namespace AvaloniaDraft.Views;
 
@@ -36,6 +37,7 @@ public partial class TestAnalysisView : UserControl
         InitializeComponent();
 
         TestExpanders = [];
+        ClearButton.IsEnabled = false;
 
         if (GlobalVariables.Logger.HasFinished())
         {
@@ -46,6 +48,17 @@ public partial class TestAnalysisView : UserControl
             LoadFromCurrentReportButton.IsEnabled = false;
             Logger = new Logger.Logger();
             Logger.Initialize();
+        }
+    }
+
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+
+        if (GlobalVariables.Logger.HasFinished())
+        {
+            LoadFromCurrentReportButton.IsEnabled = true;
         }
     }
 
@@ -96,6 +109,20 @@ public partial class TestAnalysisView : UserControl
         DisplayReport();
     }
 
+
+    private void Clear(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Logger = new Logger.Logger();
+
+        TestExpanders.Clear();
+
+        AnalysisStackPanel.Children.Clear();
+        Summary.Text = "";
+
+        ClearButton.IsEnabled = false;
+    }
+
+
     private void CreateElements()
     {
         TestExpanders.Clear();
@@ -136,8 +163,8 @@ public partial class TestAnalysisView : UserControl
                 failedComparisonsCount[method]++;
                 totalTestsFailed++;
             }
-           
         }
+
 
         foreach (var e in testExpanders.Where(t => failedComparisonsCount[t.Key] > 0))
         {
@@ -160,6 +187,9 @@ public partial class TestAnalysisView : UserControl
     private void DisplayReport()
     {
         AnalysisStackPanel.Children.Clear();
+
+        if (TestExpanders.Count == 0) return;
+        ClearButton.IsEnabled = true;
 
         foreach (var expander in TestExpanders)
         {
