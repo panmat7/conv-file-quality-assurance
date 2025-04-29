@@ -24,9 +24,9 @@ public class TestResult
     public bool Pass { get; set; }
     public double? Percentage { get; set; }
     public List<string>? Comments { get; set; }
-    public List<Error> Errors { get; set; }
+    public List<Error>? Errors { get; set; }
 
-    public TestResult(bool pass, double? percentage, List<string>? comments, List<Error> errors)
+    public TestResult(bool pass, double? percentage, List<string>? comments, List<Error>? errors)
     {
         this.Pass = pass;
         this.Percentage = percentage;
@@ -59,9 +59,10 @@ public class ComparisonResult
     /// </summary>
     /// <param name="testResult">The test result</param>
     /// <param name="testName">Name of the test/method</param>
-    public void AddTestResult(TestResult testResult, string testName)
+    public void AddTestResult(Method method, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
     {
-        Tests[testName] = testResult;
+        var testResult = new TestResult(pass, percentage, comments, errors);
+        Tests[method.Name] = testResult;
         if (!testResult.Pass)
         {
             Pass = false;
@@ -129,7 +130,7 @@ public class Logger
     /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
     /// <param name="comments">A list of comments on the result</param>
     /// <param name="errors">Error</param>
-    public void AddTestResult(FilePair filePair, string testName, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
+    /*public void AddTestResult(FilePair filePair, string testName, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
     {
         var testResult = new TestResult(pass, percentage, comments ?? [], errors ?? []);
 
@@ -148,6 +149,13 @@ public class Logger
             Results[index].AddTestResult(testResult, testName);
             if (previousTestsPassed && !Results[index].Pass) FileComparisonsFailed++;
         }
+    }*/
+
+
+
+    public void AddComparisonResult(ComparisonResult comparisonResult)
+    {
+        Results.Add(comparisonResult);
     }
 
     /// <summary>

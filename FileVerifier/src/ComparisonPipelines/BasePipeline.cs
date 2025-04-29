@@ -4,6 +4,7 @@ using System.IO.Abstractions;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -139,7 +140,7 @@ public static class BasePipeline
     }
 
     [Obsolete("Transparency check is no longer its own method, but part of metadata check.")]
-    public static void CheckTransparency(string tempFolder, string tempFolder2, FilePair pair)
+    public static void CheckTransparency(string tempFolder, string tempFolder2, FilePair pair, ref ComparisonResult compResult)
     {
         var res = false;
         var exceptionOccurred = false;
@@ -160,7 +161,7 @@ public static class BasePipeline
                 ErrorSeverity.Medium,
                 ErrorType.Metadata
             );
-            GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+            compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
         }
             
         switch (exceptionOccurred)
@@ -172,10 +173,10 @@ public static class BasePipeline
                     ErrorSeverity.Medium,
                     ErrorType.Visual
                 );
-                GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
                 break;
             case false when res:
-                GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, true);
+                compResult.AddTestResult(Methods.Transparency, true);
                 break;
         }
     }
@@ -186,7 +187,7 @@ public static class BasePipeline
     /// <param name="tempFolder"></param>
     /// <param name="tempFolder2"></param>
     /// <param name="pair"></param>
-    public static void CheckColorProfiles(string tempFolder, string tempFolder2, FilePair pair)
+    public static void CheckColorProfiles(string tempFolder, string tempFolder2, FilePair pair, ref ComparisonResult compResult)
     {
         var res = false;
         var exceptionOccurred = false;
@@ -207,7 +208,7 @@ public static class BasePipeline
                 ErrorSeverity.High,
                 ErrorType.Metadata
             );
-            GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+            compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
         }
 
         switch (exceptionOccurred)
@@ -219,10 +220,10 @@ public static class BasePipeline
                     ErrorSeverity.Medium,
                     ErrorType.Metadata
                 );
-                GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
                 break;
             case false when res:
-                GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, true);
+                compResult.AddTestResult(Methods.ColorProfile, true);
                 break;
         }
     }
