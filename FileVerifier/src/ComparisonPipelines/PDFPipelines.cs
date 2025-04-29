@@ -5,6 +5,7 @@ using System.Linq;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -38,6 +39,8 @@ public static class PdfPipelines
             List<Error> e = [];
             Error error;
 
+            var compResult = new ComparisonResult(pair);
+
             var failedToExtract = false;
             var equalNumberOfImages = false;
 
@@ -55,10 +58,10 @@ public static class PdfPipelines
                 failedToExtract = true;
             }
           
-            e.AddRange(ComperingMethods.CompareFonts(pair));
+            ComperingMethods.CompareFonts(pair, ref compResult);
             int? pageDiff = null;
             
-            if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Pages))
             {
                 pageDiff = ComperingMethods.GetPageCountDifferenceExif(pair);
                 switch (pageDiff)
@@ -70,7 +73,7 @@ public static class PdfPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.Pages, false, errors: [error]);
                         e.Add(error);
                         break;
                     case > 0:
@@ -81,16 +84,16 @@ public static class PdfPipelines
                             ErrorType.FileError,
                             $"{pageDiff}"
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.Pages, false, errors: [error]);
                         e.Add(error);
                         break;
                     default:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
+                        compResult.AddTestResult(Methods.Pages, true);
                         break;
                 }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair);
 
@@ -102,7 +105,7 @@ public static class PdfPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                     e.Add(error);
                 } else if (res.Value)
                 {
@@ -112,23 +115,23 @@ public static class PdfPipelines
                             ErrorSeverity.Medium,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                     e.Add(error);
                 }
                 else
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, "Size", true);
+                    compResult.AddTestResult(Methods.Size, true);
                 }
             }
 
-            if (!failedToExtract)
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile))
             {
-                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                if (!failedToExtract)
                 {
                     if (equalNumberOfImages)
                     {
                         BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                            tempFoldersForImages.Item2, pair);
+                            tempFoldersForImages.Item2, pair, ref compResult);
                     }
                     else
                     {
@@ -139,24 +142,24 @@ public static class PdfPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
                         e.Add(error);
                     }
                 }
-            }
-            else
-            {
-                error = new Error(
-                    "Failed to extract images from files",
-                    "Comparisons involving extracted images can not be performed " +
-                    "because the tool was unable to extract images from at least one of the files.",
-                    ErrorSeverity.High,
-                    ErrorType.FileError
-                );
-                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
+                else
+                {
+                    error = new Error(
+                        "Failed to extract images from files",
+                        "Comparisons involving extracted images can not be performed " +
+                        "because the tool was unable to extract images from at least one of the files.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
+                }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.VisualDocComp.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.VisualDocComp))
             {
                 //No point preformed if mismatched pages
                 if (pageDiff == 0)
@@ -175,7 +178,7 @@ public static class PdfPipelines
 
                             if (res == null)
                             {
-                                GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                                compResult.AddTestResult(Methods.VisualDocComp, false,
                                     errors: [new Error(
                                         "Error while preforming the visual comparison",
                                         "Could not preform the visual comparison due to an error while getting the page " +
@@ -190,10 +193,10 @@ public static class PdfPipelines
                             if (res.Count <= 0) continue;
                             
                             errors = true;
-                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false, errors: res);
+                            compResult.AddTestResult(Methods.VisualDocComp, false, errors: res);
                         }
                         
-                        if(!errors) GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, true);
+                        if(!errors) compResult.AddTestResult(Methods.VisualDocComp, true);
                         
                         GC.WaitForPendingFinalizers();
                     }
@@ -202,7 +205,7 @@ public static class PdfPipelines
                         var res = ComperingMethods.VisualDocumentComparison(pair);
                 
                         if (res == null)
-                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                            compResult.AddTestResult(Methods.VisualDocComp, false,
                                 errors: [new Error(
                                     "Error while preforming the visual comparison",
                                     "Could not preform the visual comparison due to an error while getting the page " +
@@ -211,23 +214,23 @@ public static class PdfPipelines
                                     ErrorType.Visual
                                 )]);
                         else if (res.Count > 0)
-                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                            compResult.AddTestResult(Methods.VisualDocComp, false,
                                 errors: res);
                         
                         else
-                            GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, true);
+                            compResult.AddTestResult(Methods.VisualDocComp, true);
                     }
                 }
                 else
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.VisualDocComp.Name, false,
+                    compResult.AddTestResult(Methods.VisualDocComp, false,
                         comments: ["Comparison not preformed due to page count differences."]);
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata))
             {
                 if (equalNumberOfImages)
                 {
-                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                    ExtractedImageMetadata.CompareExtractedImages(pair, ref compResult, tempFoldersForImages.Item1,
                         tempFoldersForImages.Item2);
                 }
                 else
@@ -239,12 +242,14 @@ public static class PdfPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
                 }
             }
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
-            
+
+            GlobalVariables.Logger.AddComparisonResult(compResult);
+
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

@@ -64,5 +64,8 @@
         <DependentUpon>CompletedView.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Views\TestAnalysisView.axaml.cs">
+        <DependentUpon>TestAnalysisView.axaml</DependentUpon>
+      </Compile>
     </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@ using System;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -25,11 +26,13 @@ public class CSVPipelines
     {
         BasePipeline.ExecutePipeline(() =>
         {
-            if (GlobalVariables.Options.GetMethod(Methods.TableBreakCheck.Name))
+            var compResult = new ComparisonResult(pair);
+
+            if (GlobalVariables.Options.GetMethod(Methods.TableBreakCheck))
             {
                 var res = SpreadsheetComparison.PossibleLineBreakCsv(pair.OriginalFilePath);
                 if (res == null)
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: [
+                    compResult.AddTestResult(Methods.TableBreakCheck, false, errors: [
                         new Error(
                             "Could not preform check for table breaks",
                             "There occured an error when trying to preform check for table breaks.",
@@ -38,7 +41,7 @@ public class CSVPipelines
                         )
                     ]);
                 else if (res.Value)
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: [
+                    compResult.AddTestResult(Methods.TableBreakCheck, false, errors: [
                         new Error(
                             "Table break",
                             "The spreadsheet contains tables that could break during conversion",
@@ -47,8 +50,10 @@ public class CSVPipelines
                         )
                     ]);
                 else
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, true);
+                    compResult.AddTestResult(Methods.TableBreakCheck, true, null, [], []);
             }
+
+            GlobalVariables.Logger.AddComparisonResult(compResult);
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

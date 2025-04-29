@@ -121,34 +121,34 @@ public static class FormatCodes
         "fmt/276" //PDF1.7
     ]);
 
-    public static readonly FileFormat PronomCodesPDF1A = new FileFormat(["pdf1a"], [
+    public static readonly FileFormat PronomCodesPDFA1 = new FileFormat(["pdf/a-1"], [
         "fmt/95", //PDF/A 1a
         "fmt/354", //PDF/A 1b
     ]);
 
-    public static readonly FileFormat PronomCodesPDF2A = new FileFormat(["pdf2a"], [
+    public static readonly FileFormat PronomCodesPDFA2 = new FileFormat(["pdf/a-2"], [
         "fmt/476", //PDF/A 2a
         "fmt/477", //PDF/A 2b
         "fmt/478", //PDF/A 2u
     ]);
 
-    public static readonly FileFormat PronomCodesPDF3A = new FileFormat(["pdf3a"], [
+    public static readonly FileFormat PronomCodesPDFA3 = new FileFormat(["pdf/a-3"], [
         "fmt/479", //PDF/A 3a
         "fmt/480", //PDF/A 3b
         "fmt/481", //PDF/A 3u
     ]);
 
-    public static readonly FileFormat PronomCodesPDF4A = new FileFormat(["pdf4a"], [
+    public static readonly FileFormat PronomCodesPDFA4 = new FileFormat(["pdf/a-4"], [
         "fmt/1910", //PDF/A 4
         "fmt/1911", //PDF/A 4e
         "fmt/1912", //PDF/A 4f
     ]);
 
     public static readonly FileFormat PronomCodesPDFA = new FileFormat([
-        PronomCodesPDF1A,
-        PronomCodesPDF2A,
-        PronomCodesPDF3A,
-        PronomCodesPDF4A,
+        PronomCodesPDFA1,
+        PronomCodesPDFA2,
+        PronomCodesPDFA3,
+        PronomCodesPDFA4,
     ]);
 
 
@@ -360,10 +360,10 @@ public static class FormatCodes
         PronomCodesODT,
         PronomCodesRTF,
         PronomCodesPDF,
-        PronomCodesPDF1A,
-        PronomCodesPDF2A,
-        PronomCodesPDF3A,
-        PronomCodesPDF4A,
+        PronomCodesPDFA1,
+        PronomCodesPDFA2,
+        PronomCodesPDFA3,
+        PronomCodesPDFA4,
         PronomCodesPPT,
         PronomCodesPPTM,
         PronomCodesPPTX,

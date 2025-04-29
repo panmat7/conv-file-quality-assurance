@@ -4,7 +4,7 @@
              x:DataType="viewModels:SettingsViewModel"
              xmlns:viewModels="clr-namespace:AvaloniaDraft.ViewModels">
     <Grid ColumnDefinitions="Auto,Auto,*,4*"
-          RowDefinitions="Auto,Auto,Auto,Auto,2*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+          RowDefinitions="Auto,Auto,Auto,Auto,2*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
         <!-- Input -->
         <TextBlock Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5" Foreground="White">Original file Folder</TextBlock>
@@ -135,18 +135,30 @@
             <TextBlock Text="Enable Point by Point Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
         <CheckBox Grid.Row="10" Grid.Column="1" IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}" Margin="5"/>
+
+		<StackPanel Grid.Column="0" Grid.Row="11" Orientation="Horizontal" VerticalAlignment="Center">
+			<TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures that visually both documents look the same" VerticalAlignment="Center" Margin="5"/>
+			<TextBlock Text="Enable Visual Document Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
+		</StackPanel>
+		<CheckBox Grid.Row="11" Grid.Column="1" IsChecked="{Binding IsVisualDocComparisonEnabled, Mode=TwoWay}" Margin="5"/>
         
-        <StackPanel Grid.Column="0" Grid.Row="11" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Column="0" Grid.Row="12" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method ensures both files have same page count" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Page Count Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Grid.Row="11" Grid.Column="1" IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="12" Grid.Column="1" IsChecked="{Binding IsPageCountEnabled, Mode=TwoWay}" Margin="5"/>
         
-        <StackPanel Grid.Column="0" Grid.Row="12" Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel Grid.Column="0" Grid.Row="13" Orientation="Horizontal" VerticalAlignment="Center">
             <TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method flags PowerPoint files that use animations which will result in lost context when converted" VerticalAlignment="Center" Margin="5"/>
             <TextBlock Text="Enable Animation Comparison" VerticalAlignment="Center" Margin="5" Foreground="White"/>
         </StackPanel>
-        <CheckBox Grid.Row="12" Grid.Column="1" IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Margin="5"/>
+        <CheckBox Grid.Row="13" Grid.Column="1" IsChecked="{Binding IsAnimationEnabled, Mode=TwoWay}" Margin="5"/>
+
+		<StackPanel Grid.Column="0" Grid.Row="14" Orientation="Horizontal" VerticalAlignment="Center">
+			<TextBlock Text="ℹ️" FontSize="16" ToolTip.Tip="This method checks if a spreadsheet has potentially been broken during conversion" VerticalAlignment="Center" Margin="5"/>
+			<TextBlock Text="Enable Table Break Check" VerticalAlignment="Center" Margin="5" Foreground="White"/>
+		</StackPanel>
+		<CheckBox Grid.Row="14" Grid.Column="1" IsChecked="{Binding IsTableBreakCheckEnabled, Mode=TwoWay}" Margin="5"/>
 
         <!-- Console -->
         <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="7" Margin="7" 

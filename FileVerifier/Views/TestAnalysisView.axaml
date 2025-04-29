@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="AvaloniaDraft.Views.ReportView">
+             x:Class="AvaloniaDraft.Views.TestAnalysisView">
 
 
 	<Grid Margin="20">
@@ -17,12 +17,11 @@
 
 		<!-- Top Button Row -->
 		<StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal" Spacing="10">
-			
-			<Button x:Name="LoadCurrentReportButton" VerticalAlignment="Center" FontSize="18" Margin="5"
+			<Button x:Name="LoadFromCurrentReportButton" VerticalAlignment="Center" FontSize="18" Margin="5"
                     Background="#139A43" Foreground="White"
                     BorderBrush="#0DAB76" BorderThickness="2"
-					Click="LoadCurrentReport">
-				Load current report
+					Click="LoadFromCurrentReport">
+				Load From current report
 			</Button>
 			
 			<Button VerticalAlignment="Center" FontSize="18" Margin="5"
@@ -38,48 +37,18 @@
 					Click="Clear">
 				Clear
 			</Button>
-			
 		</StackPanel>
 
 
-		<!-- Report summary -->
-		<TextBlock Grid.Row="1" x:Name="ReportSummary" Text=""
+		<!-- Summary -->
+		<TextBlock Grid.Row="1" x:Name="Summary" Text=""
 				   HorizontalAlignment="Center" Margin="8"
 				   FontSize="18" Foreground="White"></TextBlock>
 
 		
-		<!-- Search Bar -->
-		<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-			<TextBox x:Name="SearchBar" Grid.Row="2" Width="400" KeyDown="SearchBar_KeyDown"></TextBox>
-			<Button x:Name="SearchButton" VerticalAlignment="Center" FontSize="12" Margin="5"
-					Background="#139A43" Foreground="White"
-					BorderBrush="#0DAB76" BorderThickness="2"
-					Click="Search">
-				Search
-			</Button>
-		</StackPanel>
-		
-		
-		<!-- Filter Buttons Row -->
-		<StackPanel Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
-			<Button VerticalAlignment="Center" FontSize="12" Margin="5"
-				Background="#139A43" Foreground="White"
-				BorderBrush="#0DAB76" BorderThickness="2"
-					Click="ShowFailedFirst">
-				Show failed comparisons first
-			</Button>
-			<Button VerticalAlignment="Center" FontSize="12" Margin="5"
-                    Background="#139A43" Foreground="White"
-                    BorderBrush="#0DAB76" BorderThickness="2"
-					Click="ShowPassedFirst">
-				Show passed comparisons first
-			</Button>
-		</StackPanel>
-
-		
 		<!-- Comparison results -->
 		<ScrollViewer Grid.Row="4" HorizontalAlignment="Stretch" Margin="36">
-			<StackPanel x:Name="ReportStackPanel">
+			<StackPanel x:Name="AnalysisStackPanel">
 			</StackPanel>
 		</ScrollViewer>
 	</Grid>
