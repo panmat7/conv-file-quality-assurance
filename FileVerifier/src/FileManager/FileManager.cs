@@ -18,9 +18,9 @@ namespace AvaloniaDraft.FileManager;
 public class FilePair
 {
     public string OriginalFilePath { get; set; }
-    public string OriginalFileFormat { get; set; }
+    public string? OriginalFileFormat { get; set; }
     public string NewFilePath { get; set; }
-    public string NewFileFormat { get; set; }
+    public string? NewFileFormat { get; set; }
     public bool Done { get; set; }
     public bool InProcess { get; set; }
 
@@ -36,7 +36,7 @@ public class FilePair
         InProcess = false;
     }
 
-    public FilePair(string oFilePath, string oFileFormat, string nFilePath, string newFileFormat)
+    public FilePair(string oFilePath, string? oFileFormat, string nFilePath, string? newFileFormat)
     {
         OriginalFilePath = oFilePath;
         OriginalFileFormat = oFileFormat;
@@ -426,7 +426,7 @@ public sealed class FileManager
     /// </summary>
     public void WritePairs()
     {
-        var pronomFormat = new Dictionary<string, Tuple<string, int>>();
+        var pronomFormat = new Dictionary<string?, Tuple<string, int>>();
 
         foreach (var pair in _filePairs)
         {

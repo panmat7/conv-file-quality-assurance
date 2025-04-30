@@ -18,7 +18,7 @@ public static class ImagePipelines
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetImagePipelines(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetImagePipelines(string? outputFormat)
     {
         if (FormatCodes.PronomCodesImages.Contains(outputFormat))
             return ImageToImagePipeline;
@@ -222,7 +222,7 @@ public static class ImagePipelines
 
             try
             {
-                ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFolder);
+                ImageExtractionToDisk.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFolder);
             }
             catch (Exception)
             {
@@ -244,7 +244,7 @@ public static class ImagePipelines
             
             //Converting the image to bytes encoded to correct format
             using var nImage = new MagickImage(tempFiles[0], nSettings);
-            var pronomCode = ImageExtraction.GetExpectedPronomFromImage(nImage.Format);
+            var pronomCode = ImageExtractionToDisk.GetExpectedPronomFromImage(nImage.Format);
             
             FilePair? pairWithTemp = null;
             

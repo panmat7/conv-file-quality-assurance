@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using ImageMagick;
@@ -9,6 +10,7 @@ using UglyToad.PdfPig.Tokens;
 namespace AvaloniaDraft.ComparingMethods;
 
 [Obsolete("Transparency check is no longer its own method, but part of metadata check.")]
+[ExcludeFromCodeCoverage]
 public static class TransparencyComparison
 {
     /// <summary>

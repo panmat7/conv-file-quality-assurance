@@ -37,7 +37,7 @@ public class Options
     public double SizeComparisonThreshold { get; set; }
     public double PbpComparisonThreshold { get; set; }
 
-    public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; } = new();
+    public Dictionary<string, Dictionary<string?, bool>> FileFormatsEnabled { get; set; } = new();
     public Dictionary<string, bool> MethodsEnabled { get; set; } = new();
 
     public int? SpecifiedThreadCount { get; set; }
@@ -56,7 +56,7 @@ public class Options
         SetDirPath();
         Profile = SettingsProfile.Default;
 
-        FileFormatsEnabled = new Dictionary<string, Dictionary<string, bool>>();
+        FileFormatsEnabled = new Dictionary<string, Dictionary<string?, bool>>();
         MethodsEnabled = new Dictionary<string, bool>();
 
         LoadSettings();
@@ -79,7 +79,7 @@ public class Options
                 if (fmtCodes.ToHashSet().SetEquals(["jpg", "jpeg"]))
                 {
                     var type = "jpeg/jpg";
-                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string?, bool>());
                     foreach (var fmt in fileFormat.PronomCodes)
                     {
                         FileFormatsEnabled[type][fmt] = true;
@@ -89,7 +89,7 @@ public class Options
                 {
                     var type = fileFormat.FormatCodes[0].ToLower();
 
-                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string?, bool>());
                     foreach (var fmt in fileFormat.PronomCodes)
                     {
                         FileFormatsEnabled[type][fmt] = true;
@@ -176,7 +176,7 @@ public class Options
     /// </summary>
     /// /// <param name="pronomCode">The file type</param>
     /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
-    public void SetFormat(string pronomCode, bool? setTo = null)
+    public void SetFormat(string? pronomCode, bool? setTo = null)
     {
         // Get the file type of the pronom code
         string? fileType = FileFormatsEnabled.Keys.FirstOrDefault(k => FileFormatsEnabled[k].ContainsKey(pronomCode));
