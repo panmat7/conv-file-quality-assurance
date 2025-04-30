@@ -161,21 +161,21 @@
 		<CheckBox Grid.Row="14" Grid.Column="1" IsChecked="{Binding IsTableBreakCheckEnabled, Mode=TwoWay}" Margin="5"/>
 
         <!-- Console -->
-        <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="7" Margin="7" 
+        <TextBox Grid.Column="3" Grid.Row="0" Grid.RowSpan="9" Margin="7" 
                  IsReadOnly="True" VerticalContentAlignment="Bottom"
                  FontFamily="Consolas" Name="Console"
                  Background="Black" BorderBrush="White" Foreground="White">
         </TextBox>
         
         <!-- Progress Bar -->
-        <ProgressBar Grid.Column="3" Grid.Row="7" Margin="0 10" Height="20" 
+        <ProgressBar Grid.Column="3" Grid.Row="9" Margin="0 10" Height="20" 
                      Name="ProgressBar"
                      Minimum="0" Maximum="100" Value="0"
                      ShowProgressText="True"
                      Background="#1E3A5F"/>
-
+        
         <!-- Start Button -->
-        <Button Grid.Column="3" Grid.Row="10" HorizontalAlignment="Right" 
+        <Button Grid.Column="3" Grid.Row="12" HorizontalAlignment="Right"
                 Name="StartButton"
                 IsEnabled="False"
                 VerticalAlignment="Center"
@@ -183,8 +183,27 @@
                 Margin="5"
                 Click="Start_OnClick"
                 Background="#139A43" Foreground="White" 
-                BorderBrush="#0DAB76" BorderThickness="2">
+                BorderBrush="#0DAB76" BorderThickness="2"
+                Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
             Start
+        </Button>
+        
+        <!-- Stop Button -->
+        <Button Grid.Column="3" Grid.Row="13" HorizontalAlignment="Right"
+                Name="StopButton"
+                IsEnabled="False"
+                VerticalAlignment="Center"
+                FontSize="18"
+                Margin="5"
+                Click="StopButton_OnClick"
+                Background="#ba1d0b" Foreground="White" 
+                BorderBrush="#c92816" BorderThickness="2"
+                Width="100"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center">
+            Stop
         </Button>
     </Grid>
 </UserControl>

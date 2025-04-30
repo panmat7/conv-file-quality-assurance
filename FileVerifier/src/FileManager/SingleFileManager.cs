@@ -72,6 +72,9 @@ public class SingleFileManager
         {
             lock (_lock)
             {
+                if (GlobalVariables.StopProcessing)
+                    break;
+                
                 Console.WriteLine($"Using {_currentThreads} threads of {maxThreads} threads.");
                 
                 if (_currentThreads < maxThreads)

@@ -254,12 +254,15 @@ public partial class HomeView : UserControl
                 if (Working || GlobalVariables.FileManager == null) return;
 
                 Working = true;
+                
+                GlobalVariables.StopProcessing = false;
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     StartButton.IsEnabled = false;
                     LoadButton.IsEnabled = false;
                     ExtractionStartButton.IsEnabled = false;
+                    StopButton.IsEnabled = true;
                     OverwriteConsole(null);
                 });
 
@@ -281,6 +284,7 @@ public partial class HomeView : UserControl
                         {
                             LoadButton.IsEnabled = true;
                             ExtractionStartButton.IsEnabled = true;
+                            StopButton.IsEnabled = false;
                         });
                     };
                 });
@@ -366,12 +370,15 @@ public partial class HomeView : UserControl
             if(Working) return;
             
             Working = true;
+            
+            GlobalVariables.StopProcessing = false;
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 StartButton.IsEnabled = false;
                 LoadButton.IsEnabled = false;
                 ExtractionStartButton.IsEnabled = false;
+                StopButton.IsEnabled = true;
                 OverwriteConsole(null);
             });
             
@@ -394,6 +401,7 @@ public partial class HomeView : UserControl
                     {
                         LoadButton.IsEnabled = true;
                         ExtractionButton.IsEnabled = true;
+                        StopButton.IsEnabled = false;
                     });
                 };
             });
@@ -478,6 +486,11 @@ public partial class HomeView : UserControl
             if (message != null)
                 AppendConsole(message);
         });
+    }
+
+    private void StopButton_OnClick(object? sender, RoutedEventArgs e)
+    {
+        GlobalVariables.StopProcessing = true;
     }
 }
 

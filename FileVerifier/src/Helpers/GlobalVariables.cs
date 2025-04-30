@@ -13,6 +13,7 @@ public static class GlobalVariables
     public static Logger.Logger Logger { get; set; }
     public static object ImageExtractionLock { get; } = new object();
     public static Paths Paths { get; set; } = new Paths();
+    public static bool StopProcessing { get; set; } = false;
 
     static GlobalVariables()
     {
