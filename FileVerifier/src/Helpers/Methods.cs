@@ -35,6 +35,7 @@ namespace AvaloniaDraft.Helpers
         public static Method VisualDocComp => new Method("Visual Document Comparison", "A visual comparison between the two documents.");
         public static Method TableBreakCheck => new Method("Table Break Check",
             "Checks whether the original spreadsheet could cause a break in the resulting PDF.");
+        public static Method CheckForEmptyPages => new Method("Check for empty pages", "Checks if PDF's has empty pages.");
 
         /// <summary>
         /// Get all the methods in a list

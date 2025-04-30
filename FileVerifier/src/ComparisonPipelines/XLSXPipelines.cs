@@ -147,6 +147,21 @@ public static class XLSXPipelines
                     GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
                 }
             }
+            //Check for empty pages
+            if (GlobalVariables.Options.GetMethod(Methods.CheckForEmptyPages))
+            {
+                
+                if (FindEmptyPagesPdf.EmptyPagePdf(pair.NewFilePath) > 0)
+                {
+                    error = new Error(
+                        "Empty pages",
+                        "The new file contains empty pages.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    GlobalVariables.Logger.AddTestResult(pair, Methods.CheckForEmptyPages.Name, false, errors: [error]);
+                } 
+            }
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             
