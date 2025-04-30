@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using ImageMagick;
@@ -31,6 +32,7 @@ public static class ColorProfileComparison
     /// <param name="nImages"></param>
     /// <returns></returns>
     [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
+    [ExcludeFromCodeCoverage]
     public static bool PdfToPdfColorProfileComparison(List<IPdfImage> oImages, List<IPdfImage> nImages)
     {
         var convertedOImages = ImageExtractionToMemory.ConvertPdfImagesToMagickImages(oImages);
@@ -61,6 +63,7 @@ public static class ColorProfileComparison
     /// <param name="nImages"></param>
     /// <returns></returns>
     [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
+    [ExcludeFromCodeCoverage]
     public static bool ImageToPdfColorProfileComparison(MagickImage oImage, List<IPdfImage> nImages)
     {
         // Convert from IPdfImage to MagickImage
@@ -78,6 +81,7 @@ public static class ColorProfileComparison
     /// <param name="nImages"></param>
     /// <returns></returns>
     [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
+    [ExcludeFromCodeCoverage]
     public static bool GeneralDocsToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
         // Convert from IPdfImage to MagickImage
@@ -97,6 +101,7 @@ public static class ColorProfileComparison
     /// <param name="imagesOverCells"></param>
     /// <returns></returns>
     [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
+    [ExcludeFromCodeCoverage]
     public static bool XlsxToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages, 
         List<string> imagesOverCells)
     {
@@ -133,9 +138,6 @@ public static class ColorProfileComparison
         // If the number of files in the folders differ, return false
         if (oFiles.Length != nFiles.Length) return false;
 
-        Console.WriteLine($"Number of images in original folder: {oFiles.Length}");
-        Console.WriteLine($"Number of images in new folder: {nFiles.Length}");
-
         for (var i = 0; i < oFiles.Length; i++)
         {
             // Get the file format
@@ -147,9 +149,6 @@ public static class ColorProfileComparison
     
             using var oImage = new MagickImage(oFiles[i], oSettings);
             using var nImage = new MagickImage(nFiles[i], nSettings);
-
-            Console.WriteLine($"Image {i + 1} - Original color profile: {oImage.GetColorProfile()?.Name ?? "None"}");
-            Console.WriteLine($"Image {i + 1} - New color profile: {nImage.GetColorProfile()?.Name ?? "None"}");
 
             if (!CompareColorProfiles(oImage, nImage))
             {

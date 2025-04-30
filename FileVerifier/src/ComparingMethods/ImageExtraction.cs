@@ -82,9 +82,12 @@ public static class ImageExtractionToDisk
     {
         using var zip = ZipFile.OpenRead(filePath);
 
-        foreach (var entry in zip.Entries.Where(e =>
-                     e.FullName.StartsWith("Pictures/", StringComparison.OrdinalIgnoreCase) &&
-                     !e.FullName.Contains("/../", StringComparison.OrdinalIgnoreCase)))
+        var entries = zip.Entries.Where(e =>
+            (e.FullName.StartsWith("Pictures/", StringComparison.OrdinalIgnoreCase) ||
+             e.FullName.StartsWith("media/", StringComparison.OrdinalIgnoreCase)) &&
+            !e.FullName.Contains("/../", StringComparison.OrdinalIgnoreCase));
+        
+        foreach (var entry in entries)
         {
             var fileName = Path.GetFileName(entry.FullName);
             // Skip filenames that are '..' or contain '..' which could be used for traversal
@@ -409,6 +412,7 @@ public static class ImageExtractionToDisk
     /// <param name="oFormat">Format of the original, using which the object will be encoded.</param>
     /// <returns>A tuple containing the path to the file and its expected PRONOM code, null if an error occured</returns>
     [Obsolete]
+    [ExcludeFromCodeCoverage]
     public static (string, string)? SaveExtractedMagickImageToDisk(MagickImage image, MagickFormat oFormat)
     {
         try
