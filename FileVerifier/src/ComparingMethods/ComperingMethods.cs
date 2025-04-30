@@ -319,7 +319,7 @@ public static class ComperingMethods
             return
             [ new Error(
                 "Could not preform visual comparison due to mismatched page count",
-                "The two documents have a different amount of pages, thus no visual comparison could be preformed.",
+                "The two documents have a different amount of pages, thus no visual comparison could be performed.",
                 ErrorSeverity.Medium,
                 ErrorType.FileError
             )];

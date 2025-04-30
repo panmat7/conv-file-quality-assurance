@@ -58,19 +58,19 @@ public static class ExtractedImageMetadata
         //Nothing wrong
         if(failedCount == 0 && errCount == 0 && distinctErrors.Count == 0)
             compResult.AddTestResult(Methods.Metadata, true,
-                comments: ["This test was preformed on an extracted image."]);
+                comments: ["This test was performed on an extracted image."]);
         
         //No failures
         else if(failedCount == 0)
             compResult.AddTestResult(Methods.Metadata, false,
                 errors: distinctErrors.ToList(),
                 comments: [$"One or more of the following errors are present in {errCount} of {imgCount} image pairs.",
-                    "This test was preformed on an extracted image."]);
+                    "This test was performed on an extracted image."]);
         //No errors
         else if (errCount == 0)
             compResult.AddTestResult(Methods.Metadata, false,
                 comments: [$"Could not check {failedCount} of {imgCount} images.",
-                    "This test was preformed on an extracted image."]);
+                    "This test was performed on an extracted image."]);
         
         //Failures and errors (very bad)
         else
@@ -78,7 +78,7 @@ public static class ExtractedImageMetadata
                 errors: distinctErrors.ToList(),
                 comments: [$"Could not check {failedCount} of {imgCount} images.",
                     $"One or more of the following errors are present in {errCount} of {imgCount} image pairs.",
-                    "This test was preformed on an extracted image."]);
+                    "This test was performed on an extracted image."]);
     }
 
     /// <summary>

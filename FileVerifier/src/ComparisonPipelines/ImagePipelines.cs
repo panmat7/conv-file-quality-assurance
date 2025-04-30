@@ -346,7 +346,7 @@ public static class ImagePipelines
                     if (res is null)
                     {
                         compResult.AddTestResult(Methods.Metadata, false,
-                            comments: ["This test was preformed on an extracted image."],
+                            comments: ["This test was performed on an extracted image."],
                             errors: [
                             new Error(
                             "Could not read metadata",
@@ -357,7 +357,7 @@ public static class ImagePipelines
                         ]);
 
                         compResult.AddTestResult(Methods.Metadata, false,
-                            comments: ["This test was preformed on an extracted image."],
+                            comments: ["This test was performed on an extracted image."],
                             errors: [
                             new Error(
                             "Could not read metadata",
@@ -370,12 +370,12 @@ public static class ImagePipelines
                     else if (res.Count > 0)
                     {
                         compResult.AddTestResult(Methods.Metadata, false,
-                            comments: ["This test was preformed on an extracted image."],
+                            comments: ["This test was performed on an extracted image."],
                             errors: res);
                     }
                     else
                         compResult.AddTestResult(Methods.Metadata, true,
-                        comments: ["This test was preformed on an extracted image."]);
+                        comments: ["This test was performed on an extracted image."]);
                 }
             }
     
@@ -396,7 +396,7 @@ public static class ImagePipelines
                     if (res < 0)
                     {
                         compResult.AddTestResult(Methods.PointByPoint, false,
-                            comments: ["This test was preformed on an extracted image."],
+                            comments: ["This test was performed on an extracted image."],
                             errors: [
                                 new Error(
                                 "Error calculating image similarity",
@@ -409,7 +409,7 @@ public static class ImagePipelines
                     else if (res < acceptance)
                     {
                         compResult.AddTestResult(Methods.PointByPoint, false,
-                            comments: ["This test was preformed on an extracted image."],
+                            comments: ["This test was performed on an extracted image."],
                             errors: [
                                 new Error(
                                 "Difference in image's visual appearance",

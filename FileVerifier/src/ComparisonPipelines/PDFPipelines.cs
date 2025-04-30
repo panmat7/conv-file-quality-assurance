@@ -161,7 +161,7 @@ public static class PdfPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.VisualDocComp))
             {
-                //No point preformed if mismatched pages
+                //No point performed if mismatched pages
                 if (pageDiff == 0)
                 {
                     //Getting the page count and using it to determine if to do everything in one go, or split
@@ -223,7 +223,7 @@ public static class PdfPipelines
                 }
                 else
                     compResult.AddTestResult(Methods.VisualDocComp, false,
-                        comments: ["Comparison not preformed due to page count differences."]);
+                        comments: ["Comparison not performed due to page count differences."]);
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.Metadata))
