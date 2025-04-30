@@ -13,7 +13,7 @@ public class CSVPipelines
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetCsvPipeline(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetCsvPipeline(string? outputFormat)
     {
         if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
             return CsvToPdfPipeline;

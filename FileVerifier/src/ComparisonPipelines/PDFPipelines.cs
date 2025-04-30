@@ -16,7 +16,7 @@ public static class PdfPipelines
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetPdfPipelines(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetPdfPipelines(string? outputFormat)
     {
         if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
             return PdfToPdfPipeline;
@@ -47,10 +47,10 @@ public static class PdfPipelines
             var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
             try
             {
-                ImageExtraction.ExtractImagesFromPdfToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
-                ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
+                ImageExtractionToDisk.ExtractImagesFromPdfToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+                ImageExtractionToDisk.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
                 // Some checks will be skipped if the number of images is not equal
-                equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                equalNumberOfImages = ImageExtractionToDisk.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
                     tempFoldersForImages.Item2);
             }
             catch (Exception)

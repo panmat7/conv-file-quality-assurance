@@ -157,7 +157,7 @@ public static partial class FontComparison
     /// </summary>
     /// <param name="src">The file</param>
     /// <returns>The text information</returns>
-    private static TextInfo? GetTextInfo(string src, string formatCode)
+    private static TextInfo? GetTextInfo(string src, string? formatCode)
     {
         if (FormatCodes.PronomCodesAllPDF.Contains(formatCode))
             return PdfFontExtraction.GetTextInfoPdf(src);

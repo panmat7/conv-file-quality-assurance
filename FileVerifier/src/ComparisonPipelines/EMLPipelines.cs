@@ -16,7 +16,7 @@ public static class EmlPipelines
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetEmlPipeline(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetEmlPipeline(string? outputFormat)
     {
         if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
             return EmlToPdfPipeline;
@@ -46,10 +46,10 @@ public static class EmlPipelines
             var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
             try
             {
-                ImageExtraction.ExtractImagesFromEmlToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
-                ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
+                ImageExtractionToDisk.ExtractImagesFromEmlToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+                ImageExtractionToDisk.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
                 // Some checks will be skipped if the number of images is not equal
-                equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                equalNumberOfImages = ImageExtractionToDisk.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
                     tempFoldersForImages.Item2);
             }
             catch (Exception)

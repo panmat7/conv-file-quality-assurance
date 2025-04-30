@@ -15,7 +15,7 @@ namespace AvaloniaDraft.FileManager;
 public class SingleFile
 {
     public string FilePath { get; set; } = string.Empty;
-    public string FileFormat { get; set; } = string.Empty;
+    public string? FileFormat { get; set; } = string.Empty;
     public bool Done { get; set; } = false;
     public bool InProcess { get; set; } = false;
     
@@ -72,6 +72,9 @@ public class SingleFileManager
         {
             lock (_lock)
             {
+                if (GlobalVariables.StopProcessing)
+                    break;
+                
                 Console.WriteLine($"Using {_currentThreads} threads of {maxThreads} threads.");
                 
                 if (_currentThreads < maxThreads)

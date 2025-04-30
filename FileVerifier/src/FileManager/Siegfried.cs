@@ -30,10 +30,10 @@ public static class Siegfried
         [JsonPropertyName("matches")] public List<SiegfriedMatches> Matches { get; set; } = matches;
     }
 
-    private sealed class SiegfriedMatches(string ns, string id)
+    private sealed class SiegfriedMatches(string ns, string? id)
     {
         [JsonPropertyName("ns")] public string ns { get; set; } = ns;
-        [JsonPropertyName("id")] public string id { get; set; } = id;
+        [JsonPropertyName("id")] public string? id { get; set; } = id;
     }
     
     /// <summary>
