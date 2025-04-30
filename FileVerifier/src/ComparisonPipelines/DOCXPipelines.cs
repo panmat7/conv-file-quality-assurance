@@ -59,7 +59,7 @@ public static class DocxPipelines
             
             ComperingMethods.CompareFonts(pair, ref compResult);
             
-            if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Pages))
             {
                 var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
                 switch (diff)
@@ -89,7 +89,7 @@ public static class DocxPipelines
                 }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair);
 

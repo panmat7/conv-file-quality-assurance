@@ -349,6 +349,25 @@ public static class FormatCodes
         "fmt/471" //5
 
     ]);
+
+
+    public static readonly FileFormat UnsupportedFormats = new FileFormat([
+        PronomCodesDOC,
+        PronomCodesDOCM,
+        PronomCodesDOT,
+        PronomCodesDOTM,
+        PronomCodesDOTX,
+        PronomCodesPPT,
+        PronomCodesPPTM,
+        PronomCodesPPS,
+        PronomCodesPPSM,
+        PronomCodesPPSX,
+        PronomCodesXLS,
+        PronomCodesXLSM,
+        PronomCodesPOT,
+        PronomCodesXML,
+    ]);
+
     
     public static readonly List<FileFormat> AllCodes =
     [

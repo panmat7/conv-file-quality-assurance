@@ -13,6 +13,7 @@ using System.Text.Json.Serialization;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using AvaloniaDraft.FileManager;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 
 namespace AvaloniaDraft.Options;
 
@@ -67,33 +68,37 @@ public class Options
     /// </summary>
     public void InitializeEnabledFormats()
     {
-        // Get every field of FormatCodes, which are lists of pronom ids for every file type
+        // Get every field of FormatCodes, which are lists of pronom codes for every file type
         var fcFields = typeof(FormatCodes).GetFields();
         foreach (var fld in fcFields)
         {
             var ff = fld.GetValue(null);
-            if (ff is FileFormat fileFormat)
+            if (ff is not FileFormat fileFormat) continue;
+
+            var supportedCodes = fileFormat.PronomCodes.Where(c => !FormatCodes.UnsupportedFormats.Contains(c));
+            if (!supportedCodes.Any()) continue;
+
+            var fmtCodes = fileFormat.FormatCodes;
+
+            if (fmtCodes.ToHashSet().SetEquals(["jpg", "jpeg"]))
             {
-                var fmtCodes = fileFormat.FormatCodes;
-
-                if (fmtCodes.ToHashSet().SetEquals(["jpg", "jpeg"]))
+                var type = "jpeg/jpg";
+                if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                foreach (var fmt in fileFormat.PronomCodes)
                 {
-                    var type = "jpeg/jpg";
-                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
-                    foreach (var fmt in fileFormat.PronomCodes)
-                    {
+                    if (!FormatCodes.UnsupportedFormats.Contains(fmt))
                         FileFormatsEnabled[type][fmt] = true;
-                    }
-                } 
-                else if (fmtCodes.Count == 1)
-                {
-                    var type = fileFormat.FormatCodes[0].ToLower();
+                }
+            }
+            else if (fmtCodes.Count == 1)
+            {
+                var type = fileFormat.FormatCodes[0].ToLower();
 
-                    if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
-                    foreach (var fmt in fileFormat.PronomCodes)
-                    {
+                if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
+                foreach (var fmt in fileFormat.PronomCodes)
+                {
+                    if (!FormatCodes.UnsupportedFormats.Contains(fmt))
                         FileFormatsEnabled[type][fmt] = true;
-                    }
                 }
             }
         }
@@ -102,31 +107,22 @@ public class Options
 
 
     /// <summary>
-    /// Get if a method is enabled or not
+    /// Check if a method is enabled or not
     /// </summary>
     /// /// <param name="method">The method</param>
     public bool GetMethod(Method method)
     {
-        return GetMethod(method.Name);
-    }
+        var name = method.Name;
 
-
-    /// <summary>
-    /// Get if a method is enabled or not
-    /// </summary>
-    /// /// <param name="method">The name of the method</param>
-    public bool GetMethod(string method)
-    {
-        if (MethodsEnabled.ContainsKey(method))
+        if (MethodsEnabled.ContainsKey(name))
         {
-            return MethodsEnabled[method];
-        } 
+            return MethodsEnabled[name];
+        }
         else
         {
             return false;
         }
     }
-
 
 
     /// <summary>
@@ -136,35 +132,27 @@ public class Options
     /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
     public void SetMethod(Method method, bool? setTo = null)
     {
-        SetMethod(method.Name, setTo);
-    }
+        var name = method.Name;
 
-    /// <summary>
-    /// Set a method to be enabled or not
-    /// </summary>
-    /// /// <param name="methodName">The name of the method</param>
-    /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
-    public void SetMethod(string methodName, bool? setTo = null)
-    {
-        if (!MethodsEnabled.ContainsKey(methodName)) return;
+        if (!MethodsEnabled.ContainsKey(name)) return;
 
-        MethodsEnabled[methodName] = setTo ?? MethodsEnabled[methodName];
+        MethodsEnabled[name] = setTo ?? MethodsEnabled[name];
     }
 
 
     /// <summary>
     /// Get if a file format is enabled or not
     /// </summary>
-    /// /// <param name="pronomUID">The file type</param>
-    public bool? GetFileFormat(string? pronomUID)
+    /// /// <param name="pronomCode">The file's pronom code</param>
+    public bool? GetFileFormat(string? pronomCode)
     {
-        if (pronomUID == null) return false;
+        if (pronomCode == null) return false;
 
         foreach (var ft in FileFormatsEnabled.Keys)
         {
-            if (FileFormatsEnabled[ft].ContainsKey(pronomUID))
+            if (FileFormatsEnabled[ft].ContainsKey(pronomCode))
             {
-                return FileFormatsEnabled[ft][pronomUID];
+                return FileFormatsEnabled[ft][pronomCode];
             }
         }
 
@@ -282,6 +270,7 @@ public class Options
             SettingsProfile.Custom1 => "custom1",
             SettingsProfile.Custom2 => "custom2",
             SettingsProfile.Custom3 => "custom3",
+            SettingsProfile => "-"
         } + ".json";
     }
 
