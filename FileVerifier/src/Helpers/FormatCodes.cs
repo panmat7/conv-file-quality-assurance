@@ -20,10 +20,10 @@ namespace AvaloniaDraft.Helpers;
 /// </summary>
 public class FileFormat
 {
-    public ImmutableList<string> FormatCodes { get; }
-    public ImmutableList<string> PronomCodes { get; }
+    public ImmutableList<string?> FormatCodes { get; }
+    public ImmutableList<string?> PronomCodes { get; }
 
-    public FileFormat(ImmutableList<string> formatCodes, ImmutableList<string> pronomCodes)
+    public FileFormat(ImmutableList<string?> formatCodes, ImmutableList<string?> pronomCodes)
     {
         FormatCodes = formatCodes;
         PronomCodes = pronomCodes;
@@ -40,7 +40,7 @@ public class FileFormat
     /// </summary>
     /// <param name="code"></param>
     /// <returns></returns>
-    public bool Contains(string code)
+    public bool Contains(string? code)
     {
         return PronomCodes.Contains(code);
     }

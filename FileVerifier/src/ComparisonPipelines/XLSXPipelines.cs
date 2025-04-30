@@ -16,7 +16,7 @@ public static class XLSXPipelines
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetXlsxPipeline(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetXlsxPipeline(string? outputFormat)
     {
         if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
             return XlsxToPdfPipeline;
@@ -44,10 +44,10 @@ public static class XLSXPipelines
         var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
         try
         {
-            ImageExtraction.ExtractImagesFromXlsxToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
-            ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
+            ImageExtractionToDisk.ExtractImagesFromXlsxToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+            ImageExtractionToDisk.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
             // Some checks will be skipped if the number of images is not equal
-            equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+            equalNumberOfImages = ImageExtractionToDisk.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
                 tempFoldersForImages.Item2);
         }
         catch (Exception)

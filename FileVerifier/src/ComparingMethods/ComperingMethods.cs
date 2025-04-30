@@ -117,7 +117,7 @@ public static class ComperingMethods
     /// <param name="path">Absolute path to the document</param>
     /// <param name="format">PRONOM code of the file type</param>
     /// <returns>Either a positive integer with page count, -1 meaning error while getting pages or null meaning not supported file type</returns>
-    public static int? GetPageCountExif(string path, string format)
+    public static int? GetPageCountExif(string path, string? format)
     {
         var result = GlobalVariables.ExifTool.GetExifDataDictionary([path], false);
         

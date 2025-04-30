@@ -15,7 +15,7 @@ namespace AvaloniaDraft.FileManager;
 public class SingleFile
 {
     public string FilePath { get; set; } = string.Empty;
-    public string FileFormat { get; set; } = string.Empty;
+    public string? FileFormat { get; set; } = string.Empty;
     public bool Done { get; set; } = false;
     public bool InProcess { get; set; } = false;
     

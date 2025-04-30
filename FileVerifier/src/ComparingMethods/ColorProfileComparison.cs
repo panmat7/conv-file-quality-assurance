@@ -33,8 +33,8 @@ public static class ColorProfileComparison
     [Obsolete("This method is obsolete. Use CompareColorProfilesFromDisk instead.")]
     public static bool PdfToPdfColorProfileComparison(List<IPdfImage> oImages, List<IPdfImage> nImages)
     {
-        var convertedOImages = ImageExtraction.ConvertPdfImagesToMagickImages(oImages);
-        var convertedNImages = ImageExtraction.ConvertPdfImagesToMagickImages(nImages);
+        var convertedOImages = ImageExtractionToMemory.ConvertPdfImagesToMagickImages(oImages);
+        var convertedNImages = ImageExtractionToMemory.ConvertPdfImagesToMagickImages(nImages);
         
         // If there are no images no test is done and we return true
         if (convertedOImages.Count < 1) return true;
@@ -64,7 +64,7 @@ public static class ColorProfileComparison
     public static bool ImageToPdfColorProfileComparison(MagickImage oImage, List<IPdfImage> nImages)
     {
         // Convert from IPdfImage to MagickImage
-        var convertedNImages = ImageExtraction.ConvertPdfImagesToMagickImages(nImages);
+        var convertedNImages = ImageExtractionToMemory.ConvertPdfImagesToMagickImages(nImages);
         
         // Check if more than one image is extracted from the PDF file
         return nImages.Count <= 1 && CompareColorProfiles(oImage, convertedNImages[0]);
@@ -81,7 +81,7 @@ public static class ColorProfileComparison
     public static bool GeneralDocsToPdfColorProfileComparison(List<MagickImage> oImages, List<IPdfImage> nImages)
     {
         // Convert from IPdfImage to MagickImage
-        var convertedNImages = ImageExtraction.ConvertPdfImagesToMagickImages(nImages);
+        var convertedNImages = ImageExtractionToMemory.ConvertPdfImagesToMagickImages(nImages);
         
         // If there are no images no test is done and we return true
         if (oImages.Count < 1) return true;
@@ -101,7 +101,7 @@ public static class ColorProfileComparison
         List<string> imagesOverCells)
     {
         // Convert from IPdfImage to MagickImage
-        var convertedNImages = ImageExtraction.ConvertPdfImagesToMagickImages(nImages);
+        var convertedNImages = ImageExtractionToMemory.ConvertPdfImagesToMagickImages(nImages);
         
         // Get the array position of images
         var imageNumbersOverCells = imagesOverCells.Select(image => int.Parse(new string(image
@@ -126,25 +126,31 @@ public static class ColorProfileComparison
     {
         var oFiles = Directory.GetFiles(oFolderPath).OrderBy(File.GetCreationTime).ToArray();
         var nFiles = Directory.GetFiles(nFolderPath).OrderBy(File.GetCreationTime).ToArray();
-    
+
         // If both folders are empty, return true
         if (oFiles.Length == 0 && nFiles.Length == 0) return true;
-    
+
         // If the number of files in the folders differ, return false
         if (oFiles.Length != nFiles.Length) return false;
-    
+
+        Console.WriteLine($"Number of images in original folder: {oFiles.Length}");
+        Console.WriteLine($"Number of images in new folder: {nFiles.Length}");
+
         for (var i = 0; i < oFiles.Length; i++)
         {
             // Get the file format
             var oFormatInfo = MagickFormatInfo.Create(oFiles[i]);
             var nFormatInfo = MagickFormatInfo.Create(nFiles[i]);
-            
+    
             var oSettings = CreateFormatSpecificSettings(oFormatInfo?.Format);
             var nSettings = CreateFormatSpecificSettings(nFormatInfo?.Format);
-            
+    
             using var oImage = new MagickImage(oFiles[i], oSettings);
             using var nImage = new MagickImage(nFiles[i], nSettings);
-        
+
+            Console.WriteLine($"Image {i + 1} - Original color profile: {oImage.GetColorProfile()?.Name ?? "None"}");
+            Console.WriteLine($"Image {i + 1} - New color profile: {nImage.GetColorProfile()?.Name ?? "None"}");
+
             if (!CompareColorProfiles(oImage, nImage))
             {
                 return false;
