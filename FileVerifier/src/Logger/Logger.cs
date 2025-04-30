@@ -273,6 +273,7 @@ public class Logger
                 FileComparisonsFailed = l.FileComparisonsFailed;
                 Results = logger.Results;
                 IgnoredFiles = logger.IgnoredFiles;
+                InternalErrorFilePairs = logger.InternalErrorFilePairs;
 
                 LastRefresh = DateTime.UtcNow;
                 Elapsed = l.Elapsed;
