@@ -172,7 +172,7 @@ public static class ODSPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.CheckForEmptyPages.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.CheckForEmptyPages, false, errors: [error]);
                 } 
             }
             

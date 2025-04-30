@@ -1,5 +1,5 @@
 using System;
-using System.Numerics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using AvaloniaDraft.FileManager;
 using SixLabors.ImageSharp;
@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.Processing;
 
 namespace AvaloniaDraft.ComparingMethods;
 
+[ExcludeFromCodeCoverage]
 public static class PbpComparison
 {
     /// <summary>

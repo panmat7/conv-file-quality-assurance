@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using AvaloniaDraft.FileManager;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -6,9 +7,11 @@ using Emgu.CV.Util;
 
 namespace AvaloniaDraft.ComparingMethods;
 
+[ExcludeFromCodeCoverage]
 public static class ImageRegistration
 {
     /// <summary>
+    /// This was for testing purposes
     /// Calculates the similarity between two images by comparing their histograms for each color channel (Blue, Green, Red).
     /// It computes the histograms of the two images and compares them using the correlation method.
     /// </summary>
