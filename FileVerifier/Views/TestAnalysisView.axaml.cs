@@ -203,7 +203,7 @@ public partial class TestAnalysisView : UserControl
             var method = e.Key;
             var expander = e.Value;
             TestExpanders.Add(expander);
-            expander.Header = new TextBlock { Text = $"{method} - {failedComparisonsCount[method]}" };
+            expander.Header = new TextBlock { Text = $"{method} ({failedComparisonsCount[method]})" };
             expander.Content = new TextBlock { 
                 Text = stringBuilders[method].ToString().TrimEnd(),
                 Foreground = Brushes.White,
