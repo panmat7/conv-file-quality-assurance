@@ -66,7 +66,7 @@ public sealed class ExifTool : IDisposable
             {
                 var cmds = GlobalVariables.ExifPath + " -stay_open true -@ -";
                 
-                var psi = new ProcessStartInfo(_terminal, $"/c \"{cmds}\"")
+                var psi = new ProcessStartInfo(_terminal, OperatingSystem.IsWindows() ? $"/c \"{cmds}\"" : $"-c \"{cmds}\"")
                 {
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
@@ -233,18 +233,24 @@ public sealed class ExifTool : IDisposable
     /// <returns></returns>
     public static string? GetExifPath()
     {
-        var curDir = Directory.GetCurrentDirectory();
-
-        while (!string.IsNullOrEmpty(curDir))
+        if (OperatingSystem.IsWindows())
         {
-            if (Path.GetFileName(curDir) == "conv-file-quality-assurance")
+            var curDir = Directory.GetCurrentDirectory();
+
+            while (!string.IsNullOrEmpty(curDir))
             {
-                return curDir + @"\FileVerifier\src\ComparingMethods\ExifTool\exiftool.exe";
+                if (Path.GetFileName(curDir) == "conv-file-quality-assurance")
+                {
+                    return curDir + @"\FileVerifier\src\ComparingMethods\ExifTool\exiftool.exe";
+                }
+
+                curDir = Directory.GetParent(curDir)?.FullName;
             }
-            
-            curDir = Directory.GetParent(curDir)?.FullName;
         }
-        
+        else
+        {
+            return "exiftool";
+        }
 
         return null;
     } 
