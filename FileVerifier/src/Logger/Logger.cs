@@ -85,6 +85,7 @@ public class Logger
     public DateTime LastRefresh { get; set; }
     public long Elapsed { get; set; }
     public List<IgnoredFile> IgnoredFiles { get; set; } = [];
+    public List<FilePair> InternalErrorFilePairs { get; set; } = [];    
     public List<ComparisonResult> Results { get; set; } = [];
 
 
@@ -133,6 +134,16 @@ public class Logger
         FileComparisonCount++;
         if (!result.Pass) FileComparisonsFailed++;
         Results.Add(result);
+    }
+
+
+    /// <summary>
+    /// Add a file pair that had an internal error when comparing
+    /// </summary>
+    /// <param name="fp"></param>
+    public void AddInternalErrorFilePair(string o, string n)
+    {
+        InternalErrorFilePairs.Add(new FilePair(o, n));
     }
 
 
