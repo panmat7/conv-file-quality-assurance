@@ -323,7 +323,6 @@ public partial class HomeView : UserControl
                 {
                     GlobalVariables.Logger.AddIgnoredFile(file);
                 }
-                
             }
         }
         catch (InvalidOperationException err)

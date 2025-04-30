@@ -77,25 +77,26 @@ public class ComparisonResult
 [ExcludeFromCodeCoverage]
 public class Logger
 {
-    public int FileComparisonCount { get; set; }
-    public int FileComparisonsFailed { get; set; }
-    public Stopwatch Stopwatch { get; set; } = new();
-    public List<ComparisonResult> Results { get; set; } = [];
-    public List<IgnoredFile> IgnoredFiles { get; set; } = [];
-
     private bool Active { get; set; }
     private bool Finished { get; set; }
 
+    public int FileComparisonCount { get; set; }
+    public int FileComparisonsFailed { get; set; }
+    public DateTime LastRefresh { get; set; }
+    public long Elapsed { get; set; }
+    public List<IgnoredFile> IgnoredFiles { get; set; } = [];
+    public List<ComparisonResult> Results { get; set; } = [];
+
 
     /// <summary>
-    /// Initialize the logger. This must be called before any other function
+    /// Initialize/reset the logger. This must be called before any other function
     /// </summary>
     public void Initialize()
     {
         Active = false;
         Finished = false;
 
-        Stopwatch = new Stopwatch();
+        Elapsed = 0;
 
         FileComparisonCount = 0;
         FileComparisonsFailed = 0;
@@ -104,6 +105,10 @@ public class Logger
     }
 
 
+    /// <summary>
+    /// Check if the logger has finished
+    /// </summary>
+    /// <returns></returns>
     public bool HasFinished()
     {
         return Finished;
@@ -116,10 +121,8 @@ public class Logger
     public void Start()
     {
         Active = true;
-        Stopwatch.Restart();
-        Stopwatch.Start();
+        LastRefresh = DateTime.UtcNow;
     }
-
 
     /// <summary>
     /// Add the result of a file pair comparison
@@ -149,7 +152,8 @@ public class Logger
     {
         if (!Active) return;
 
-        Stopwatch.Stop();
+        UpdateElapsedTime();
+
         Active = false;
         Finished = true;
     }
@@ -164,6 +168,27 @@ public class Logger
         return Results.Select(r => r.FilePair).ToList();
     }
 
+
+    /// <summary>
+    /// Update 'Elapsed'
+    /// </summary>
+    private void UpdateElapsedTime()
+    {
+        var timespan = DateTime.UtcNow - LastRefresh;
+        Elapsed += timespan.Ticks;
+        LastRefresh = DateTime.UtcNow;
+    }
+
+
+    /// <summary>
+    /// Return a formatted string of the elapsed time
+    /// </summary>
+    /// <returns></returns>
+    public string FormatElapsedTime()
+    {
+        var timespan = new TimeSpan(Elapsed);
+        return timespan.ToString("hh\\:mm\\:ss");
+    }
 
     /// <summary>
     /// Save the report
@@ -203,6 +228,7 @@ public class Logger
     {
         try
         {
+            if (!Finished) UpdateElapsedTime();
             string jsonString = JsonSerializer.Serialize(this);
             File.WriteAllText(path, jsonString);
         }
@@ -232,11 +258,13 @@ public class Logger
             var l = JsonSerializer.Deserialize<Logger>(jsonString, seralizerOptions);
             if (l is Logger logger)
             {
-                this.FileComparisonCount = l.FileComparisonCount;
-                this.FileComparisonsFailed = l.FileComparisonsFailed;
-                this.Results = logger.Results;
-                this.IgnoredFiles = logger.IgnoredFiles;
-                this.Stopwatch = logger.Stopwatch;
+                FileComparisonCount = l.FileComparisonCount;
+                FileComparisonsFailed = l.FileComparisonsFailed;
+                Results = logger.Results;
+                IgnoredFiles = logger.IgnoredFiles;
+
+                LastRefresh = DateTime.UtcNow;
+                Elapsed = l.Elapsed;
             }
         }
         catch (Exception ex)

@@ -134,7 +134,7 @@ public partial class ReportView : UserControl
         IgnoredFilesStackPanel.Children.Clear();
 
         ReportSummary.Text = $"{Logger.FileComparisonsFailed}/{Logger.FileComparisonCount} file comparisons failed " +
-            $"| Completed in {Logger.Stopwatch.Elapsed.ToString("hh\\:mm\\:ss")}";
+            $"| Completed in {Logger.FormatElapsedTime()}";
 
         CreateIgnoredFilesExpander();
 
@@ -214,6 +214,7 @@ public partial class ReportView : UserControl
             {
                 Text = "No ignored files.",
                 Foreground = Brushes.White,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
             });
         }
     }
