@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using AvaloniaDraft.FileManager;
@@ -9,6 +10,7 @@ using UglyToad.PdfPig.Content;
 
 namespace AvaloniaDraft.ComparingMethods;
 
+[ExcludeFromCodeCoverage]
 public static class ExtractedImageMetadata
 {
     /// <summary>
