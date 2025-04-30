@@ -365,6 +365,8 @@ public static class FormatCodes
         PronomCodesXLS,
         PronomCodesXLSM,
         PronomCodesPOT,
+        PronomCodesPOTM,
+        PronomCodesPOTX,
         PronomCodesXML,
     ]);
 

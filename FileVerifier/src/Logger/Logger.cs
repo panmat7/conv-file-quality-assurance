@@ -81,6 +81,7 @@ public class Logger
     public int FileComparisonsFailed { get; set; }
     public Stopwatch Stopwatch { get; set; } = new();
     public List<ComparisonResult> Results { get; set; } = [];
+    public List<IgnoredFile> IgnoredFiles { get; set; } = [];
 
     private bool Active { get; set; }
     private bool Finished { get; set; }
@@ -99,6 +100,7 @@ public class Logger
         FileComparisonCount = 0;
         FileComparisonsFailed = 0;
         Results = new List<ComparisonResult>();
+        IgnoredFiles = new List<IgnoredFile>();
     }
 
 
@@ -113,8 +115,6 @@ public class Logger
     /// </summary>
     public void Start()
     {
-        if (Active) return;
-
         Active = true;
         Stopwatch.Restart();
         Stopwatch.Start();
@@ -122,40 +122,24 @@ public class Logger
 
 
     /// <summary>
-    /// Add a result from a test
+    /// Add the result of a file pair comparison
     /// </summary>
-    /// <param name="filePair">The filepair</param>
-    /// <param name="testName">The name of the test</param>
-    /// <param name="pass">If the test passed or not</param>
-    /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
-    /// <param name="comments">A list of comments on the result</param>
-    /// <param name="errors">Error</param>
-    /*public void AddTestResult(FilePair filePair, string testName, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
+    /// <param name="result"></param>
+    public void AddComparisonResult(ComparisonResult result)
     {
-        var testResult = new TestResult(pass, percentage, comments ?? [], errors ?? []);
-
-        var index = Results.FindIndex(r => r.FilePair.OriginalFilePath == filePair.OriginalFilePath && r.FilePair.NewFilePath == filePair.NewFilePath);
-        if (index == -1)
-        {
-            var cr = new ComparisonResult(filePair);
-            cr.AddTestResult(testResult, testName);
-            Results.Add(cr);
-            FileComparisonCount++;
-            if (!cr.Pass) FileComparisonsFailed++;
-        }
-        else
-        {
-            var previousTestsPassed = Results[index].Pass;
-            Results[index].AddTestResult(testResult, testName);
-            if (previousTestsPassed && !Results[index].Pass) FileComparisonsFailed++;
-        }
-    }*/
+        FileComparisonCount++;
+        if (!result.Pass) FileComparisonsFailed++;
+        Results.Add(result);
+    }
 
 
-
-    public void AddComparisonResult(ComparisonResult comparisonResult)
+    /// <summary>
+    /// Add an ignored file
+    /// </summary>
+    /// <param name="file"></param>
+    public void AddIgnoredFile(IgnoredFile file)
     {
-        Results.Add(comparisonResult);
+        if (!IgnoredFiles.Any(f => f.FilePath == file.FilePath)) IgnoredFiles.Add(file);
     }
 
     /// <summary>
@@ -251,6 +235,7 @@ public class Logger
                 this.FileComparisonCount = l.FileComparisonCount;
                 this.FileComparisonsFailed = l.FileComparisonsFailed;
                 this.Results = logger.Results;
+                this.IgnoredFiles = logger.IgnoredFiles;
                 this.Stopwatch = logger.Stopwatch;
             }
         }
