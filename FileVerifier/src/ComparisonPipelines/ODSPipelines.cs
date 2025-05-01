@@ -284,7 +284,7 @@ public static class ODSPipelines
                 compResult.AddTestResult("Image Extraction", false, errors: [error]);
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata))
             {
                 if (equalNumberOfImages)
                 {
