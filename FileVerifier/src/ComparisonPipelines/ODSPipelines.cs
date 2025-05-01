@@ -5,6 +5,7 @@ using System.Linq;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -39,6 +40,8 @@ public static class ODSPipelines
         {
             Error error;
 
+            var compResult = new ComparisonResult(pair);
+
             var failedToExtract = false;
             var equalNumberOfImages = false;
 
@@ -56,9 +59,9 @@ public static class ODSPipelines
                 failedToExtract = true;
             }
             
-            ComperingMethods.CompareFonts(pair);
+            ComperingMethods.CompareFonts(pair, ref compResult);
             
-            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair);
 
@@ -70,7 +73,7 @@ public static class ODSPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 } else if (res.Value)
                 {
                     //For now only printing to console
@@ -80,22 +83,22 @@ public static class ODSPipelines
                             ErrorSeverity.Medium,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 }
                 else
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
+                    compResult.AddTestResult(Methods.Size, true);
                 }
             }
 
-            if (!failedToExtract)
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile))
             {
-                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                if (!failedToExtract)
                 {
                     if (equalNumberOfImages)
                     {
                         BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                            tempFoldersForImages.Item2, pair);
+                            tempFoldersForImages.Item2, pair, ref compResult);
                     }
                     else
                     {
@@ -106,27 +109,27 @@ public static class ODSPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
                     }
                 }
-            }
-            else
-            {
-                error = new Error(
-                    "Failed to extract images from files",
-                    "Comparisons involving extracted images can not be performed " +
-                    "because the tool was unable to extract images from at least one of the files.",
-                    ErrorSeverity.High,
-                    ErrorType.FileError
-                );
-                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
+                else
+                {
+                    error = new Error(
+                        "Failed to extract images from files",
+                        "Comparisons involving extracted images can not be performed " +
+                        "because the tool was unable to extract images from at least one of the files.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
+                }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.TableBreakCheck.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.TableBreakCheck))
             {
                 var res = SpreadsheetComparison.PossibleSpreadsheetBreakOpenDoc(pair.OriginalFilePath);
                 if (res == null)
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: [
+                    compResult.AddTestResult(Methods.TableBreakCheck, false, errors: [
                         new Error(
                             "Could not preform check for table breaks",
                             "There occured an error when trying to preform check for table breaks.",
@@ -135,16 +138,16 @@ public static class ODSPipelines
                         )
                     ]);
                 else if (res.Count > 0)
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, false, errors: res);
+                    compResult.AddTestResult(Methods.TableBreakCheck, false, errors: res);
                 else
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.TableBreakCheck.Name, true);
+                    compResult.AddTestResult(Methods.TableBreakCheck, true);
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata))
             {
                 if (equalNumberOfImages)
                 {
-                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                    ExtractedImageMetadata.CompareExtractedImages(pair, ref compResult, tempFoldersForImages.Item1,
                         tempFoldersForImages.Item2);
                 }
                 else
@@ -156,12 +159,29 @@ public static class ODSPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
                 }
+            }
+            // Check for empty pages
+            if (GlobalVariables.Options.GetMethod(Methods.CheckForEmptyPages))
+            {
+                
+                if (FindEmptyPagesPdf.EmptyPagePdf(pair.NewFilePath) > 0)
+                {
+                    error = new Error(
+                        "Empty pages",
+                        "The new file contains empty pages.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    compResult.AddTestResult(Methods.CheckForEmptyPages, false, errors: [error]);
+                } 
             }
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
-            
+
+            GlobalVariables.Logger.AddComparisonResult(compResult);
+
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
     

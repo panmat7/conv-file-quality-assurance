@@ -5,6 +5,7 @@ using System.Linq;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -37,7 +38,9 @@ public static class RtfPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             Error error;
-            
+
+            var compResult = new ComparisonResult(pair);
+
             var failedToExtract = false;
             var equalNumberOfImages = false;
 
@@ -55,9 +58,9 @@ public static class RtfPipelines
                 failedToExtract = true;
             }
 
-            ComperingMethods.CompareFonts(pair);
+            ComperingMethods.CompareFonts(pair, ref compResult);
             
-            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair, 0.5); //Use settings later
 
@@ -69,7 +72,7 @@ public static class RtfPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 } else if (res.Value)
                 {
                     //For now only printing to console
@@ -79,22 +82,22 @@ public static class RtfPipelines
                         ErrorSeverity.Medium,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 }
                 else
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
+                    compResult.AddTestResult(Methods.Size, true);
                 }
             }
 
-            if (!failedToExtract)
+            if (GlobalVariables.Options.GetMethod(Methods.ColorProfile))
             {
-                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                if (!failedToExtract)
                 {
                     if (equalNumberOfImages)
                     {
                         BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                            tempFoldersForImages.Item2, pair);
+                            tempFoldersForImages.Item2, pair, ref compResult);
                     }
                     else
                     {
@@ -105,23 +108,23 @@ public static class RtfPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
                     }
                 }
-            }
-            else
-            {
-                error = new Error(
-                    "Failed to extract images from files",
-                    "Comparisons involving extracted images can not be performed " +
-                    "because the tool was unable to extract images from at least one of the files.",
-                    ErrorSeverity.High,
-                    ErrorType.FileError
-                );
-                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
+                else
+                {
+                    error = new Error(
+                        "Failed to extract images from files",
+                        "Comparisons involving extracted images can not be performed " +
+                        "because the tool was unable to extract images from at least one of the files.",
+                        ErrorSeverity.High,
+                        ErrorType.FileError
+                    );
+                    compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
+                }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Pages))
             {
                 var pageDiff = ComperingMethods.GetPageCountDifferenceExif(pair);
                 switch (pageDiff)
@@ -133,7 +136,7 @@ public static class RtfPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.Pages, false, errors: [error]);
                         break;
                     case > 0:
                         error = new Error(
@@ -143,19 +146,19 @@ public static class RtfPipelines
                             ErrorType.FileError,
                             $"{pageDiff}"
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.Pages, false, errors: [error]);
                         break;
                     default:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
+                        compResult.AddTestResult(Methods.Pages, true);
                         break;
                 }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata))
             {
                 if (equalNumberOfImages)
                 {
-                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                    ExtractedImageMetadata.CompareExtractedImages(pair, ref compResult, tempFoldersForImages.Item1,
                         tempFoldersForImages.Item2);
                 }
                 else
@@ -167,11 +170,13 @@ public static class RtfPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
                 }
             }
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
+
+            GlobalVariables.Logger.AddComparisonResult(compResult);
 
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using AvaloniaDraft.ComparingMethods.ExifTool;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 using ClosedXML;
 using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Emgu.CV.Aruco;
@@ -318,7 +319,7 @@ public static class ComperingMethods
             return
             [ new Error(
                 "Could not preform visual comparison due to mismatched page count",
-                "The two documents have a different amount of pages, thus no visual comparison could be preformed.",
+                "The two documents have a different amount of pages, thus no visual comparison could be performed.",
                 ErrorSeverity.Medium,
                 ErrorType.FileError
             )];
@@ -422,7 +423,7 @@ public static class ComperingMethods
     /// Compare the fonts of two files
     /// </summary>
     /// <param name="fp">The file pair</param>
-    public static List<Error> CompareFonts(FilePair fp)
+    public static List<Error> CompareFonts(FilePair fp, ref ComparisonResult compResult)
     {
         if (!GlobalVariables.Options.GetMethod(Methods.Fonts)) return [];
 
@@ -503,7 +504,9 @@ public static class ComperingMethods
             }
         }
 
-        GlobalVariables.Logger.AddTestResult(fp, Methods.Fonts.Name, result.Pass, null, comments, errors);
+        compResult.AddTestResult(Methods.Fonts, result.Pass, null, comments, errors);
+
+        // GlobalVariables.Logger.AddTestResult(fp, Methods.Fonts.Name, result.Pass, null, comments, errors);
 
         return errors;
     }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using ImageMagick;
 using UglyToad.PdfPig.Content;
@@ -19,7 +20,7 @@ public static class ExtractedImageMetadata
     /// <param name="pair">The pair of files, used for correct logging.</param>
     /// <param name="oPath">Images from the original file.</param>
     /// <param name="nPath">Images from the new file.</param>
-    public static void CompareExtractedImages(FilePair pair, string oPath, string nPath)
+    public static void CompareExtractedImages(FilePair pair, ref ComparisonResult compResult, string oPath, string nPath)
     {
         var oFiles = Directory.GetFiles(oPath).OrderBy(File.GetCreationTime).ToList();
         var nFiles = Directory.GetFiles(nPath).OrderBy(File.GetCreationTime).ToList();
@@ -27,7 +28,7 @@ public static class ExtractedImageMetadata
         //If no images, we just pass the test
         if (oFiles.Count == 0 && nFiles.Count == 0)
         {
-            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, true, 
+            compResult.AddTestResult(Methods.Metadata, true, 
                 comments: ["No images present in the files."]);
             return;
         }
@@ -69,28 +70,28 @@ public static class ExtractedImageMetadata
 
         //Nothing wrong
         if(failedCount == 0 && errCount == 0 && distinctErrors.Count == 0)
-            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, true,
-                comments: ["This test was preformed on an extracted image."]);
+            compResult.AddTestResult(Methods.Metadata, true,
+                comments: ["This test was performed on an extracted image."]);
         
         //No failures
         else if(failedCount == 0)
-            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+            compResult.AddTestResult(Methods.Metadata, false,
                 errors: distinctErrors.ToList(),
                 comments: [$"One or more of the following errors are present in {errCount} of {imgCount} image pairs.",
-                    "This test was preformed on an extracted image."]);
+                    "This test was performed on an extracted image."]);
         //No errors
         else if (errCount == 0)
-            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+            compResult.AddTestResult(Methods.Metadata, false,
                 comments: [$"Could not check {failedCount} of {imgCount} images.",
-                    "This test was preformed on an extracted image."]);
+                    "This test was performed on an extracted image."]);
         
         //Failures and errors (very bad)
         else
-            GlobalVariables.Logger.AddTestResult(pair, Methods.Metadata.Name, false,
+            compResult.AddTestResult(Methods.Metadata, false,
                 errors: distinctErrors.ToList(),
                 comments: [$"Could not check {failedCount} of {imgCount} images.",
                     $"One or more of the following errors are present in {errCount} of {imgCount} image pairs.",
-                    "This test was preformed on an extracted image."]);
+                    "This test was performed on an extracted image."]);
     }
 
     /// <summary>

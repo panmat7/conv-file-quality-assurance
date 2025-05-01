@@ -4,6 +4,7 @@ using System.IO;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -33,6 +34,8 @@ public static class DocxPipelines
     private static void DocxToTextDocPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
+        var compResult = new ComparisonResult(pair);
+
         BasePipeline.ExecutePipeline(() =>
         {
             Error error;
@@ -54,7 +57,7 @@ public static class DocxPipelines
                 failedToExtract = true;
             }
             
-            ComperingMethods.CompareFonts(pair);
+            ComperingMethods.CompareFonts(pair, ref compResult);
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {
@@ -68,7 +71,7 @@ public static class DocxPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.Pages, false, errors: [error]);
                         break;
                     case > 0:
                         error = new Error(
@@ -78,10 +81,10 @@ public static class DocxPipelines
                             ErrorType.FileError,
                             $"{diff}"
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.Pages, false, errors: [error]);
                         break;
                     default:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
+                        compResult.AddTestResult(Methods.Pages, true);
                         break;
                 }
             }
@@ -98,7 +101,7 @@ public static class DocxPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 } else if (res.Value)
                 {
                     //For now only printing to console
@@ -108,11 +111,11 @@ public static class DocxPipelines
                         ErrorSeverity.Medium,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 }
                 else
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
+                    compResult.AddTestResult(Methods.Size, true);
                 }
             }
 
@@ -123,12 +126,12 @@ public static class DocxPipelines
 
             if (!failedToExtract)
             {
-                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile))
                 {
                     if (equalNumberOfImages)
                     {
                         BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                            tempFoldersForImages.Item2, pair);
+                            tempFoldersForImages.Item2, pair, ref compResult);
                     }
                     else
                     {
@@ -139,7 +142,7 @@ public static class DocxPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
                     }
                 }
             }
@@ -152,14 +155,14 @@ public static class DocxPipelines
                     ErrorSeverity.High,
                     ErrorType.FileError
                 );
-                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
+                compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
             }
 
-            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata))
             {
                 if (equalNumberOfImages)
                 {
-                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                    ExtractedImageMetadata.CompareExtractedImages(pair, ref compResult, tempFoldersForImages.Item1,
                         tempFoldersForImages.Item2);
                 }
                 else
@@ -171,12 +174,14 @@ public static class DocxPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
                 }
             }
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
-            
+
+            GlobalVariables.Logger.AddComparisonResult(compResult);
+
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

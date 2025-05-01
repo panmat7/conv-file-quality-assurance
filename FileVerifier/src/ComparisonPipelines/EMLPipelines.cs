@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.Logger;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -36,7 +37,9 @@ public static class EmlPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             Error error;
-            
+
+            var compResult = new ComparisonResult(pair);
+
             var failedToExtract = false;
             var equalNumberOfImages = false;
 
@@ -56,12 +59,12 @@ public static class EmlPipelines
 
             if (!failedToExtract)
             {
-                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile))
                 {
                     if (equalNumberOfImages)
                     {
                         BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                            tempFoldersForImages.Item2, pair);
+                            tempFoldersForImages.Item2, pair, ref compResult);
                     }
                     else
                     {
@@ -72,7 +75,7 @@ public static class EmlPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
                     }
                 }
             }
@@ -85,14 +88,14 @@ public static class EmlPipelines
                     ErrorSeverity.High,
                     ErrorType.FileError
                 );
-                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
+                compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
             }
 
             if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
             {
                 if (equalNumberOfImages)
                 {
-                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                    ExtractedImageMetadata.CompareExtractedImages(pair, ref compResult, tempFoldersForImages.Item1,
                         tempFoldersForImages.Item2);
                 }
                 else
@@ -104,13 +107,15 @@ public static class EmlPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
                 }
             }
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
 
-            ComperingMethods.CompareFonts(pair);
+            ComperingMethods.CompareFonts(pair, ref compResult);
+
+            GlobalVariables.Logger.AddComparisonResult(compResult);
 
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }

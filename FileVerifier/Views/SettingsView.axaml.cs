@@ -148,18 +148,17 @@ public partial class SettingsView : UserControl
         var viewModel = DataContext as SettingsViewModel;
         if (viewModel == null) return;
 
-        viewModel.IsIgnoreUnsupportedFormatsEnabled = GlobalVariables.Options.IgnoreUnsupportedFileType;
-
         viewModel.SizeComparisonThreshold = GlobalVariables.Options.SizeComparisonThreshold;
         viewModel.PbpComparisonThreshold = GlobalVariables.Options.PbpComparisonThreshold;
 
-        viewModel.IsPointByPointEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.PointByPoint.Name);
-        viewModel.IsAnimationEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Animations.Name);
-        viewModel.IsPageCountEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Pages.Name);
-        viewModel.IsColorProfileEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.ColorProfile.Name);
-        viewModel.IsFontEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Fonts.Name);
-        viewModel.IsResolutionEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Resolution.Name);
-        viewModel.IsSizeEnabled = GlobalVariables.Options.GetMethod(Helpers.Methods.Size.Name);
+        viewModel.IsPointByPointEnabled = GlobalVariables.Options.GetMethod(Methods.PointByPoint);
+        viewModel.IsVisualDocComparisonEnabled = GlobalVariables.Options.GetMethod(Methods.VisualDocComp);
+        viewModel.IsAnimationEnabled = GlobalVariables.Options.GetMethod(Methods.Animations);
+        viewModel.IsPageCountEnabled = GlobalVariables.Options.GetMethod(Methods.Pages);
+        viewModel.IsColorProfileEnabled = GlobalVariables.Options.GetMethod(Methods.ColorProfile);
+        viewModel.IsFontEnabled = GlobalVariables.Options.GetMethod(Methods.Fonts);
+        viewModel.IsResolutionEnabled = GlobalVariables.Options.GetMethod(Methods.Resolution);
+        viewModel.IsSizeEnabled = GlobalVariables.Options.GetMethod(Methods.Size);
 
         // Synchronize format filtering
         foreach (var format in GlobalVariables.Options.FileFormatsEnabled)

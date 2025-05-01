@@ -279,6 +279,10 @@ public sealed class FileManager
         {
             lock (Lock)
             {
+                //Stopping
+                if(GlobalVariables.StopProcessing)
+                    break;
+                
                 Console.WriteLine($"Using {_currentThreads} threads of {maxThreads} threads.");
                 
                 if (_currentThreads < maxThreads)

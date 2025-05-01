@@ -40,6 +40,8 @@
         <PackageReference Include="Emgu.CV.runtime.windows" Version="4.10.0.5680" />
         <PackageReference Include="EPPlus" Version="7.7.0" />
         <PackageReference Include="HtmlAgilityPack" Version="1.12.0" />
+        <PackageReference Include="itext" Version="9.1.0" />
+        <PackageReference Include="itext.bouncy-castle-adapter" Version="9.1.0" />
         <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.6.0" />
         <PackageReference Include="MimeKit" Version="4.10.0" />
         <PackageReference Include="PdfPig" Version="0.1.11-alpha-20250331-4fbcc" />
@@ -63,6 +65,9 @@
       <Compile Update="Views\CompletedView.axaml.cs">
         <DependentUpon>CompletedView.axaml</DependentUpon>
         <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\TestAnalysisView.axaml.cs">
+        <DependentUpon>TestAnalysisView.axaml</DependentUpon>
       </Compile>
     </ItemGroup>
 </Project>

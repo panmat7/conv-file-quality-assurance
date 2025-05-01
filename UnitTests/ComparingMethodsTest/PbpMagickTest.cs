@@ -83,6 +83,7 @@ namespace UnitTests.ComparingMethodsTest
             try
             {
                 similarity = PbpComparisonMagick.CalculateImageSimilarity(files);
+                Console.WriteLine(similarity);
             }
             catch (Exception ex)
             {

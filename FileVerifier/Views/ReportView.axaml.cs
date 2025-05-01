@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Avalonia.Input;
 using Avalonia.Media.Immutable;
+using Avalonia.Interactivity;
 
 namespace AvaloniaDraft.Views;
 
@@ -37,17 +38,28 @@ public partial class ReportView : UserControl
         AllResultExpanders = [];
         ResultExpanders = [];
 
+        ClearButton.IsEnabled = false;
+
         if (GlobalVariables.Logger.HasFinished())
         {
             Logger = GlobalVariables.Logger;
-            CreateElements();
-            DisplayReport();
         }
         else
         {
             LoadCurrentReportButton.IsEnabled = false;
             Logger = new Logger.Logger();
             Logger.Initialize();
+        }
+    }
+
+
+    protected override void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+
+        if (GlobalVariables.Logger.HasFinished())
+        {
+            LoadCurrentReportButton.IsEnabled = true;
         }
     }
 
@@ -98,6 +110,20 @@ public partial class ReportView : UserControl
         DisplayReport();
     }
 
+
+    private void Clear(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Logger = new Logger.Logger();
+
+        AllResultExpanders.Clear();
+        ResultExpanders.Clear();
+
+        ReportStackPanel.Children.Clear();
+        ReportSummary.Text = "";
+
+        ClearButton.IsEnabled = false;
+    }
+
     private void CreateElements()
     {
         AllResultExpanders.Clear();
@@ -118,6 +144,9 @@ public partial class ReportView : UserControl
     {
         ReportStackPanel.Children.Clear();
 
+        if (ResultExpanders.Count == 0) return;
+
+        ClearButton.IsEnabled = true;
         foreach (var expander in ResultExpanders)
         {
             ReportStackPanel.Children.Add(expander);

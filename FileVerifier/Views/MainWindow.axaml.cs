@@ -10,7 +10,12 @@ namespace AvaloniaDraft.Views;
 public partial class MainWindow : Window
 {
     private readonly SettingsViewModel _settingsViewModel = new SettingsViewModel();
-    
+
+    private HomeView HomeView;
+    private SettingsView SettingsView;
+    private ReportView ReportView;
+    private TestAnalysisView TestAnalysisView;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -60,6 +65,7 @@ public partial class MainWindow : Window
         HomeButton.Background = new SolidColorBrush(Colors.Transparent);
         SettingsButton.Background = new SolidColorBrush(Colors.Transparent);
         ReportButton.Background = new SolidColorBrush(Colors.Transparent);
+        TestAnalysisButton.Background = new SolidColorBrush(Colors.Transparent);
 
 
         // Set active button style
@@ -68,31 +74,41 @@ public partial class MainWindow : Window
 
     private void HomeButton_Click(object sender, RoutedEventArgs e)
     {
-        var homeView = new HomeView
+        if (HomeView == null) HomeView = new HomeView
         {
             DataContext = _settingsViewModel
         };
-        MainContent.Content = homeView;
+        MainContent.Content = HomeView;
         SetActiveButton((Button)sender);
     }
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        var settingsView = new SettingsView
+        if (SettingsView == null) SettingsView = new SettingsView
         {
             DataContext = _settingsViewModel
         };
-        MainContent.Content = settingsView;
+        MainContent.Content = SettingsView;
         SetActiveButton((Button)sender);
     }
 
     private void ReportButton_Click(object sender, RoutedEventArgs e)
     {
-        var reportView = new ReportView
+        if (ReportView == null) ReportView = new ReportView
         {
             DataContext = _settingsViewModel
         };
-        MainContent.Content = reportView;
+        MainContent.Content = ReportView;
+        SetActiveButton((Button)sender);
+    }
+
+    private void TestAnalysisButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (TestAnalysisView == null) TestAnalysisView = new TestAnalysisView
+        {
+            DataContext = _settingsViewModel
+        };
+        MainContent.Content = TestAnalysisView;
         SetActiveButton((Button)sender);
     }
 }
