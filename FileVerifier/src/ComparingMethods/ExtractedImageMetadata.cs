@@ -15,7 +15,7 @@ namespace AvaloniaDraft.ComparingMethods;
 public static class ExtractedImageMetadata
 {
     /// <summary>
-    /// Preforms the comparison between the images and logs all errors
+    /// Performs the comparison between the images and logs all errors
     /// </summary>
     /// <param name="pair">The pair of files, used for correct logging.</param>
     /// <param name="oPath">Images from the original file.</param>

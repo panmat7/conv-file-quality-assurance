@@ -34,8 +34,8 @@ public class CSVPipelines
                 if (res == null)
                     compResult.AddTestResult(Methods.TableBreakCheck, false, errors: [
                         new Error(
-                            "Could not preform check for table breaks",
-                            "There occured an error when trying to preform check for table breaks.",
+                            "Could not perform check for table breaks",
+                            "There occured an error when trying to perform check for table breaks.",
                             ErrorSeverity.High,
                             ErrorType.Visual
                         )

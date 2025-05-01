@@ -182,8 +182,8 @@ public static class PdfPipelines
                             {
                                 compResult.AddTestResult(Methods.VisualDocComp, false,
                                     errors: [new Error(
-                                        "Error while preforming the visual comparison",
-                                        "Could not preform the visual comparison due to an error while getting the page " +
+                                        "Error while performing the visual comparison",
+                                        "Could not perform the visual comparison due to an error while getting the page " +
                                         "images or while segmenting the image.",
                                         ErrorSeverity.Medium,
                                         ErrorType.Visual
@@ -209,8 +209,8 @@ public static class PdfPipelines
                         if (res == null)
                             compResult.AddTestResult(Methods.VisualDocComp, false,
                                 errors: [new Error(
-                                    "Error while preforming the visual comparison",
-                                    "Could not preform the visual comparison due to an error while getting the page " +
+                                    "Error while performing the visual comparison",
+                                    "Could not perform the visual comparison due to an error while getting the page " +
                                     "images or while segmenting the image.",
                                     ErrorSeverity.Medium,
                                     ErrorType.Visual

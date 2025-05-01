@@ -58,7 +58,7 @@ public static class DocumentVisualOperations
     }
 
     /// <summary>
-    /// Preforms the entire image segmentation on the inputted image.
+    /// Performs the entire image segmentation on the inputted image.
     /// </summary>
     /// <param name="img">The image as Emgu.Cv.Mat.</param>
     /// <param name="presentation">Whether the document is a presentation, if yes will apply additional iteration for

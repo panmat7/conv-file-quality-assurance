@@ -291,7 +291,7 @@ public static class ComperingMethods
     }
 
     /// <summary>
-    /// Preforms the visual comparison between two documents.
+    /// Performs the visual comparison between two documents.
     /// </summary>
     /// <param name="pair">The documents to be compared.</param>
     /// <param name="pageStart">Page at which to start the comparison, null if start at the first page.</param>
@@ -318,7 +318,7 @@ public static class ComperingMethods
         if(pagesOriginal.Count != pagesNew.Count)
             return
             [ new Error(
-                "Could not preform visual comparison due to mismatched page count",
+                "Could not perform visual comparison due to mismatched page count",
                 "The two documents have a different amount of pages, thus no visual comparison could be performed.",
                 ErrorSeverity.Medium,
                 ErrorType.FileError
@@ -366,7 +366,7 @@ public static class ComperingMethods
     }
     
     /// <summary>
-    /// Preforms the visual point by point comparison between segments on a page.
+    /// Performs the visual point by point comparison between segments on a page.
     /// </summary>
     /// <param name="oPage">Original page.</param>
     /// <param name="oRects">Segments extracted from the original page.</param>
