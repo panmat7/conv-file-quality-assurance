@@ -251,7 +251,7 @@ public static class OdpPipelines
 
             ComperingMethods.CompareFonts(pair, ref compResult);
             
-            if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Pages))
             {
                 var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
                 switch (diff)
@@ -312,7 +312,7 @@ public static class OdpPipelines
 
             if (!failedToExtract)
             {
-                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile))
                 {
                     if (equalNumberOfImages)
                     {
@@ -344,7 +344,7 @@ public static class OdpPipelines
                 compResult.AddTestResult("Image Extraction", false, errors: [error]);
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata))
             {
                 if (equalNumberOfImages)
                 {
