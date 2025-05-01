@@ -26,6 +26,34 @@ public static class ImageExtractionToDisk
 {
     private const string ImageMimeTypePrefix = "image/";
     
+    /// <summary>
+    /// General method delegating image extraction to the correct function
+    /// </summary>
+    /// <param name="filePath">Path of the file to be extracted.</param>
+    /// <param name="formatCode">PRONOM code of the file.</param>
+    /// <param name="outputPath">Output path for the extracted images</param>
+    public static void ExtractImagesToDisk(string filePath, string formatCode, string outputPath)
+    {
+        if (FormatCodes.PronomCodesAllPDF.Contains(formatCode))
+            ExtractImagesFromPdfToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesDOCX.Contains(formatCode))
+            ExtractImagesFromDocxToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesXMLBasedPowerPoint.Contains(formatCode))
+            ExtractImagesFromXmlBasedPowerPointToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesXLSX.Contains(formatCode))
+            ExtractImagesFromXlsxToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesXML.Contains(formatCode))
+            ExtractImagesFromXlsxToDisk(filePath, outputPath);
+        
+        if(FormatCodes.PronomCodesODT.Contains(formatCode) || FormatCodes.PronomCodesODP.Contains(formatCode)
+                                                           || FormatCodes.PronomCodesODS.Contains(formatCode))
+            ExtractImagesFromOpenDocumentsToDisk(filePath, outputPath);
+    }
+    
     /****************************************************PDF IMAGES****************************************************/
     
     /// <summary>

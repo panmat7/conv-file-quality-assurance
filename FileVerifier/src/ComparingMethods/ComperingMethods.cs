@@ -291,7 +291,7 @@ public static class ComperingMethods
     }
 
     /// <summary>
-    /// Preforms the visual comparison between two documents.
+    /// Performs the visual comparison between two documents.
     /// </summary>
     /// <param name="pair">The documents to be compared.</param>
     /// <param name="pageStart">Page at which to start the comparison, null if start at the first page.</param>
@@ -318,7 +318,7 @@ public static class ComperingMethods
         if(pagesOriginal.Count != pagesNew.Count)
             return
             [ new Error(
-                "Could not preform visual comparison due to mismatched page count",
+                "Could not perform visual comparison due to mismatched page count",
                 "The two documents have a different amount of pages, thus no visual comparison could be performed.",
                 ErrorSeverity.Medium,
                 ErrorType.FileError
@@ -334,13 +334,15 @@ public static class ComperingMethods
 
             var (res, pairlessO, pairlessN) = DocumentVisualOperations.PairAndGetOverlapSegments(rectsO, rectsN);
             
+            var currPage = pageIndex + pageStart ?? 0 + 1;
+            
             //Mismatched number of segments
             if(pairlessO.Count > 0 || pairlessN.Count > 0)
-                errorPages[0].Add(pageIndex + pageStart ?? 0);
+                errorPages[0].Add(currPage);
                 
             //Segments in different positions
             if (res.Any(r => r.Item3 < 0.7))
-                errorPages[1].Add(pageIndex + pageStart ?? 0);
+                errorPages[1].Add(currPage);
             
             //Point by point
             if (GlobalVariables.Options == null || !GlobalVariables.Options.GetMethod(Methods.PointByPoint)) continue;
@@ -352,11 +354,11 @@ public static class ComperingMethods
                 nRects: res.Select(r => r.Item2).ToList()
             );
             
-            if(visualSegCompRes == null) errorPages[2].Add(pageIndex + pageStart ?? 0);
+            if(visualSegCompRes == null) errorPages[2].Add(currPage);
             else
             {
-                if(visualSegCompRes.Item1) errorPages[2].Add(pageIndex + pageStart ?? 0);
-                if(visualSegCompRes.Item2) errorPages[3].Add(pageIndex + pageStart ?? 0);
+                if(visualSegCompRes.Item1) errorPages[2].Add(currPage);
+                if(visualSegCompRes.Item2) errorPages[3].Add(currPage);
             }
         }
             
@@ -364,7 +366,7 @@ public static class ComperingMethods
     }
     
     /// <summary>
-    /// Preforms the visual point by point comparison between segments on a page.
+    /// Performs the visual point by point comparison between segments on a page.
     /// </summary>
     /// <param name="oPage">Original page.</param>
     /// <param name="oRects">Segments extracted from the original page.</param>
@@ -547,7 +549,7 @@ public static class ComperingMethods
             {
                 return new Error(
                     "Color type mismatch",
-                    "Mismatched color type between images. Transparency loss",
+                    "Mismatched color type between images. Transparency loss.",
                     ErrorSeverity.High,
                     ErrorType.Metadata
                 );

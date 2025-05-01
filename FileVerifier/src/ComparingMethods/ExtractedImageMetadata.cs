@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using AvaloniaDraft.FileManager;
@@ -10,10 +11,11 @@ using UglyToad.PdfPig.Content;
 
 namespace AvaloniaDraft.ComparingMethods;
 
+[ExcludeFromCodeCoverage]
 public static class ExtractedImageMetadata
 {
     /// <summary>
-    /// Preforms the comparison between the images and logs all errors
+    /// Performs the comparison between the images and logs all errors
     /// </summary>
     /// <param name="pair">The pair of files, used for correct logging.</param>
     /// <param name="oPath">Images from the original file.</param>
@@ -35,6 +37,7 @@ public static class ExtractedImageMetadata
         var failedCount = 0;
         var imgCount = oFiles.Count;
         var distinctErrors = new HashSet<Error>();
+        var transparency = false;
         for (var i = 0; i < oFiles.Count; i++)
         {
             var oExt = Path.GetExtension(oFiles[i]).TrimStart('.');
@@ -52,6 +55,16 @@ public static class ExtractedImageMetadata
             {
                 errCount++;
                 e.ForEach(err => distinctErrors.Add(err));
+                
+                //Specifying transparency differences.
+                if(!transparency && e.Any(err => err.Description.Contains("Transparency loss")))
+                    compResult.AddTestResult(Methods.Transparency, true,
+                        errors: [ new Error("Transparency difference detected",
+                                "The images contained in the documents have different transparencies.",
+                                ErrorSeverity.Medium,
+                                ErrorType.Visual
+                        )]
+                    );
             }
         }
 

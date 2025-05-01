@@ -68,6 +68,20 @@ public class ComparisonResult
             Pass = false;
         }
     }
+
+    /// <summary>
+    /// Add a test result
+    /// </summary>
+    /// <param name="method">Name of the method results are to be added for.</param>
+    public void AddTestResult(string method, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
+    {
+        var testResult = new TestResult(pass, percentage, comments, errors);
+        Tests[method] = testResult;
+        if (!testResult.Pass)
+        {
+            Pass = false;
+        }
+    }
 }
 
 

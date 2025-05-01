@@ -445,7 +445,7 @@ public class ComperingMethodsTest
         
         if(res is null || res.Count != 1) Assert.Fail();
         
-        Assert.That(res.Any(e => e.Name == "Could not preform visual comparison due to mismatched page count"), Is.True);
+        Assert.That(res.Any(e => e.Name == "Could not perform visual comparison due to mismatched page count"), Is.True);
     }
     
     [Test]

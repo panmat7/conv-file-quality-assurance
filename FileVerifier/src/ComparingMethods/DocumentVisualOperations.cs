@@ -58,7 +58,7 @@ public static class DocumentVisualOperations
     }
 
     /// <summary>
-    /// Preforms the entire image segmentation on the inputted image.
+    /// Performs the entire image segmentation on the inputted image.
     /// </summary>
     /// <param name="img">The image as Emgu.Cv.Mat.</param>
     /// <param name="presentation">Whether the document is a presentation, if yes will apply additional iteration for
@@ -72,7 +72,6 @@ public static class DocumentVisualOperations
             var grayscale = new Mat();
             CvInvoke.CvtColor(img, grayscale, ColorConversion.Bgr2Gray);
             
-            Console.WriteLine(CvInvoke.Mean(grayscale).V0);
             var lightBackground = HasLightBackground(CvInvoke.Mean(grayscale).V0);
 
             var threshold = new Mat();
@@ -528,7 +527,7 @@ public static class DocumentVisualOperations
         var errors = new List<Error>();
         if (errorPages[0].Count > 0)
             errors.Add(new Error(
-                "Mismatch in detected points of interest",
+                "Mismatch in detected visual points of interest",
                 "The original or/and new document contain points of interest that could not have been paired. " +
                 "This could be caused by added/removed noise in the resulting file, something being missing/added or " +
                 "large differences in document structure.",
@@ -539,7 +538,7 @@ public static class DocumentVisualOperations
 
         if (errorPages[1].Count > 1)
             errors.Add(new Error(
-                "Misaligned points of interest",
+                "Misaligned visual points of interest",
                 "Some segments of the document have been moved above the allowed value.",
                 ErrorSeverity.High,
                 ErrorType.Visual,
