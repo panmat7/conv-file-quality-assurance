@@ -39,6 +39,9 @@ public static class BasePipeline
                 e.FormatErrorMessage() +
                 "\n\n"
             );
+
+
+            GlobalVariables.Logger.AddInternalErrorFilePair(files[0], files[1]);
         }
         finally
         {

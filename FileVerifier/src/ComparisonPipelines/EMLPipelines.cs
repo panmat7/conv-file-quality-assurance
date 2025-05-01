@@ -91,7 +91,7 @@ public static class EmlPipelines
                 compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
             }
 
-            if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Metadata))
             {
                 if (equalNumberOfImages)
                 {

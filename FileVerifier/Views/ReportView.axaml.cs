@@ -22,6 +22,8 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using Avalonia.Input;
 using Avalonia.Media.Immutable;
 using Avalonia.Interactivity;
+using System.Text;
+using AvaloniaDraft.FileManager;
 
 namespace AvaloniaDraft.Views;
 
@@ -119,6 +121,7 @@ public partial class ReportView : UserControl
         ResultExpanders.Clear();
 
         ReportStackPanel.Children.Clear();
+        IgnoredFilesStackPanel.Children.Clear();
         ReportSummary.Text = "";
 
         ClearButton.IsEnabled = false;
@@ -128,14 +131,91 @@ public partial class ReportView : UserControl
     {
         AllResultExpanders.Clear();
         ResultExpanders.Clear();
+        IgnoredFilesStackPanel.Children.Clear();
 
-        ReportSummary.Text = $"{Logger.FileComparisonsFailed}/{Logger.FileComparisonCount} file comparisons failed";
+        ReportSummary.Text = $"{Logger.FileComparisonsFailed}/{Logger.FileComparisonCount} file comparisons failed " +
+            $"| Completed in {Logger.FormatElapsedTime()}";
+
+        CreateIgnoredFilesExpander();
+
         foreach (var result in Logger.Results)
         {
             var comparisonResultexpander = CreateComparisonResultExpander(result);
 
             AllResultExpanders.Add(comparisonResultexpander);
             ResultExpanders.Add(comparisonResultexpander);
+        }
+    }
+
+
+    private void CreateIgnoredFilesExpander()
+    {
+        if (Logger.IgnoredFiles.Count > 0)
+        {
+            var ignoredFilesExpanderStackPanel = new StackPanel();
+            var ignoredFilesExpander = new Expander
+            {
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                Header = new TextBlock
+                {
+                    Text = $"Ignored files ({Logger.IgnoredFiles.Count})",
+                },
+                Content = ignoredFilesExpanderStackPanel,
+            };
+
+            var reasons = new List<(FileManager.ReasonForIgnoring enm, string str)> {
+                (FileManager.ReasonForIgnoring.UnsupportedFormat, "Unsupported file format"),
+                (FileManager.ReasonForIgnoring.Encrypted, "Encrypted"),
+                (FileManager.ReasonForIgnoring.Corrupted, "Corrupted"),
+                (FileManager.ReasonForIgnoring.EncryptedOrCorrupted, "Encrypted or corrupted"),
+                (FileManager.ReasonForIgnoring.Unknown, "Unknown reason")
+            };
+
+
+            foreach (var reason in reasons)
+            {
+                var files = GlobalVariables.Logger.IgnoredFiles.Where(f => f.Reason == reason.enm);
+                if (!files.Any()) continue;
+
+                var stringBuilder = new StringBuilder();
+                var fileCount = 0;
+                foreach (var file in files)
+                {
+                    fileCount++;
+                    var path = file.FilePath;
+                    var dir = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(path));
+                    var fileName = System.IO.Path.GetFileName(path);
+                    stringBuilder.AppendLine($"{dir}/{fileName}");
+                }
+
+                var expander = new Expander
+                {
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                    Header = new TextBlock
+                    {
+                        Text = $"{reason.str} ({fileCount})",
+                    },
+                    Content = new TextBlock
+                    {
+                        Foreground = Brushes.White,
+                        LineHeight = 30,
+                        Text = stringBuilder.ToString().Trim(),
+                    }
+                };
+
+                ignoredFilesExpanderStackPanel.Children.Add(expander);
+            }
+
+            IgnoredFilesStackPanel.Children.Add(ignoredFilesExpander);
+        }
+        else
+        {
+            IgnoredFilesStackPanel.Children.Add(new TextBlock
+            {
+                Text = "No ignored files.",
+                Foreground = Brushes.White,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+            });
         }
     }
 

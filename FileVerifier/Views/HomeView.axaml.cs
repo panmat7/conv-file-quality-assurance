@@ -186,7 +186,8 @@ public partial class HomeView : UserControl
     private async void LoadButton_OnClick(object? sender, RoutedEventArgs e)
     {
         ResetProgress();
-        
+        GlobalVariables.Logger.Initialize();
+
         if (Working || string.IsNullOrEmpty(InputPath) || string.IsNullOrEmpty(OutputPath)) return;
 
         var loadingWindow = new LoadingView();
@@ -266,7 +267,6 @@ public partial class HomeView : UserControl
                     OverwriteConsole(null);
                 });
 
-                GlobalVariables.Logger.Initialize();
                 GlobalVariables.Logger.Start();
 
                 await Task.Run(() =>
@@ -320,6 +320,14 @@ public partial class HomeView : UserControl
             GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath, filePairs);
             GlobalVariables.FileManager.SetSiegfriedFormats();
             SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
+
+            foreach (var file in GlobalVariables.FileManager.IgnoredFiles)
+            {
+                if (file.Reason != ReasonForIgnoring.AlreadyChecked && file.Reason != ReasonForIgnoring.Filtered)
+                {
+                    GlobalVariables.Logger.AddIgnoredFile(file);
+                }
+            }
         }
         catch (InvalidOperationException err)
         {

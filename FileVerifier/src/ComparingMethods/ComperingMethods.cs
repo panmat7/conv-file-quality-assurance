@@ -345,7 +345,7 @@ public static class ComperingMethods
                 errorPages[1].Add(currPage);
             
             //Point by point
-            if (GlobalVariables.Options == null || !GlobalVariables.Options.GetMethod(Methods.PointByPoint.Name)) continue;
+            if (GlobalVariables.Options == null || !GlobalVariables.Options.GetMethod(Methods.PointByPoint)) continue;
 
             var visualSegCompRes = VisualSegmentComparison(
                 oPage: pagesOriginal[pageIndex],
