@@ -159,7 +159,7 @@ public static class ODSPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Metadata, false, errors: [error]);
                 }
             }
             // Check for empty pages
@@ -198,7 +198,9 @@ public static class ODSPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             Error error;
-
+            
+            var compResult = new ComparisonResult(pair);
+            
             var failedToExtract = false;
             var equalNumberOfImages = false;
 
@@ -216,9 +218,9 @@ public static class ODSPipelines
                 failedToExtract = true;
             }
             
-            ComperingMethods.CompareFonts(pair);
+            ComperingMethods.CompareFonts(pair, ref compResult);
             
-            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair);
 
@@ -230,7 +232,7 @@ public static class ODSPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 } else if (res.Value)
                 {
                     //For now only printing to console
@@ -240,22 +242,22 @@ public static class ODSPipelines
                             ErrorSeverity.Medium,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 }
                 else
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
+                    compResult.AddTestResult(Methods.Size, true);
                 }
             }
 
             if (!failedToExtract)
             {
-                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile.Name))
+                if (GlobalVariables.Options.GetMethod(Methods.ColorProfile))
                 {
                     if (equalNumberOfImages)
                     {
                         BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                            tempFoldersForImages.Item2, pair);
+                            tempFoldersForImages.Item2, pair, ref compResult);
                     }
                     else
                     {
@@ -266,7 +268,7 @@ public static class ODSPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
                     }
                 }
             }
@@ -279,14 +281,14 @@ public static class ODSPipelines
                     ErrorSeverity.High,
                     ErrorType.FileError
                 );
-                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
+                compResult.AddTestResult("Image Extraction", false, errors: [error]);
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
             {
                 if (equalNumberOfImages)
                 {
-                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                    ExtractedImageMetadata.CompareExtractedImages(pair, ref compResult, tempFoldersForImages.Item1,
                         tempFoldersForImages.Item2);
                 }
                 else
@@ -298,9 +300,11 @@ public static class ODSPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Metadata, false, errors: [error]);
                 }
             }
+            
+            GlobalVariables.Logger.AddComparisonResult(compResult);
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             

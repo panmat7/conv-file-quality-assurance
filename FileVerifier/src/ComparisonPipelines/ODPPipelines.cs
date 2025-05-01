@@ -230,6 +230,7 @@ public static class OdpPipelines
         BasePipeline.ExecutePipeline(() =>
         {
             Error error;
+            var compResult = new ComparisonResult(pair);
 
             var failedToExtract = false;
             var equalNumberOfImages = false;
@@ -248,7 +249,7 @@ public static class OdpPipelines
                 failedToExtract = true;
             }
 
-            ComperingMethods.CompareFonts(pair);
+            ComperingMethods.CompareFonts(pair, ref compResult);
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages.Name))
             {
@@ -262,7 +263,7 @@ public static class OdpPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.Pages, false, errors: [error]);
                         break;
                     case > 0:
                         error = new Error(
@@ -272,15 +273,15 @@ public static class OdpPipelines
                             ErrorType.FileError,
                             $"{diff}"
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.Pages, false, errors: [error]);
                         break;
                     default:
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.Pages.Name, true);
+                        compResult.AddTestResult(Methods.Pages, true);
                         break;
                 }
             }
             
-            if (GlobalVariables.Options.GetMethod(Methods.Size.Name))
+            if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
                 var res = ComperingMethods.CheckFileSizeDifference(pair);
 
@@ -292,7 +293,7 @@ public static class OdpPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 } else if (res.Value)
                 {
                     error = new Error(
@@ -301,11 +302,11 @@ public static class OdpPipelines
                             ErrorSeverity.Medium,
                             ErrorType.FileError
                         );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Size, false, errors: [error]);
                 }
                 else
                 {
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Size.Name, true);
+                    compResult.AddTestResult(Methods.Size, true);
                 }
             }
 
@@ -316,7 +317,7 @@ public static class OdpPipelines
                     if (equalNumberOfImages)
                     {
                         BasePipeline.CheckColorProfiles(tempFoldersForImages.Item1,
-                            tempFoldersForImages.Item2, pair);
+                            tempFoldersForImages.Item2, pair, ref compResult);
                     }
                     else
                     {
@@ -327,7 +328,7 @@ public static class OdpPipelines
                             ErrorSeverity.High,
                             ErrorType.FileError
                         );
-                        GlobalVariables.Logger.AddTestResult(pair, Methods.ColorProfile.Name, false, errors: [error]);
+                        compResult.AddTestResult(Methods.ColorProfile, false, errors: [error]);
                     }
                 }
             }
@@ -340,14 +341,14 @@ public static class OdpPipelines
                     ErrorSeverity.High,
                     ErrorType.FileError
                 );
-                GlobalVariables.Logger.AddTestResult(pair, "Image Extraction", false, errors: [error]);
+                compResult.AddTestResult("Image Extraction", false, errors: [error]);
             }
             
             if (GlobalVariables.Options.GetMethod(Methods.Metadata.Name))
             {
                 if (equalNumberOfImages)
                 {
-                    ExtractedImageMetadata.CompareExtractedImages(pair, tempFoldersForImages.Item1,
+                    ExtractedImageMetadata.CompareExtractedImages(pair, ref compResult, tempFoldersForImages.Item1,
                         tempFoldersForImages.Item2);
                 }
                 else
@@ -359,9 +360,11 @@ public static class OdpPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    GlobalVariables.Logger.AddTestResult(pair, Methods.Transparency.Name, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
                 }
             }
+            
+            GlobalVariables.Logger.AddComparisonResult(compResult);
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
             
