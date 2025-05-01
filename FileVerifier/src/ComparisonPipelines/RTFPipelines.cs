@@ -16,7 +16,7 @@ public static class RtfPipelines
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetRtfPipeline(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetRtfPipeline(string? outputFormat)
     {
         if (FormatCodes.PronomCodesTextDocuments.Contains(outputFormat))
             return RtfToTextDocPipeline;
@@ -47,10 +47,10 @@ public static class RtfPipelines
             var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
             try
             {
-                ImageExtraction.ExtractImagesToDisk(pair.OriginalFilePath, pair.OriginalFileFormat, tempFoldersForImages.Item1);
-                ImageExtraction.ExtractImagesToDisk(pair.NewFilePath, pair.NewFileFormat, tempFoldersForImages.Item2);
+                ImageExtractionToDisk.ExtractImagesToDisk(pair.OriginalFilePath, pair.OriginalFileFormat, tempFoldersForImages.Item1);
+                ImageExtractionToDisk.ExtractImagesToDisk(pair.NewFilePath, pair.NewFileFormat, tempFoldersForImages.Item2);
                 // Some checks will be skipped if the number of images is not equal
-                equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                equalNumberOfImages = ImageExtractionToDisk.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
                     tempFoldersForImages.Item2);
             }
             catch (Exception)

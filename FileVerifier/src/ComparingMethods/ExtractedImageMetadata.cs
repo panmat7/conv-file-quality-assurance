@@ -99,7 +99,7 @@ public static class ExtractedImageMetadata
     /// </summary>
     /// <param name="extension">The string extention (without the dot).</param>
     /// <returns>The first PRONOM code of the list.</returns>
-    private static string ExtensionToPronom(string extension)
+    private static string? ExtensionToPronom(string extension)
     {
         return extension switch
         {

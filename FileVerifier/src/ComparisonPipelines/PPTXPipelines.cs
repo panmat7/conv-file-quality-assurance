@@ -16,7 +16,7 @@ public static class PptxPipelines
     /// </summary>
     /// <param name="outputFormat">Format of the converted file</param>
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
-    public static Action<FilePair, int, Action<int>, Action>? GetPptxPipeline(string outputFormat)
+    public static Action<FilePair, int, Action<int>, Action>? GetPptxPipeline(string? outputFormat)
     {
         if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
             return PptxToPdfPipeline;
@@ -48,10 +48,10 @@ public static class PptxPipelines
             var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
             try
             {
-                ImageExtraction.ExtractImagesFromXmlBasedPowerPointToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
-                ImageExtraction.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
+                ImageExtractionToDisk.ExtractImagesFromXmlBasedPowerPointToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+                ImageExtractionToDisk.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
                 // Some checks will be skipped if the number of images is not equal
-                equalNumberOfImages = ImageExtraction.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                equalNumberOfImages = ImageExtractionToDisk.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
                     tempFoldersForImages.Item2);
             }
             catch (Exception)

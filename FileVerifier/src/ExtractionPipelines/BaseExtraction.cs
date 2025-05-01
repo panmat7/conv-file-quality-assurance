@@ -53,7 +53,7 @@ public static class BaseExtraction
     /// </summary>
     /// <param name="format">Format of the file.</param>
     /// <returns>The pipeline function.</returns>
-    public static Func<SingleFile, Action, Action, Dictionary<string, string>?>? SelectPipeline(string format)
+    public static Func<SingleFile, Action, Action, Dictionary<string, string>?>? SelectPipeline(string? format)
     {
         if (FormatCodes.PronomCodesImages.Contains(format))
             return ImageExtractionPipeline;

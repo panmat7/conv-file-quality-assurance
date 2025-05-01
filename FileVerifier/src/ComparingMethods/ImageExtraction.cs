@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using ImageMagick;
 using UglyToad.PdfPig;
@@ -21,7 +22,7 @@ using SixLabors.ImageSharp.Formats.Tiff;
 
 namespace AvaloniaDraft.ComparingMethods;
 
-public static class ImageExtraction
+public static class ImageExtractionToDisk
 {
     private const string ImageMimeTypePrefix = "image/";
     
@@ -93,74 +94,6 @@ public static class ImageExtraction
         return Convert.ToBase64String(hashBytes);
     }
     
-    /// <summary>
-    /// Extracts all non-duplicate images from a pdf in MagickImage format
-    /// </summary>
-    /// <param name="filePath"></param>
-    /// <returns></returns>
-    [Obsolete("This method is obsolete. Use ExtractImagesFromPdfToDisk instead.")]
-    public static List<MagickImage> ExtractImagesFromPdf(string filePath)
-    {
-        var pdfImages = GetNonDuplicatePdfImages(filePath);
-        return ConvertPdfImagesToMagickImages(pdfImages);
-    }
-    
-    /// <summary>
-    /// Gets all non duplicate Pdf images from a document
-    /// </summary>
-    /// <param name="filePath"></param>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <returns></returns>
-    [Obsolete]
-    public static List<IPdfImage> GetNonDuplicatePdfImages(string filePath)
-    {
-        var extractedImages = new List<IPdfImage>();
-    
-        // Hash set to store the hash of the image content to avoid duplicates where the same image is used multiple times
-        var imageHashes = new HashSet<string>();
-    
-        using var pdfDocument = PdfDocument.Open(filePath);
-        foreach (var page in pdfDocument.GetPages())
-        {
-            var images = page.GetImages().ToList();
-            
-            // Only extract images that are not already in the hash set
-            extractedImages.AddRange(from image in images
-                let hash = ComputeHash(image.RawBytes)
-                where imageHashes.Add(hash)
-                select image);
-        }
-        return extractedImages;
-    }
-
-    /// <summary>
-    /// Converts the images from a pdf to MagickImage which is used for color profile comparison
-    /// </summary>
-    /// <param name="pdfImages"></param>
-    /// <returns></returns>
-    [Obsolete]
-    public static List<MagickImage> ConvertPdfImagesToMagickImages(List<IPdfImage> pdfImages)
-    {
-        var magickImages = new List<MagickImage>();
-        
-        // Only extract images that are not already in the hash set
-        foreach (var image in pdfImages)
-        {
-            if (image.TryGetPng(out var pngBytes))
-            {
-                var magickImage = new MagickImage(pngBytes);
-                magickImages.Add(magickImage);
-            }
-            else
-            {
-                var magickImage = new MagickImage(image.RawBytes);
-                magickImages.Add(magickImage);
-            }
-        }
-
-        return magickImages;
-    }
-    
     /****************************************************OPEN DOCUMENT IMAGES****************************************************/
     
     /// <summary>
@@ -172,36 +105,32 @@ public static class ImageExtraction
     {
         using var zip = ZipFile.OpenRead(filePath);
 
-        foreach (var entry in zip.Entries.Where(e => e.FullName.StartsWith("Pictures/", StringComparison.OrdinalIgnoreCase)))
+        var entries = zip.Entries.Where(e =>
+            (e.FullName.StartsWith("Pictures/", StringComparison.OrdinalIgnoreCase) ||
+             e.FullName.StartsWith("media/", StringComparison.OrdinalIgnoreCase)) &&
+            !e.FullName.Contains("/../", StringComparison.OrdinalIgnoreCase));
+        
+        foreach (var entry in entries)
         {
-            var outputPath = Path.Combine(outputDirectory, Path.GetFileName(entry.FullName));
-            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-            entry.ExtractToFile(outputPath, true);
-        }
-    }
-    
-    /// <summary>
-    /// Extracts images frm OpenDocument files
-    /// </summary>
-    /// <param name="filePath"></param>
-    /// <returns></returns>
-    [Obsolete("This method is obsolete. Use ExtractImagesFromOpenDocumentsToDisk instead.")]
-    public static List<MagickImage> ExtractImagesFromOpenDocuments(string filePath)
-    {
-        using var zip = ZipFile.OpenRead(filePath);
-
-        var images = zip.Entries
-            .Where(e => e.FullName.StartsWith("Pictures/", StringComparison.OrdinalIgnoreCase))
-            .Select(e =>
+            var fileName = Path.GetFileName(entry.FullName);
+            // Skip filenames that are '..' or contain '..' which could be used for traversal
+            if (fileName == ".." || fileName.Contains(".."))
             {
-                using var stream = e.Open();
-                using var memoryStream = new MemoryStream();
-                stream.CopyTo(memoryStream);
-                return new MagickImage(memoryStream.ToArray());
-            })
-            .ToList();
+                continue;
+            }
 
-        return images;
+            var outputPath = Path.Combine(outputDirectory, fileName);
+            var fullOutputPath = Path.GetFullPath(outputPath);
+            var fullOutputDir = Path.GetFullPath(outputDirectory.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar);
+
+            if (!fullOutputPath.StartsWith(fullOutputDir, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new IOException("Attempted to extract a file outside the output directory.");
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(fullOutputPath)!);
+            entry.ExtractToFile(fullOutputPath, true);
+        }
     }
     
     /****************************************************RTF IMAGES****************************************************/
@@ -223,7 +152,7 @@ public static class ImageExtraction
     }
     
     /// <summary>
-    /// Traverses elements in the DOM tree of a RTF document to find images and save them to disk.
+    /// Traverses elements in the DOM tree of an RTF document to find images and save them to disk.
     /// </summary>
     /// <param name="docElements"></param>
     /// <param name="outputDirectory"></param>
@@ -268,82 +197,10 @@ public static class ImageExtraction
         }
     }
     
-    /// <summary>
-    /// Extracts images from .rtf files
-    /// </summary>
-    /// <param name="filePath"></param>
-    /// <returns></returns>
-    [Obsolete]
-    public static List<MagickImage> ExtractImagesFromRtf(string filePath)
-    {
-        var images = new List<MagickImage>();
-        var imageHashes = new HashSet<string>();
-
-        var doc = new RTFDomDocument();
-        doc.Load(filePath);
-
-        // Recursively search for images in all elements in the document
-        TraverseElements(doc.Elements, images, imageHashes);
-
-        return images;
-    }
-
-    /// <summary>
-    /// Traverses items recursively to find images in RTF documents
-    /// </summary>
-    /// <param name="elements"></param>
-    /// <param name="images"></param>
-    /// <param name="imageHashes"></param>
-    [Obsolete]
-    private static void TraverseElements(
-        RTFDomElementList elements,
-        List<MagickImage> images,
-        HashSet<string> imageHashes)
-    {
-        foreach (var element in elements)
-        {
-            switch (element)
-            {
-                case RTFDomImage image:
-                {
-                    // Deduplicate images using a hash
-                    var hash = Convert.ToBase64String(MD5.HashData(image.Data));
-                    if (!imageHashes.Contains(hash))
-                    {
-                        var magickImage = new MagickImage(image.Data);
-                        images.Add(magickImage);
-                        imageHashes.Add(hash);
-                    }
-                    break;
-                }
-                case RTFDomShapeGroup shapeGroup:
-                    // Check if the shape group contains child elements (like images)
-                    TraverseElements(shapeGroup.Elements, images, imageHashes);
-                    break;
-                case RTFDomParagraph paragraph:
-                    // Paragraphs might contain nested elements (e.g., shapes/images)
-                    TraverseElements(paragraph.Elements, images, imageHashes);
-                    break;
-                case RTFDomTableCell cell:
-                    // Cells might contain nested elements (e.g., paragraphs)
-                    TraverseElements(cell.Elements, images, imageHashes);
-                    break;
-                case RTFDomTableRow row:
-                    // Rows might contain nested elements (e.g., cells)
-                    TraverseElements(row.Elements, images, imageHashes);
-                    break;
-                case RTFDomTable table:
-                    // Tables might contain nested elements (e.g., rows)
-                    TraverseElements(table.Elements, images, imageHashes);
-                    break;
-            }
-        }
-    }
-    
     /****************************************************EMAIL IMAGES****************************************************/
 
     /// <summary>
-    /// Extracts images from a eml file to disk
+    /// Extracts images from an eml file to disk
     /// </summary>
     /// <param name="filePath"></param>
     /// <param name="outputDirectory"></param>
@@ -407,77 +264,6 @@ public static class ImageExtraction
         }
     }
     
-    /// <summary>
-    /// Extracts images from .eml files
-    /// </summary>
-    /// <param name="filePath"></param>
-    /// <returns></returns>
-    [Obsolete]
-    public static List<MagickImage> ExtractImagesFromEml(string filePath)
-    {
-        var images = new List<MagickImage>();
-        var imageHashes = new HashSet<string>();
-
-        var message = MimeMessage.Load(filePath);
-
-        if (message.Body is not Multipart multipart) return images;
-
-        foreach (var part in multipart)
-        {
-            switch (part)
-            {
-                // If the part is a multipart/related, we extract images from it
-                case MultipartRelated related:
-                    ExtractImagesFromMultipartRelated(related, images, imageHashes);
-                    break;
-                // If the part is an image, we extract it
-                case MimePart mimeAttachment when mimeAttachment.ContentType.MimeType.StartsWith(ImageMimeTypePrefix):
-                    ExtractImageFromMimePart(mimeAttachment, images, imageHashes);
-                    break;
-            }
-        }
-
-        return images;
-    }
-
-    /// <summary>
-    /// Extracts images from a MultipartRelated
-    /// </summary>
-    /// <param name="related"></param>
-    /// <param name="images"></param>
-    /// <param name="imageHashes"></param>
-    [Obsolete]
-    private static void ExtractImagesFromMultipartRelated(MultipartRelated related, List<MagickImage> images, HashSet<string> imageHashes)
-    {
-        foreach (var resource in related)
-        {
-            if (resource is MimePart mimePart && mimePart.ContentType.MimeType.StartsWith(ImageMimeTypePrefix))
-            {
-                ExtractImageFromMimePart(mimePart, images, imageHashes);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Extracts an image from a MimePart
-    /// </summary>
-    /// <param name="mimePart"></param>
-    /// <param name="images"></param>
-    /// <param name="imageHashes"></param>
-    [Obsolete]
-    private static void ExtractImageFromMimePart(MimePart mimePart, List<MagickImage> images, HashSet<string> imageHashes)
-    {
-        using var memoryStream = new MemoryStream();
-        mimePart.Content.DecodeTo(memoryStream);
-        memoryStream.Position = 0;
-
-        var hash = Convert.ToBase64String(MD5.HashData(memoryStream.ToArray()));
-        if (!imageHashes.Add(hash)) return;
-
-        var magickImage = new MagickImage(memoryStream.ToArray());
-        images.Add(magickImage);
-    }
-    
     /****************************************************XML BASED POWERPOINT IMAGES****************************************************/
     
     /// <summary>
@@ -489,36 +275,28 @@ public static class ImageExtraction
     {
         using var zip = ZipFile.OpenRead(filePath);
 
-        foreach (var entry in zip.Entries.Where(e => e.FullName.StartsWith("ppt/media/", StringComparison.OrdinalIgnoreCase)))
+        foreach (var entry in zip.Entries.Where(e => 
+                     e.FullName.StartsWith("ppt/media/", StringComparison.OrdinalIgnoreCase) &&
+                     !e.FullName.Contains("/../", StringComparison.OrdinalIgnoreCase)))
         {
-            var outputPath = Path.Combine(outputDirectory, Path.GetFileName(entry.FullName));
-            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-            entry.ExtractToFile(outputPath, true);
-        }
-    }
-    
-    /// <summary>
-    /// Extracts all images from a xml based PowerPoint format
-    /// </summary>
-    /// <param name="filePath"></param>
-    /// <returns></returns>
-    [Obsolete]
-    public static List<MagickImage> ExtractImagesFromXmlBasedPowerPoint(string filePath)
-    {
-        using var zip = ZipFile.OpenRead(filePath);
-    
-        var images = zip.Entries
-            .Where(e => e.FullName.StartsWith("ppt/media/", StringComparison.OrdinalIgnoreCase))
-            .Select(e =>
+            var fileName = Path.GetFileName(entry.FullName);
+            if (fileName == ".." || fileName.Contains(".."))
             {
-                using var stream = e.Open();
-                using var memoryStream = new MemoryStream();
-                stream.CopyTo(memoryStream);
-                return new MagickImage(memoryStream.ToArray());
-            })
-            .ToList();
-    
-        return images;
+                continue;
+            }
+
+            var outputPath = Path.Combine(outputDirectory, fileName);
+            var fullOutputPath = Path.GetFullPath(outputPath);
+            var fullOutputDir = Path.GetFullPath(outputDirectory.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar);
+
+            if (!fullOutputPath.StartsWith(fullOutputDir, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new IOException("Attempted to extract PowerPoint image outside output directory");
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(fullOutputPath)!);
+            entry.ExtractToFile(fullOutputPath, true);
+        }
     }
     
     /****************************************************DOCX IMAGES****************************************************/
@@ -531,37 +309,29 @@ public static class ImageExtraction
     public static void ExtractImagesFromDocxToDisk(string filePath, string outputDirectory)
     {
         using var zip = ZipFile.OpenRead(filePath);
-    
-        foreach (var entry in zip.Entries.Where(e => e.FullName.StartsWith("word/media/", StringComparison.OrdinalIgnoreCase)))
+
+        foreach (var entry in zip.Entries.Where(e => 
+                     e.FullName.StartsWith("word/media/", StringComparison.OrdinalIgnoreCase) &&
+                     !e.FullName.Contains("/../", StringComparison.OrdinalIgnoreCase)))
         {
-            var outputPath = Path.Combine(outputDirectory, Path.GetFileName(entry.FullName));
-            Directory.CreateDirectory(outputDirectory);
-            entry.ExtractToFile(outputPath, true);
-        }
-    }
-    
-    /// <summary>
-    /// Extracts all images from a .docx file
-    /// </summary>
-    /// <param name="filePath"></param>
-    /// <returns></returns>
-    [Obsolete]
-    public static List<MagickImage> ExtractImagesFromDocx(string filePath)
-    {
-        using var zip = ZipFile.OpenRead(filePath);
-
-        var images = zip.Entries
-            .Where(e => e.FullName.StartsWith("word/media/", StringComparison.OrdinalIgnoreCase))
-            .Select(e =>
+            var fileName = Path.GetFileName(entry.FullName);
+            if (fileName == ".." || fileName.Contains(".."))
             {
-                using var stream = e.Open();
-                using var memoryStream = new MemoryStream();
-                stream.CopyTo(memoryStream);
-                return new MagickImage(memoryStream.ToArray());
-            })
-            .ToList();
+                continue;
+            }
 
-        return images;
+            var outputPath = Path.Combine(outputDirectory, fileName);
+            var fullOutputPath = Path.GetFullPath(outputPath);
+            var fullOutputDir = Path.GetFullPath(outputDirectory.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar);
+
+            if (!fullOutputPath.StartsWith(fullOutputDir, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new IOException("Attempted to extract DOCX image outside output directory");
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(fullOutputPath)!);
+            entry.ExtractToFile(fullOutputPath, true);
+        }
     }
     
     /****************************************************XLSX IMAGES****************************************************/
@@ -574,128 +344,90 @@ public static class ImageExtraction
     public static void ExtractImagesFromXlsxToDisk(string filePath, string outputDirectory)
     {
         using var zip = ZipFile.OpenRead(filePath);
-        
-        foreach (var entry in zip.Entries.Where(e => e.FullName.StartsWith("xl/media/", StringComparison.OrdinalIgnoreCase)))
-        {
-            var outputPath = Path.Combine(outputDirectory, Path.GetFileName(entry.FullName));
-            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-            entry.ExtractToFile(outputPath, true);
-        }
-    }
     
-    /// <summary>
-    /// Extracts all images from a .xlsx file
-    /// </summary>
-    /// <param name="filePath"></param>
-    /// <returns></returns>
-    [Obsolete]
-    public static List<MagickImage> ExtractImagesFromXlsx(string filePath)
-    {
-        using var zip = ZipFile.OpenRead(filePath);
-
-        var images = zip.Entries
-            .Where(e => e.FullName.StartsWith("xl/media/", StringComparison.OrdinalIgnoreCase))
-            .Select(e =>
+        foreach (var entry in zip.Entries.Where(e => 
+                     e.FullName.StartsWith("xl/media/", StringComparison.OrdinalIgnoreCase) &&
+                     !e.FullName.Contains("/../", StringComparison.OrdinalIgnoreCase)))
+        {
+            var fileName = Path.GetFileName(entry.FullName);
+            if (fileName == ".." || fileName.Contains(".."))
             {
-                using var stream = e.Open();
-                using var memoryStream = new MemoryStream();
-                stream.CopyTo(memoryStream);
-                return new MagickImage(memoryStream.ToArray());
-            })
-            .ToList();
+                continue;
+            }
 
-        return images;
+            var outputPath = Path.Combine(outputDirectory, fileName);
+            var fullOutputPath = Path.GetFullPath(outputPath);
+            var fullOutputDir = Path.GetFullPath(outputDirectory.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar);
+
+            if (!fullOutputPath.StartsWith(fullOutputDir, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new IOException("Attempted to extract XLSX image outside output directory");
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(fullOutputPath)!);
+            entry.ExtractToFile(fullOutputPath, true);
+        }
     }
     
     /// <summary>
-    /// This function returns a list of all image names used in a xlsx spreadsheet. This is mostly used to determine which
-    /// images are drawn inside of cells. Images inside of cells do not store data on color profile and so a way to ignore
-    /// these images is necessary. Getting the names of the images inside of cells is not possible so instead names of all
-    /// other images are found to filter them out.
+    /// Returns the expected PRONOM code for the given magick image format.
     /// </summary>
-    /// <param name="filePath"></param>
+    /// <param name="oFormat"></param>
     /// <returns></returns>
-    [Obsolete]
-    public static List<string> GetNonAnchoredImagesFromXlsx(string filePath)
+    public static string? GetExpectedPronomFromImage(MagickFormat oFormat)
     {
-        var imageNames = new List<string>();
-
-        using (var archive = ZipFile.Open(filePath, ZipArchiveMode.Read))
+        string? expectedPronom; //Note that this might not be the exact code, but it should serve to distinguish format group.
+        switch (oFormat)
         {
-            var drawingEntries = archive.Entries
-                .Where(entry => entry.FullName.StartsWith("xl/drawings/drawing") && entry.FullName.EndsWith(".xml"));
-
-            imageNames.AddRange(from entry in drawingEntries let doc = LoadXDocument(entry) 
-                let blipElements = GetBlipElements(doc) from blip in blipElements 
-                let embedId = blip
-                    .Attribute(XNamespace.Get("http://schemas.openxmlformats.org/officeDocument/2006/relationships") 
-                               + "embed")?.Value where !string.IsNullOrEmpty(embedId) 
-                let relsEntry = GetRelsEntry(archive, entry) select GetRelationship(relsEntry, embedId) 
-                into relationship select (string)relationship?.Attribute("Target")! into target 
-                select Path.GetFileName(target));
+            case MagickFormat.Png:
+                expectedPronom = FormatCodes.PronomCodesPNG.FormatCodes[0];
+                break;
+            case MagickFormat.Jpeg:
+                expectedPronom = FormatCodes.PronomCodesJPEG.FormatCodes[0];
+                break;
+            case MagickFormat.Gif:
+                expectedPronom = FormatCodes.PronomCodesGIF.FormatCodes[0];
+                break;
+            case MagickFormat.Tiff:
+                expectedPronom = FormatCodes.PronomCodesTIFF.FormatCodes[0];
+                break;
+            case MagickFormat.Bmp:
+                expectedPronom = FormatCodes.PronomCodesBMP.FormatCodes[0];
+                break;
+            default:
+                return null;
         }
-        return imageNames.Distinct().ToList(); // Ensure unique names
+        return expectedPronom;
     }
-
+    
     /// <summary>
-    /// Load an XDocument from a ZipArchiveEntry
+    /// Deletes all saved files/images in the given directory.
     /// </summary>
-    /// <param name="entry"></param>
-    /// <returns></returns>
-    [Obsolete]
-    private static XDocument LoadXDocument(ZipArchiveEntry entry)
+    /// <param name="directory"></param>
+    public static void DeleteSavedFiles(string directory)
     {
-        using var stream = entry.Open();
-        using var reader = new StreamReader(stream);
-        return XDocument.Load(reader);
+        if (!Directory.Exists(directory)) return;
+        var files = Directory.GetFiles(directory);
+        foreach (var file in files)
+        {
+            File.Delete(file);
+        }
     }
-
+    
     /// <summary>
-    /// Get all blip elements from a drawing XML
+    /// Checks if two directories have the same number of images.
     /// </summary>
-    /// <param name="doc"></param>
+    /// <param name="dir1"></param>
+    /// <param name="dir2"></param>
     /// <returns></returns>
-    [Obsolete]
-    private static IEnumerable<XElement> GetBlipElements(XDocument doc)
+    public static bool CheckIfEqualNumberOfImages(string dir1, string dir2)
     {
-        XNamespace a = "http://schemas.openxmlformats.org/drawingml/2006/main";
-        return doc.Descendants(a + "blip");
-    }
+        var oFiles = Directory.GetFiles(dir1).ToArray();
+        var nFiles = Directory.GetFiles(dir2).ToArray();
 
-    /// <summary>
-    /// Get the _rels entry for a drawing entry
-    /// </summary>
-    /// <param name="archive"></param>
-    /// <param name="entry"></param>
-    /// <returns></returns>
-    [Obsolete]
-    private static ZipArchiveEntry? GetRelsEntry(ZipArchive archive, ZipArchiveEntry entry)
-    {
-        var drawingDir = Path.GetDirectoryName(entry.FullName)?.Replace('\\', '/');
-        var relsPath = $"{drawingDir}/_rels/{Path.GetFileName(entry.FullName)}.rels";
-        return archive.GetEntry(relsPath);
+        return oFiles.Length == nFiles.Length;
     }
-
-    /// <summary>
-    /// Get the relationship for an embedId
-    /// </summary>
-    /// <param name="relsEntry"></param>
-    /// <param name="embedId"></param>
-    /// <returns></returns>
-    [Obsolete]
-    private static XElement? GetRelationship(ZipArchiveEntry? relsEntry, string embedId)
-    {
-        using var relsStream = relsEntry?.Open();
-        if (relsStream == null) return null;
-        using var relsReader = new StreamReader(relsStream);
-        var relsDoc = XDocument.Load(relsReader);
-        XNamespace relsNs = "http://schemas.openxmlformats.org/package/2006/relationships";
-        return relsDoc.Descendants(relsNs + "Relationship")
-            .FirstOrDefault(rel =>
-                (string)rel.Attribute("Id")! == embedId &&
-                (string)rel.Attribute("Type")! == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
-    }
-
+    
     /// <summary>
     /// Saves an MagickImage object as an actual image to disk. 
     /// </summary>
@@ -703,12 +435,14 @@ public static class ImageExtraction
     /// <param name="oFormat">Format of the original, using which the object will be encoded.</param>
     /// <returns>A tuple containing the path to the file and its expected PRONOM code, null if an error occured</returns>
     [Obsolete]
+    [ExcludeFromCodeCoverage]
     public static (string, string)? SaveExtractedMagickImageToDisk(MagickImage image, MagickFormat oFormat)
     {
         try
         {
             string ext;
-            string expectedPronom; //Note that this might not be the exact code, but it should serve to distinguish format group.
+            string?
+                expectedPronom; //Note that this might not be the exact code, but it should serve to distinguish format group.
             switch (oFormat)
             {
                 case MagickFormat.Png:
@@ -751,7 +485,7 @@ public static class ImageExtraction
             var tempFilePath = TempFiles.CreateTemporaryFile(nImageBytes, tempDirs.Item2, ext);
 
             if (tempFilePath == null) return null;
-            
+
             return (tempFilePath, expectedPronom);
         }
         catch
@@ -759,38 +493,405 @@ public static class ImageExtraction
             return null;
         }
     }
+}
+
+[Obsolete("This class is obsolete. Use ImageExtractionToDisk instead.")]
+[ExcludeFromCodeCoverage]
+public static class ImageExtractionToMemory
+{
+    private const string ImageMimeTypePrefix = "image/";
     
     /// <summary>
-    /// Returns the expected PRONOM code for the given magick image format.
+    /// Extracts all non-duplicate images from a pdf in MagickImage format
     /// </summary>
-    /// <param name="oFormat"></param>
+    /// <param name="filePath"></param>
     /// <returns></returns>
-    public static string GetExpectedPronomFromImage(MagickFormat oFormat)
+    public static List<MagickImage> ExtractImagesFromPdf(string filePath)
     {
-        string expectedPronom; //Note that this might not be the exact code, but it should serve to distinguish format group.
-        switch (oFormat)
-        {
-            case MagickFormat.Png:
-                expectedPronom = FormatCodes.PronomCodesPNG.FormatCodes[0];
-                break;
-            case MagickFormat.Jpeg:
-                expectedPronom = FormatCodes.PronomCodesJPEG.FormatCodes[0];
-                break;
-            case MagickFormat.Gif:
-                expectedPronom = FormatCodes.PronomCodesGIF.FormatCodes[0];
-                break;
-            case MagickFormat.Tiff:
-                expectedPronom = FormatCodes.PronomCodesTIFF.FormatCodes[0];
-                break;
-            case MagickFormat.Bmp:
-                expectedPronom = FormatCodes.PronomCodesBMP.FormatCodes[0];
-                break;
-            default:
-                return null;
-        }
-        return expectedPronom;
+        var pdfImages = GetNonDuplicatePdfImages(filePath);
+        return ConvertPdfImagesToMagickImages(pdfImages);
     }
-    
+
+    /// <summary>
+    /// Gets all non duplicate Pdf images from a document
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <returns></returns>
+    public static List<IPdfImage> GetNonDuplicatePdfImages(string filePath)
+    {
+        var extractedImages = new List<IPdfImage>();
+
+        // Hash set to store the hash of the image content to avoid duplicates where the same image is used multiple times
+        var imageHashes = new HashSet<string>();
+
+        using var pdfDocument = PdfDocument.Open(filePath);
+        foreach (var page in pdfDocument.GetPages())
+        {
+            var images = page.GetImages().ToList();
+
+            // Only extract images that are not already in the hash set
+            extractedImages.AddRange(from image in images
+                let hash = ComputeHash(image.RawBytes)
+                where imageHashes.Add(hash)
+                select image);
+        }
+
+        return extractedImages;
+    }
+
+    /// <summary>
+    /// Converts the images from a pdf to MagickImage which is used for color profile comparison
+    /// </summary>
+    /// <param name="pdfImages"></param>
+    /// <returns></returns>
+    public static List<MagickImage> ConvertPdfImagesToMagickImages(List<IPdfImage> pdfImages)
+    {
+        var magickImages = new List<MagickImage>();
+
+        // Only extract images that are not already in the hash set
+        foreach (var image in pdfImages)
+        {
+            if (image.TryGetPng(out var pngBytes))
+            {
+                var magickImage = new MagickImage(pngBytes);
+                magickImages.Add(magickImage);
+            }
+            else
+            {
+                var magickImage = new MagickImage(image.RawBytes);
+                magickImages.Add(magickImage);
+            }
+        }
+
+        return magickImages;
+    }
+
+    /// <summary>
+    /// Extracts images frm OpenDocument files
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static List<MagickImage> ExtractImagesFromOpenDocuments(string filePath)
+    {
+        using var zip = ZipFile.OpenRead(filePath);
+
+        var images = zip.Entries
+            .Where(e => e.FullName.StartsWith("Pictures/", StringComparison.OrdinalIgnoreCase))
+            .Select(e =>
+            {
+                using var stream = e.Open();
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return new MagickImage(memoryStream.ToArray());
+            })
+            .ToList();
+
+        return images;
+    }
+
+    /// <summary>
+    /// Extracts images from .rtf files
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static List<MagickImage> ExtractImagesFromRtf(string filePath)
+    {
+        var images = new List<MagickImage>();
+        var imageHashes = new HashSet<string>();
+
+        var doc = new RTFDomDocument();
+        doc.Load(filePath);
+
+        // Recursively search for images in all elements in the document
+        TraverseElements(doc.Elements, images, imageHashes);
+
+        return images;
+    }
+
+    /// <summary>
+    /// Traverses items recursively to find images in RTF documents
+    /// </summary>
+    /// <param name="elements"></param>
+    /// <param name="images"></param>
+    /// <param name="imageHashes"></param>
+    private static void TraverseElements(
+        RTFDomElementList elements,
+        List<MagickImage> images,
+        HashSet<string> imageHashes)
+    {
+        foreach (var element in elements)
+        {
+            switch (element)
+            {
+                case RTFDomImage image:
+                {
+                    // Deduplicate images using a hash
+                    var hash = Convert.ToBase64String(MD5.HashData(image.Data));
+                    if (!imageHashes.Contains(hash))
+                    {
+                        var magickImage = new MagickImage(image.Data);
+                        images.Add(magickImage);
+                        imageHashes.Add(hash);
+                    }
+
+                    break;
+                }
+                case RTFDomShapeGroup shapeGroup:
+                    // Check if the shape group contains child elements (like images)
+                    TraverseElements(shapeGroup.Elements, images, imageHashes);
+                    break;
+                case RTFDomParagraph paragraph:
+                    // Paragraphs might contain nested elements (e.g., shapes/images)
+                    TraverseElements(paragraph.Elements, images, imageHashes);
+                    break;
+                case RTFDomTableCell cell:
+                    // Cells might contain nested elements (e.g., paragraphs)
+                    TraverseElements(cell.Elements, images, imageHashes);
+                    break;
+                case RTFDomTableRow row:
+                    // Rows might contain nested elements (e.g., cells)
+                    TraverseElements(row.Elements, images, imageHashes);
+                    break;
+                case RTFDomTable table:
+                    // Tables might contain nested elements (e.g., rows)
+                    TraverseElements(table.Elements, images, imageHashes);
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extracts images from .eml files
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static List<MagickImage> ExtractImagesFromEml(string filePath)
+    {
+        var images = new List<MagickImage>();
+        var imageHashes = new HashSet<string>();
+
+        var message = MimeMessage.Load(filePath);
+
+        if (message.Body is not Multipart multipart) return images;
+
+        foreach (var part in multipart)
+        {
+            switch (part)
+            {
+                // If the part is a multipart/related, we extract images from it
+                case MultipartRelated related:
+                    ExtractImagesFromMultipartRelated(related, images, imageHashes);
+                    break;
+                // If the part is an image, we extract it
+                case MimePart mimeAttachment when mimeAttachment.ContentType.MimeType.StartsWith(ImageMimeTypePrefix):
+                    ExtractImageFromMimePart(mimeAttachment, images, imageHashes);
+                    break;
+            }
+        }
+
+        return images;
+    }
+
+    /// <summary>
+    /// Extracts images from a MultipartRelated
+    /// </summary>
+    /// <param name="related"></param>
+    /// <param name="images"></param>
+    /// <param name="imageHashes"></param>
+    private static void ExtractImagesFromMultipartRelated(MultipartRelated related, List<MagickImage> images,
+        HashSet<string> imageHashes)
+    {
+        foreach (var resource in related)
+        {
+            if (resource is MimePart mimePart && mimePart.ContentType.MimeType.StartsWith(ImageMimeTypePrefix))
+            {
+                ExtractImageFromMimePart(mimePart, images, imageHashes);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extracts an image from a MimePart
+    /// </summary>
+    /// <param name="mimePart"></param>
+    /// <param name="images"></param>
+    /// <param name="imageHashes"></param>
+    private static void ExtractImageFromMimePart(MimePart mimePart, List<MagickImage> images,
+        HashSet<string> imageHashes)
+    {
+        using var memoryStream = new MemoryStream();
+        mimePart.Content.DecodeTo(memoryStream);
+        memoryStream.Position = 0;
+
+        var hash = Convert.ToBase64String(MD5.HashData(memoryStream.ToArray()));
+        if (!imageHashes.Add(hash)) return;
+
+        var magickImage = new MagickImage(memoryStream.ToArray());
+        images.Add(magickImage);
+    }
+
+    /// <summary>
+    /// Extracts all images from a xml based PowerPoint format
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static List<MagickImage> ExtractImagesFromXmlBasedPowerPoint(string filePath)
+    {
+        using var zip = ZipFile.OpenRead(filePath);
+
+        var images = zip.Entries
+            .Where(e => e.FullName.StartsWith("ppt/media/", StringComparison.OrdinalIgnoreCase))
+            .Select(e =>
+            {
+                using var stream = e.Open();
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return new MagickImage(memoryStream.ToArray());
+            })
+            .ToList();
+
+        return images;
+    }
+
+    /// <summary>
+    /// Extracts all images from a .docx file
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static List<MagickImage> ExtractImagesFromDocx(string filePath)
+    {
+        using var zip = ZipFile.OpenRead(filePath);
+
+        var images = zip.Entries
+            .Where(e => e.FullName.StartsWith("word/media/", StringComparison.OrdinalIgnoreCase))
+            .Select(e =>
+            {
+                using var stream = e.Open();
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return new MagickImage(memoryStream.ToArray());
+            })
+            .ToList();
+
+        return images;
+    }
+
+    /// <summary>
+    /// Extracts all images from a .xlsx file
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static List<MagickImage> ExtractImagesFromXlsx(string filePath)
+    {
+        using var zip = ZipFile.OpenRead(filePath);
+
+        var images = zip.Entries
+            .Where(e => e.FullName.StartsWith("xl/media/", StringComparison.OrdinalIgnoreCase))
+            .Select(e =>
+            {
+                using var stream = e.Open();
+                using var memoryStream = new MemoryStream();
+                stream.CopyTo(memoryStream);
+                return new MagickImage(memoryStream.ToArray());
+            })
+            .ToList();
+
+        return images;
+    }
+
+    /// <summary>
+    /// This function returns a list of all image names used in a xlsx spreadsheet. This is mostly used to determine which
+    /// images are drawn inside of cells. Images inside of cells do not store data on color profile and so a way to ignore
+    /// these images is necessary. Getting the names of the images inside of cells is not possible so instead names of all
+    /// other images are found to filter them out.
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <returns></returns>
+    public static List<string> GetNonAnchoredImagesFromXlsx(string filePath)
+    {
+        var imageNames = new List<string>();
+
+        using (var archive = ZipFile.Open(filePath, ZipArchiveMode.Read))
+        {
+            var drawingEntries = archive.Entries
+                .Where(entry => entry.FullName.StartsWith("xl/drawings/drawing") && entry.FullName.EndsWith(".xml"));
+
+            imageNames.AddRange(from entry in drawingEntries
+                let doc = LoadXDocument(entry)
+                let blipElements = GetBlipElements(doc)
+                from blip in blipElements
+                let embedId = blip
+                    .Attribute(XNamespace.Get("http://schemas.openxmlformats.org/officeDocument/2006/relationships")
+                               + "embed")?.Value
+                where !string.IsNullOrEmpty(embedId)
+                let relsEntry = GetRelsEntry(archive, entry)
+                select GetRelationship(relsEntry, embedId)
+                into relationship
+                select (string)relationship?.Attribute("Target")!
+                into target
+                select Path.GetFileName(target));
+        }
+
+        return imageNames.Distinct().ToList(); // Ensure unique names
+    }
+
+    /// <summary>
+    /// Load an XDocument from a ZipArchiveEntry
+    /// </summary>
+    /// <param name="entry"></param>
+    /// <returns></returns>
+    private static XDocument LoadXDocument(ZipArchiveEntry entry)
+    {
+        using var stream = entry.Open();
+        using var reader = new StreamReader(stream);
+        return XDocument.Load(reader);
+    }
+
+    /// <summary>
+    /// Get all blip elements from a drawing XML
+    /// </summary>
+    /// <param name="doc"></param>
+    /// <returns></returns>
+    private static IEnumerable<XElement> GetBlipElements(XDocument doc)
+    {
+        XNamespace a = "http://schemas.openxmlformats.org/drawingml/2006/main";
+        return doc.Descendants(a + "blip");
+    }
+
+    /// <summary>
+    /// Get the _rels entry for a drawing entry
+    /// </summary>
+    /// <param name="archive"></param>
+    /// <param name="entry"></param>
+    /// <returns></returns>
+    private static ZipArchiveEntry? GetRelsEntry(ZipArchive archive, ZipArchiveEntry entry)
+    {
+        var drawingDir = Path.GetDirectoryName(entry.FullName)?.Replace('\\', '/');
+        var relsPath = $"{drawingDir}/_rels/{Path.GetFileName(entry.FullName)}.rels";
+        return archive.GetEntry(relsPath);
+    }
+
+    /// <summary>
+    /// Get the relationship for an embedId
+    /// </summary>
+    /// <param name="relsEntry"></param>
+    /// <param name="embedId"></param>
+    /// <returns></returns>
+    private static XElement? GetRelationship(ZipArchiveEntry? relsEntry, string embedId)
+    {
+        using var relsStream = relsEntry?.Open();
+        if (relsStream == null) return null;
+        using var relsReader = new StreamReader(relsStream);
+        var relsDoc = XDocument.Load(relsReader);
+        XNamespace relsNs = "http://schemas.openxmlformats.org/package/2006/relationships";
+        return relsDoc.Descendants(relsNs + "Relationship")
+            .FirstOrDefault(rel =>
+                (string)rel.Attribute("Id")! == embedId &&
+                (string)rel.Attribute("Type")! ==
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image");
+    }
+
     /// <summary>
     /// Disposes of all magick images after use
     /// </summary>
@@ -799,10 +900,10 @@ public static class ImageExtraction
     {
         foreach (var image in images)
         {
-            image.Dispose();            
+            image.Dispose();
         }
     }
-    
+
     /// <summary>
     /// Deletes all saved files/images in the given directory.
     /// </summary>
@@ -827,7 +928,7 @@ public static class ImageExtraction
     {
         var oFiles = Directory.GetFiles(dir1).ToArray();
         var nFiles = Directory.GetFiles(dir2).ToArray();
-        
+
         return oFiles.Length == nFiles.Length;
     }
 
@@ -836,40 +937,40 @@ public static class ImageExtraction
     /// </summary>
     /// <param name="image">The image to be saved.</param>
     /// <returns>A tuple containing the path to the file and its expected PRONOM code, null if an error occured.</returns>
-    [Obsolete]
     public static (string, string)? SaveExtractedIPdfImageToDisk(IPdfImage image)
     {
         try
         {
             var format = FormatDeterminer.GetImageFormat(image.RawBytes.ToArray());
-            string expectedPronom; //Note that this might not be the exact code, but it should serve to distinguish format group.
+            string?
+                expectedPronom; //Note that this might not be the exact code, but it should serve to distinguish format group.
             IImageEncoder encoder;
 
             switch (format)
             {
-                case ".jpeg": 
-                    encoder = new JpegEncoder(); 
+                case ".jpeg":
+                    encoder = new JpegEncoder();
                     expectedPronom = FormatCodes.PronomCodesJPEG.FormatCodes[0];
                     break;
-                case ".png": 
-                    encoder = new PngEncoder(); 
+                case ".png":
+                    encoder = new PngEncoder();
                     expectedPronom = FormatCodes.PronomCodesPNG.FormatCodes[0];
                     break;
-                case ".bmp": 
-                    encoder = new BmpEncoder(); 
+                case ".bmp":
+                    encoder = new BmpEncoder();
                     expectedPronom = FormatCodes.PronomCodesBMP.FormatCodes[0];
                     break;
-                case ".gif": 
-                    encoder = new GifEncoder(); 
+                case ".gif":
+                    encoder = new GifEncoder();
                     expectedPronom = FormatCodes.PronomCodesGIF.FormatCodes[0];
                     break;
-                case ".tiff": 
-                    encoder = new TiffEncoder(); 
+                case ".tiff":
+                    encoder = new TiffEncoder();
                     expectedPronom = FormatCodes.PronomCodesTIFF.FormatCodes[0];
                     break;
                 default: return null;
             }
-            
+
             var tempDirs = GlobalVariables.FileManager!.GetTempDirectories();
 
             using var ms = new MemoryStream();
@@ -877,9 +978,9 @@ public static class ImageExtraction
             {
                 img.Save(ms, encoder);
             }
-                
+
             var path = TempFiles.CreateTemporaryFile(ms.ToArray(), tempDirs.Item2);
-            
+
 
             if (path == null) return null;
 
@@ -889,5 +990,16 @@ public static class ImageExtraction
         {
             return null;
         }
+    }
+    
+    /// <summary>
+    /// Computes the hash of the image content
+    /// </summary>
+    /// <param name="rawBytes"></param>
+    /// <returns></returns>
+    private static string ComputeHash(ReadOnlySpan<byte> rawBytes)
+    {
+        var hashBytes = MD5.HashData(rawBytes.ToArray());
+        return Convert.ToBase64String(hashBytes);
     }
 }

@@ -387,7 +387,7 @@ public static class MetadataStandardizer
     /// <param name="metadata">Metadata object to be standardized.</param>
     /// <param name="format">Pronom code of the image file.</param>
     /// <returns>Object containing all metadata in a standardized fashion.</returns>
-    public static StandardizedImageMetadata? StandardizeImageMetadata(ImageMetadata metadata, string format)
+    public static StandardizedImageMetadata? StandardizeImageMetadata(ImageMetadata metadata, string? format)
     {
         var standardized = new StandardizedImageMetadata
         {
