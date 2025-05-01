@@ -69,5 +69,9 @@
       <Compile Update="Views\TestAnalysisView.axaml.cs">
         <DependentUpon>TestAnalysisView.axaml</DependentUpon>
       </Compile>
+      <Compile Update="Views\Stop.axaml.cs">
+        <DependentUpon>CancelationWindow.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>
