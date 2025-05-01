@@ -131,10 +131,41 @@ public partial class TestAnalysisView : UserControl
 
         var failedComparisons = Logger.Results.Where(r => !r.Pass).ToList();
 
+
+        // Seperate expander for internal errors
+        if (Logger.InternalErrorFilePairs.Count > 0)
+        {
+            var stringBuilder = new StringBuilder();
+            foreach (var fp in Logger.InternalErrorFilePairs)
+            {
+                var oFile = System.IO.Path.GetFileName(fp.OriginalFilePath);
+                var nFile = System.IO.Path.GetFileName(fp.NewFilePath);
+                var filePairName = $"{oFile} -> {nFile}";
+                stringBuilder.AppendLine(filePairName);
+            }
+
+            var errorExpander = new Expander
+            {
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
+                Header = new TextBlock
+                {
+                    Text = $"Internal error ({Logger.InternalErrorFilePairs.Count})",
+                },
+                Content = new TextBlock
+                {
+                    Text = stringBuilder.ToString().TrimEnd(),
+                    Foreground = Brushes.White,
+                    LineHeight = 30,
+                }
+            };
+            TestExpanders.Add(errorExpander);
+        }
+
         var testExpanders = new Dictionary<string, Expander>();
         var failedComparisonsCount = new Dictionary<string, int>();
         var stringBuilders = new Dictionary<string, StringBuilder>();
         var methods = Methods.GetList();
+
         foreach (var method in methods.Select(m => m.Name))
         {
             var content = new TextBlock { Foreground = Brushes.White };
@@ -166,15 +197,16 @@ public partial class TestAnalysisView : UserControl
         }
 
 
+
         foreach (var e in testExpanders.Where(t => failedComparisonsCount[t.Key] > 0))
         {
             var method = e.Key;
             var expander = e.Value;
             TestExpanders.Add(expander);
-            expander.Header = new TextBlock { Text = $"{method} - {failedComparisonsCount[method]}" };
+            expander.Header = new TextBlock { Text = $"{method} ({failedComparisonsCount[method]})" };
             expander.Content = new TextBlock { 
                 Text = stringBuilders[method].ToString().TrimEnd(),
-                Foreground = Brushes.White, 
+                Foreground = Brushes.White,
                 LineHeight = 30,
             };
         }

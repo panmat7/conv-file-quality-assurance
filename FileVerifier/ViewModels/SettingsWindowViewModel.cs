@@ -160,7 +160,7 @@ public double SizeComparisonThreshold
         {
             if (_isFontEnabled == value) return;
             _isFontEnabled = value;
-            GlobalVariables.Options.SetMethod(Methods.Fonts.Name, value);
+            GlobalVariables.Options.SetMethod(Methods.Fonts, value);
             OnPropertyChanged(nameof(IsFontEnabled));
         }
     }

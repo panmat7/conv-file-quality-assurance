@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using AvaloniaDraft.Helpers;
+using System.IO;
 
 namespace AvaloniaDraft.FileManager;
 
@@ -120,6 +121,20 @@ public static class Siegfried
             var oFmt = originalFile?.Matches[0].id;
             var nFmt = newFile?.Matches[0].id;
 
+            // Filter out files in file pairs with at least one unsupported format
+            var oFmtUnsupported = oFmt == null || !FormatCodes.AllCodes.SelectMany(p => p.PronomCodes).Contains(oFmt) || FormatCodes.UnsupportedFormats.Contains(oFmt);
+            var nFmtUnsupported = nFmt == null || !FormatCodes.AllCodes.SelectMany(p => p.PronomCodes).Contains(nFmt) || FormatCodes.UnsupportedFormats.Contains(nFmt);
+            if (oFmtUnsupported || nFmtUnsupported)
+            {
+                filesToRemove.Add(file);
+
+                var reason = ReasonForIgnoring.UnsupportedFormat;
+                ignoredFiles.Add(new IgnoredFile(file.OriginalFilePath, reason));
+                ignoredFiles.Add(new IgnoredFile(file.NewFilePath, reason));
+
+                continue;
+            }
+
             // Filter out files in file pairs with at least one file of a disabled format
             var oFmtDisabled = (GlobalVariables.Options.GetFileFormat(oFmt) is not true);
             var nFmtDisabled = (GlobalVariables.Options.GetFileFormat(nFmt) is not true);
@@ -130,18 +145,18 @@ public static class Siegfried
                 var reason = ReasonForIgnoring.Filtered;
                 ignoredFiles.Add(new IgnoredFile(file.OriginalFilePath, reason));
                 ignoredFiles.Add(new IgnoredFile(file.NewFilePath, reason));
-            } 
-            else
-            {
-                if (oFmt != null)
-                {
-                    file.OriginalFileFormat = oFmt;
-                }
 
-                if (nFmt != null)
-                {
-                    file.NewFileFormat = nFmt;
-                }
+                continue;
+            } 
+
+            if (oFmt != null)
+            {
+                file.OriginalFileFormat = oFmt;
+            }
+
+            if (nFmt != null)
+            {
+                file.NewFileFormat = nFmt;
             }
         }
 

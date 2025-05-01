@@ -77,31 +77,39 @@ public class ComparisonResult
 [ExcludeFromCodeCoverage]
 public class Logger
 {
-    public int FileComparisonCount { get; set; }
-    public int FileComparisonsFailed { get; set; }
-    public Stopwatch Stopwatch { get; set; } = new();
-    public List<ComparisonResult> Results { get; set; } = [];
-
     private bool Active { get; set; }
     private bool Finished { get; set; }
 
+    public int FileComparisonCount { get; set; }
+    public int FileComparisonsFailed { get; set; }
+    public DateTime LastRefresh { get; set; }
+    public long Elapsed { get; set; }
+    public List<IgnoredFile> IgnoredFiles { get; set; } = [];
+    public List<FilePair> InternalErrorFilePairs { get; set; } = [];    
+    public List<ComparisonResult> Results { get; set; } = [];
+
 
     /// <summary>
-    /// Initialize the logger. This must be called before any other function
+    /// Initialize/reset the logger. This must be called before any other function
     /// </summary>
     public void Initialize()
     {
         Active = false;
         Finished = false;
 
-        Stopwatch = new Stopwatch();
+        Elapsed = 0;
 
         FileComparisonCount = 0;
         FileComparisonsFailed = 0;
         Results = new List<ComparisonResult>();
+        IgnoredFiles = new List<IgnoredFile>();
     }
 
 
+    /// <summary>
+    /// Check if the logger has finished
+    /// </summary>
+    /// <returns></returns>
     public bool HasFinished()
     {
         return Finished;
@@ -113,49 +121,39 @@ public class Logger
     /// </summary>
     public void Start()
     {
-        if (Active) return;
-
         Active = true;
-        Stopwatch.Restart();
-        Stopwatch.Start();
+        LastRefresh = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Add the result of a file pair comparison
+    /// </summary>
+    /// <param name="result"></param>
+    public void AddComparisonResult(ComparisonResult result)
+    {
+        FileComparisonCount++;
+        if (!result.Pass) FileComparisonsFailed++;
+        Results.Add(result);
     }
 
 
     /// <summary>
-    /// Add a result from a test
+    /// Add a file pair that had an internal error when comparing
     /// </summary>
-    /// <param name="filePair">The filepair</param>
-    /// <param name="testName">The name of the test</param>
-    /// <param name="pass">If the test passed or not</param>
-    /// <param name="percentage">The percentage of which the test was successful. Leave out if not relevant</param>
-    /// <param name="comments">A list of comments on the result</param>
-    /// <param name="errors">Error</param>
-    /*public void AddTestResult(FilePair filePair, string testName, bool pass, double? percentage = null, List<string>? comments = null, List<Error>? errors = null)
+    /// <param name="fp"></param>
+    public void AddInternalErrorFilePair(string o, string n)
     {
-        var testResult = new TestResult(pass, percentage, comments ?? [], errors ?? []);
-
-        var index = Results.FindIndex(r => r.FilePair.OriginalFilePath == filePair.OriginalFilePath && r.FilePair.NewFilePath == filePair.NewFilePath);
-        if (index == -1)
-        {
-            var cr = new ComparisonResult(filePair);
-            cr.AddTestResult(testResult, testName);
-            Results.Add(cr);
-            FileComparisonCount++;
-            if (!cr.Pass) FileComparisonsFailed++;
-        }
-        else
-        {
-            var previousTestsPassed = Results[index].Pass;
-            Results[index].AddTestResult(testResult, testName);
-            if (previousTestsPassed && !Results[index].Pass) FileComparisonsFailed++;
-        }
-    }*/
+        InternalErrorFilePairs.Add(new FilePair(o, n));
+    }
 
 
-
-    public void AddComparisonResult(ComparisonResult comparisonResult)
+    /// <summary>
+    /// Add an ignored file
+    /// </summary>
+    /// <param name="file"></param>
+    public void AddIgnoredFile(IgnoredFile file)
     {
-        Results.Add(comparisonResult);
+        if (!IgnoredFiles.Any(f => f.FilePath == file.FilePath)) IgnoredFiles.Add(file);
     }
 
     /// <summary>
@@ -165,7 +163,8 @@ public class Logger
     {
         if (!Active) return;
 
-        Stopwatch.Stop();
+        UpdateElapsedTime();
+
         Active = false;
         Finished = true;
     }
@@ -180,6 +179,27 @@ public class Logger
         return Results.Select(r => r.FilePair).ToList();
     }
 
+
+    /// <summary>
+    /// Update 'Elapsed'
+    /// </summary>
+    private void UpdateElapsedTime()
+    {
+        var timespan = DateTime.UtcNow - LastRefresh;
+        Elapsed += timespan.Ticks;
+        LastRefresh = DateTime.UtcNow;
+    }
+
+
+    /// <summary>
+    /// Return a formatted string of the elapsed time
+    /// </summary>
+    /// <returns></returns>
+    public string FormatElapsedTime()
+    {
+        var timespan = new TimeSpan(Elapsed);
+        return timespan.ToString("hh\\:mm\\:ss");
+    }
 
     /// <summary>
     /// Save the report
@@ -219,6 +239,7 @@ public class Logger
     {
         try
         {
+            if (!Finished) UpdateElapsedTime();
             string jsonString = JsonSerializer.Serialize(this);
             File.WriteAllText(path, jsonString);
         }
@@ -248,10 +269,14 @@ public class Logger
             var l = JsonSerializer.Deserialize<Logger>(jsonString, seralizerOptions);
             if (l is Logger logger)
             {
-                this.FileComparisonCount = l.FileComparisonCount;
-                this.FileComparisonsFailed = l.FileComparisonsFailed;
-                this.Results = logger.Results;
-                this.Stopwatch = logger.Stopwatch;
+                FileComparisonCount = l.FileComparisonCount;
+                FileComparisonsFailed = l.FileComparisonsFailed;
+                Results = logger.Results;
+                IgnoredFiles = logger.IgnoredFiles;
+                InternalErrorFilePairs = logger.InternalErrorFilePairs;
+
+                LastRefresh = DateTime.UtcNow;
+                Elapsed = l.Elapsed;
             }
         }
         catch (Exception ex)

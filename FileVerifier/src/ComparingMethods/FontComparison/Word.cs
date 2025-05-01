@@ -5,6 +5,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ public static class WordFontExtraction
         foreach (var p in paragraphs)
         {
             // Check if paragraph is filled
-            string? pColor = p.ParagraphProperties?.Shading?.Fill;
+            string? pColor = GetShadingColor(p.ParagraphProperties?.Shading, themePart);
             if (pColor != null)
             {
                 textInfo.BgColors.Add(pColor);
@@ -76,6 +77,31 @@ public static class WordFontExtraction
     }
 
 
+    /// <summary>
+    /// Get the hex of a shading color
+    /// </summary>
+    /// <param name="shading"></param>
+    /// <param name="themePart"></param>
+    /// <returns></returns>
+    private static string? GetShadingColor(Shading? shading, ThemePart? themePart)
+    {
+        if (shading == null) return null;
+
+        // Convert to Color class
+        var col = new Color
+        {
+            Val = new StringValue
+            {
+                Value = shading.Fill?.Value,
+            },
+            ThemeColor = shading.ThemeColor,
+            ThemeTint = shading.ThemeTint,
+            ThemeShade = shading.ThemeShade,
+        };
+
+        return GetColor(col, themePart);
+    }
+
 
     /// <summary>
     /// Get the hex of a color
@@ -86,7 +112,7 @@ public static class WordFontExtraction
     private static string? GetColor(Color? col, ThemePart? themePart)
     {
         var valHex = col?.Val?.Value;
-        if (valHex != null) return valHex;
+        if (valHex != null && valHex != "auto") return valHex;
 
         var themeCol = col?.ThemeColor?.Value;
 
@@ -223,7 +249,7 @@ public static class WordFontExtraction
         textInfo.TextColors.Add(textCol ?? "000000");
 
         // Check shading color
-        string? shadingCol = runProperties?.Shading?.Fill;
+        string? shadingCol = GetShadingColor(runProperties?.Shading, themePart);
         if (shadingCol != null)
         {
             textInfo.BgColors.Add(shadingCol);

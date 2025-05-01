@@ -12,6 +12,7 @@
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 
@@ -75,10 +76,15 @@
 				Show passed comparisons first
 			</Button>
 		</StackPanel>
-
+		
+		
+		<!-- Ignored files -->
+		<StackPanel x:Name="IgnoredFilesStackPanel" Grid.Row="4" Margin="20">
+		</StackPanel>
+		
 		
 		<!-- Comparison results -->
-		<ScrollViewer Grid.Row="4" HorizontalAlignment="Stretch" Margin="36">
+		<ScrollViewer Grid.Row="5" HorizontalAlignment="Stretch" Margin="20">
 			<StackPanel x:Name="ReportStackPanel">
 			</StackPanel>
 		</ScrollViewer>
