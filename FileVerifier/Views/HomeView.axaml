@@ -62,8 +62,8 @@
         </Button>
         
         <!-- Extraction -->
-        <TextBlock Grid.Column="0" Grid.Row="3" VerticalAlignment="Center" Margin="5" Foreground="White">Data Extraction Folder</TextBlock>
-        <Button Grid.Column="1" Grid.Row="3" Margin="5"
+        <TextBlock Grid.Column="0" Grid.Row="4" VerticalAlignment="Center" Margin="5" Foreground="White">Data Extraction Folder</TextBlock>
+        <Button Grid.Column="1" Grid.Row="4" Margin="5"
                 Name="ExtractionButton" Click="InputButton_OnClick"
                 Background="#139A43" Foreground="White" 
                 BorderBrush="#0DAB76" BorderThickness="1" 
@@ -91,7 +91,7 @@
         </Button>
         
         <!-- Extraction start -->
-        <Button Grid.Column="2" Grid.Row="3" Margin="5"
+        <Button Grid.Column="2" Grid.Row="4" Margin="5"
                 Name="ExtractionStartButton" Click="ExtractionStartButton_OnClick"
                 Background="#139A43" Foreground="White"
                 BorderBrush="#0DAB76" BorderThickness="1" 
