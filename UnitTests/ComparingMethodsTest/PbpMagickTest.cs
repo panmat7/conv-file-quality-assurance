@@ -143,5 +143,20 @@ namespace UnitTests.ComparingMethodsTest
 
             Assert.That(similarity, Is.EqualTo(-1), "Invalid file paths should return -1.");
         }
+        
+        [Test]
+        public void CalculateImageSimilarityByte_Returns0()
+        {
+            var original = Path.Combine(_testFileDirectory, "225x225.png");
+            var resized = Path.Combine(_testFileDirectory, "225x225.png");
+            var files = new FilePair(original, resized);
+            
+            var originalFile = File.ReadAllBytes(files.OriginalFilePath);
+            var newFile = File.ReadAllBytes(files.NewFilePath);
+
+            var similarity = PbpComparisonMagick.CalculateImageSimilarity(originalFile, newFile);
+
+            Assert.That(similarity, Is.EqualTo(0), "Should return 0");
+        }
     }
 }
