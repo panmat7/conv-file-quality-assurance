@@ -11,6 +11,13 @@ namespace AvaloniaDraft.Helpers;
 
 public static class TakePicturePdf
 {
+    /// <summary>
+    /// Converts pages on from a specified PDF document to images.
+    /// </summary>
+    /// <param name="path">Absolute to the document.</param>
+    /// <param name="pageStart">At which page the page to image conversion is to start. Document start if unspecified or null.</param>
+    /// <param name="pageEnd">At which page the page to image conversion is to end. Document start if unspecified or null.</param>
+    /// <returns>List of PNG encoded images as bytes, null if an error occured.</returns>
     public static string? ConvertPdfToImagesToDisk(string path, string output, int? pageStart = null, int? pageEnd = null)
     {
         try
