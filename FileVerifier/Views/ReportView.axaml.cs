@@ -174,17 +174,16 @@ public partial class ReportView : UserControl
 
             foreach (var reason in reasons)
             {
-                var files = GlobalVariables.Logger.IgnoredFiles.Where(f => f.Reason == reason.enm);
+                var files = Logger.IgnoredFiles.Where(f => f.Reason == reason.enm);
                 if (!files.Any()) continue;
 
                 var stringBuilder = new StringBuilder();
                 var fileCount = 0;
-                foreach (var file in files)
+                foreach (var file in files.Select(f => f.FilePath))
                 {
                     fileCount++;
-                    var path = file.FilePath;
-                    var dir = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(path));
-                    var fileName = System.IO.Path.GetFileName(path);
+                    var dir = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(file));
+                    var fileName = System.IO.Path.GetFileName(file);
                     stringBuilder.AppendLine($"{dir}/{fileName}");
                 }
 
