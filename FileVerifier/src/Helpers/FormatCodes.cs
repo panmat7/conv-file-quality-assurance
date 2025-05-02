@@ -151,13 +151,12 @@ public static class FormatCodes
         PronomCodesPDFA4,
     ]);
 
-
     public static readonly FileFormat PronomCodesAllPDF = new FileFormat([
         PronomCodesPDF,
         PronomCodesPDFA
     ]);
 
-//PRESENTATIONS
+    //PRESENTATIONS
     public static readonly FileFormat PronomCodesPPT = new FileFormat(["ppt"], [
         "fmt/125", //PowerPoint Presentation 95
         "fmt/126"  //PowerPoint Presentation 97-2003
