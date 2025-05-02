@@ -11,7 +11,6 @@ using UglyToad.PdfPig.Content;
 
 namespace AvaloniaDraft.ComparingMethods;
 
-[ExcludeFromCodeCoverage]
 public static class ExtractedImageMetadata
 {
     /// <summary>

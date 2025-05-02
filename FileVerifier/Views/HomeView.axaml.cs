@@ -498,7 +498,19 @@ public partial class HomeView : UserControl
 
     private void StopButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        GlobalVariables.StopProcessing = true;
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            try
+            {
+                var stopWindow =
+                    new StopWindow();
+                stopWindow.ShowDialog((VisualRoot as Window)!);
+            }
+            catch
+            {
+                System.Console.WriteLine("An error occured when stopping the extraction process.");
+            }
+        });
     }
 }
 
