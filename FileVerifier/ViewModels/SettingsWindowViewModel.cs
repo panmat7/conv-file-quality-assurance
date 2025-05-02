@@ -97,7 +97,7 @@ public double SizeComparisonThreshold
         set
         {
             if (_sizeComparisonThreshold == value) return;
-            if (value < 0 || value > 100) return;
+            if (value < 1 || value > 100) return;
             _sizeComparisonThreshold = value;
             GlobalVariables.Options.SizeComparisonThreshold = value;
             OnPropertyChanged(nameof(SizeComparisonThreshold));

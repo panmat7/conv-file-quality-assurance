@@ -136,10 +136,10 @@
                         <CheckBox IsChecked="{Binding IsPointByPointEnabled, Mode=TwoWay}">Enable Point By Point Comparison</CheckBox>
 
 						<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-							<TextBlock Text="Comparison Threshold: " VerticalAlignment="Center" Foreground="White"/>
+							<TextBlock Text="Color distance (0 = exact match, higher = more different): " VerticalAlignment="Center" Foreground="White"/>
 							<TextBox Text="{Binding PbpComparisonThreshold, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
                                      Width="50" Margin="5,0,5,0" VerticalAlignment="Center"/>
-							<TextBlock Text="%" VerticalAlignment="Center" Foreground="White" Width="50"/>
+							<TextBlock Text="" VerticalAlignment="Center" Foreground="White" Width="50"/>
 							<Slider x:Name="PbpComparisonSlider"  Width="200" VerticalAlignment="Center"
 									Value="{Binding PbpComparisonThreshold, Mode=TwoWay}"/>
 						</StackPanel>

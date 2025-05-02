@@ -139,11 +139,11 @@ public static class ImagePipelines
 
             if(GlobalVariables.Options.GetMethod(Methods.PointByPoint))
             {
-                var acceptance = GlobalVariables.Options.PbpComparisonThreshold;
+                var acceptance = 0.1 * GlobalVariables.Options.PbpComparisonThreshold;
 
                 var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
 
-                if (res < 0)
+                if (res < acceptance)
                 {
                     error = new Error(
                         "Error calculating image similarity",
@@ -152,7 +152,7 @@ public static class ImagePipelines
                         ErrorType.Visual
                     );
                     compResult.AddTestResult(Methods.PointByPoint, false, errors: [error]);
-                } else if (res < acceptance)
+                } else if (res > acceptance)
                 {
                     error = new Error(
                             "Difference in image's visual appearance",
@@ -389,11 +389,11 @@ public static class ImagePipelines
                 } 
                 else
                 {
-                    var acceptance = 85; //Read from options later ?
+                    var acceptance = GlobalVariables.Options.PbpComparisonThreshold; //Read from options later ?
 
-                    var res = ImageRegistration.CalculateHistogramSimilarity(pairWithTemp);
-
-                    if (res < 0)
+                    var res = PbpComparisonMagick.CalculateImageSimilarity(pairWithTemp);
+                    Console.WriteLine(res);
+                    if (res < acceptance)
                     {
                         compResult.AddTestResult(Methods.PointByPoint, false,
                             comments: ["This test was performed on an extracted image."],
@@ -406,7 +406,7 @@ public static class ImagePipelines
                             )
                             ]);
                     }
-                    else if (res < acceptance)
+                    else if (res > acceptance)
                     {
                         compResult.AddTestResult(Methods.PointByPoint, false,
                             comments: ["This test was performed on an extracted image."],
