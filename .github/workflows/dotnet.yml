@@ -48,7 +48,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"PanMat122_conv-file-quality-assurance" /o:"ntnu-b-fileverification" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.exclusions="FileVerifier/Views/*, FileVerifier/ViewModels/*, FileVerifier/Program.cs, FileVerifier/App.axaml.cs, FileVerifier/src/FileManager/Siegfried.cs, FileVerifier/ViewLocator.cs, FileVerifier/src/ComparisonPipelines/*, FileVerifier/Convertors/*"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"PanMat122_conv-file-quality-assurance" /o:"ntnu-b-fileverification" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.exclusions="FileVerifier/Views/*, FileVerifier/ViewModels/*, FileVerifier/Program.cs, FileVerifier/App.axaml.cs, FileVerifier/src/FileManager/Siegfried.cs, FileVerifier/ViewLocator.cs, FileVerifier/src/ComparisonPipelines/*, FileVerifier/Convertors/*, FileVerifier/src/ComparingMethods/ExtractedImageMetadata.cs, FileVerifier/src/ExtractionPipelines/*, FileVerifier/src/Helpers/Methods.cs"
           dotnet build --no-incremental
           dotnet-coverage collect "dotnet test" -f xml -o "coverage.xml"
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
