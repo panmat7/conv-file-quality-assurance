@@ -139,7 +139,7 @@ public static class ImagePipelines
 
             if(GlobalVariables.Options.GetMethod(Methods.PointByPoint))
             {
-                var acceptance = GlobalVariables.Options.PbpComparisonThreshold;
+                var acceptance = 0.1 * GlobalVariables.Options.PbpComparisonThreshold;
 
                 var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
 
@@ -152,7 +152,7 @@ public static class ImagePipelines
                         ErrorType.Visual
                     );
                     compResult.AddTestResult(Methods.PointByPoint, false, errors: [error]);
-                } else if (res < acceptance)
+                } else if (res > acceptance)
                 {
                     error = new Error(
                             "Difference in image's visual appearance",
@@ -389,9 +389,9 @@ public static class ImagePipelines
                 } 
                 else
                 {
-                    var acceptance = GlobalVariables.Options.PbpComparisonThreshold;
-                    
-                    var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
+                    var acceptance = GlobalVariables.Options.PbpComparisonThreshold; //Read from options later ?
+
+                    var res = PbpComparisonMagick.CalculateImageSimilarity(pairWithTemp);
 
                     if (res < 0)
                     {
@@ -406,7 +406,7 @@ public static class ImagePipelines
                             )
                             ]);
                     }
-                    else if (res < acceptance)
+                    else if (res > acceptance)
                     {
                         compResult.AddTestResult(Methods.PointByPoint, false,
                             comments: ["This test was performed on an extracted image."],

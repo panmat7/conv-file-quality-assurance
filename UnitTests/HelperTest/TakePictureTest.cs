@@ -62,5 +62,22 @@ namespace UnitTests.PdfToImageConversion
 
             Assert.Pass();
         }
+        
+        [Test]
+        public void ConvertPdfToImagesTest()
+        {
+            var onePage = _testFileDirectory + @"PDF\correct_transparency.pdf";
+            var twoPage = _testFileDirectory + @"PDF\presentation_with_one_type_color_profile.pdf";
+            var threePage = _testFileDirectory + @"PDF\odp-with-one-missing-color-profile.pdf";
+
+            var res1 = TakePicturePdf.ConvertPdfToImagesToDisk(onePage, _testFileDirectory + @"PDF\test_output");
+            var res2 = TakePicturePdf.ConvertPdfToImagesToDisk(twoPage, _testFileDirectory + @"PDF\test_output");
+            var res3 = TakePicturePdf.ConvertPdfToImagesToDisk(threePage, _testFileDirectory + @"PDF\test_output");
+            var res4 = TakePicturePdf.ConvertPdfToImagesToDisk("fakepath", _testFileDirectory + @"PDF\test_output");
+            
+            if(res1 == null || res2 == null || res3 == null || res4 != null) Assert.Fail();
+            
+            Assert.Pass();
+        }
     }
 }

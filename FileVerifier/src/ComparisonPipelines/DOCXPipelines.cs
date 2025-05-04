@@ -17,7 +17,7 @@ public static class DocxPipelines
     /// <returns>Function with the correct pipeline, null if there were no suitable function.</returns>
     public static Action<FilePair, int, Action<int>, Action>? GetDocxPipeline(string? outputFormat)
     {
-        if (FormatCodes.PronomCodesTextDocuments.Contains(outputFormat))
+        if (FormatCodes.PronomCodesTextDocuments.Contains(outputFormat) || FormatCodes.PronomCodesAllPDF.Contains(outputFormat))
             return DocxToTextDocPipeline;
         
 
