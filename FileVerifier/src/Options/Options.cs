@@ -236,6 +236,7 @@ public class Options
     public void LoadSettings()
     {
         if (Dir != null) ImportJSON(GetFilePath());
+        else SetDefaultSettings();
     }
 
 

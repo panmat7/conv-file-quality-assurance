@@ -389,9 +389,9 @@ public static class ImagePipelines
                 } 
                 else
                 {
-                    var acceptance = 85; //Read from options later ?
-
-                    var res = ImageRegistration.CalculateHistogramSimilarity(pairWithTemp);
+                    var acceptance = GlobalVariables.Options.PbpComparisonThreshold;
+                    
+                    var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
 
                     if (res < 0)
                     {

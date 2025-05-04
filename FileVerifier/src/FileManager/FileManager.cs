@@ -268,7 +268,9 @@ public sealed class FileManager
         _startTime = DateTime.Now;
         var timer = new Timer(WriteProgressToConsole, null, (int)TimeSpan.FromMinutes(5).TotalMilliseconds, 
             (int)TimeSpan.FromMinutes(5).TotalMilliseconds);
-
+    
+        UiControlService.Instance.AppendToConsole(
+            $"Starting verification for {_oDirectory}-{_nDirectory}...");
 
         var checkPointInterval = (int)TimeSpan.FromMinutes(15).TotalMilliseconds; // Change later based on settings
         var checkpointTimer = new Timer(_ => GlobalVariables.Logger.SaveReport(true), null,
