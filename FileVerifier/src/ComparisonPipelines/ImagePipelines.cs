@@ -56,7 +56,7 @@ public static class ImagePipelines
             //Check options if this check is enabled.
             if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair);
+                var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {
@@ -87,7 +87,7 @@ public static class ImagePipelines
 
             if (GlobalVariables.Options.GetMethod(Methods.Resolution))
             {
-                var res = ComperingMethods.GetImageResolutionDifference(pair);
+                var res = ComparingMethods.ComparingMethods.GetImageResolutionDifference(pair);
 
                 if (res is null)
                 {
@@ -116,7 +116,7 @@ public static class ImagePipelines
 
             if (GlobalVariables.Options.GetMethod(Methods.Metadata))
             {
-                var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
+                var res = ComparingMethods.ComparingMethods.GetMissingOrWrongImageMetadataExif(pair);
                 
                 if (res is null)
                 {
@@ -263,7 +263,7 @@ public static class ImagePipelines
                 } 
                 else
                 {
-                    var res = ComperingMethods.CheckFileSizeDifference(pair);
+                    var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
 
                     if (res == null)
                     {
@@ -302,7 +302,7 @@ public static class ImagePipelines
                 } 
                 else
                 {
-                    var res = ComperingMethods.GetImageResolutionDifference(pairWithTemp);
+                    var res = ComparingMethods.ComparingMethods.GetImageResolutionDifference(pairWithTemp);
 
                     if (res is null)
                     {
@@ -341,7 +341,7 @@ public static class ImagePipelines
                 } 
                 else
                 {
-                    var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pairWithTemp);
+                    var res = ComparingMethods.ComparingMethods.GetMissingOrWrongImageMetadataExif(pairWithTemp);
 
                     if (res is null)
                     {

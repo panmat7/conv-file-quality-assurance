@@ -46,7 +46,7 @@ public static class ExtractedImageMetadata
                 oFiles[i], ExtensionToPronom(oExt),
                 nFiles[i], ExtensionToPronom(nExt));
             
-            var e = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
+            var e = ComparingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
 
             if (e == null)
                 failedCount++;

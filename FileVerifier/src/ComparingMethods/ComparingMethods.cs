@@ -25,7 +25,7 @@ using ZipFile = System.IO.Compression.ZipFile;
 
 namespace AvaloniaDraft.ComparingMethods;
 
-public static class ComperingMethods
+public static class ComparingMethods
 {
     /// <summary>
     /// Returns whether the size difference between two files exceeds expectations. 
@@ -345,7 +345,7 @@ public static class ComperingMethods
                 errorPages[1].Add(currPage);
             
             //Point by point
-            if (GlobalVariables.Options == null || !GlobalVariables.Options.GetMethod(Methods.PointByPoint)) continue;
+            if (GlobalVariables.Options != null && !GlobalVariables.Options.GetMethod(Methods.PointByPoint)) continue;
 
             var visualSegCompRes = VisualSegmentComparison(
                 oPage: pagesOriginal[pageIndex],

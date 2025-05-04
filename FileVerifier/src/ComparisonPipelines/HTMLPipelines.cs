@@ -37,7 +37,7 @@ public static class HtmlPipelines
         {
             var compResult = new ComparisonResult(pair);
 
-            ComperingMethods.CompareFonts(pair, ref compResult);
+            ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
 
             GlobalVariables.Logger.AddComparisonResult(compResult);
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);

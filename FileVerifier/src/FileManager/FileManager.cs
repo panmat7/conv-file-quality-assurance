@@ -368,7 +368,7 @@ public sealed class FileManager
         //     && (FormatCodes.PronomCodesPDF.Contains(filePair.NewFileFormat) ||
         //         FormatCodes.PronomCodesPDFA.Contains(filePair.NewFileFormat)))
         // {
-        //     var pageCount = ComperingMethods.GetPageCountExif(filePair.OriginalFilePath, filePair.OriginalFileFormat);
+        //     var pageCount = ComparingMethods.GetPageCountExif(filePair.OriginalFilePath, filePair.OriginalFileFormat);
         //
         //     switch (pageCount)
         //     {

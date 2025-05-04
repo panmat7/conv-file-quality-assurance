@@ -57,11 +57,11 @@ public static class ODTPipelines
                 failedToExtract = true;
             }
             
-            ComperingMethods.CompareFonts(pair, ref compResult);
+            ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages))
             {
-                var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
+                var diff = ComparingMethods.ComparingMethods.GetPageCountDifferenceExif(pair);
                 switch (diff)
                 {
                     case null:
@@ -91,7 +91,7 @@ public static class ODTPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair);
+                var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {

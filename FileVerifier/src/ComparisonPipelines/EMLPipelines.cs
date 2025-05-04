@@ -113,7 +113,7 @@ public static class EmlPipelines
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
 
-            ComperingMethods.CompareFonts(pair, ref compResult);
+            ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
 
             GlobalVariables.Logger.AddComparisonResult(compResult);
 
