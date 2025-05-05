@@ -149,6 +149,8 @@ public static class ODFontExtraction
     /// <param name="textInfo"></param>
     private static void CheckListItems(XDocument contentDoc, XElement? contentStyles, TextInfo textInfo)
     {
+        if (contentStyles == null) return;
+
         var listItems = contentDoc.Descendants().Where(i => i.Name.LocalName == "list-item" &&
             i.Elements().Any(e => e.Name.LocalName != "list"));
 
@@ -255,7 +257,7 @@ public static class ODFontExtraction
         {
             CheckFontsNonBulletProperties(text, properties, defaultProperties, textInfo);
         }
-        else if (isBullet)
+        else
         {
             CheckFontsBulletProperties(properties, defaultProperties, textInfo);
         }
