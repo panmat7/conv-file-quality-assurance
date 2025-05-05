@@ -274,4 +274,4 @@ FileVerifier/settings/*.json
 # Ignore reports
 FileVerifier/reports/*.json
 
-FIleVerifier/checkpoint.json
+FileVerifier/checkpoint.json
