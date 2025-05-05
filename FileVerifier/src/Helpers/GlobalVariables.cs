@@ -17,6 +17,8 @@ public static class GlobalVariables
 
     static GlobalVariables()
     {
+        Options = new Options.Options();
+        Logger = new Logger.Logger();
         ExifTool = new ExifTool();
     }
 }

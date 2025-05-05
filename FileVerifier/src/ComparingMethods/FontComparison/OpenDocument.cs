@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Collections.Immutable;
+using Org.BouncyCastle.Asn1.Tsp;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -80,11 +81,11 @@ public static class ODFontExtraction
         if (ExtractDocuments(src) is not (XDocument contentDoc, XDocument stylesDoc)) return null;
 
         // Get the default paragraph style
-        var defaultParagraphStyle = stylesDoc?.Descendants().FirstOrDefault(e => e.Name.LocalName == "default-style" &&
+        var defaultParagraphStyle = stylesDoc.Descendants().FirstOrDefault(e => e.Name.LocalName == "default-style" &&
                                                 XmlHelpers.GetAttributeByLocalName(e, "family") == "paragraph");
 
         // Get the default cell style
-        var defaultCellStyle = stylesDoc?.Descendants().FirstOrDefault(e => e.Name.LocalName == "style" &&
+        var defaultCellStyle = stylesDoc.Descendants().FirstOrDefault(e => e.Name.LocalName == "style" &&
                                                 XmlHelpers.GetAttributeByLocalName(e, "name") == "Default" &&
                                                 XmlHelpers.GetAttributeByLocalName(e, "family") == "table-cell");
 
@@ -134,8 +135,23 @@ public static class ODFontExtraction
 
 
         // Check every list item
+        CheckListItems(contentDoc, contentStyles, textInfo);
+
+        return textInfo;
+    }
+
+
+    /// <summary>
+    /// Check list items of the file
+    /// </summary>
+    /// <param name="contentDoc"></param>
+    /// <param name="contentStyles"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckListItems(XDocument contentDoc, XElement? contentStyles, TextInfo textInfo)
+    {
         var listItems = contentDoc.Descendants().Where(i => i.Name.LocalName == "list-item" &&
             i.Elements().Any(e => e.Name.LocalName != "list"));
+
         foreach (var item in listItems)
         {
             var level = item.Ancestors().Count(e => e.Name.LocalName == "list");
@@ -151,8 +167,6 @@ public static class ODFontExtraction
             var textProperties = itemStyle.Descendants().FirstOrDefault(d => d.Name.LocalName == "text-properties");
             ReadStyleProperties(textProperties, null, null, textInfo, true);
         }
-
-        return textInfo;
     }
     
 
@@ -164,10 +178,7 @@ public static class ODFontExtraction
     /// <param name="contentStyles"></param>
     /// <param name="defaultElementProperties"></param>
     /// <param name="defaultTextProperties"></param>
-    /// <param name="fonts"></param>
-    /// <param name="textColors"></param>
-    /// <param name="bgColors"></param>
-    /// <param name="foreignWriting"></param>
+    /// <param name="textInfo"></param>
     private static void CheckElement(XElement element, string? elementName, XElement contentStyles, XElement? defaultElementProperties, XElement? defaultTextProperties,
         TextInfo textInfo)
     {
@@ -236,51 +247,81 @@ public static class ODFontExtraction
     /// <param name="properties"></param>
     /// <param name="defaultProperties"></param>
     /// <param name="fonts"></param>
-    private static void ReadFontsFromSyleProperties(string? text, bool isBullet, XElement? properties, XElement? defaultProperties, TextInfo textInfo)
+    private static void ReadFontsFromSyleProperties(string text, bool isBullet, XElement? properties, XElement? defaultProperties, TextInfo textInfo)
     {
-        if (!isBullet && text != null)
+        if (properties == null) return;
+
+        if (!isBullet)
         {
-            var gotten = new Dictionary<CharClassification, bool>();
-            gotten[CharClassification.CJK] = false;
-            gotten[CharClassification.CTL] = false;
-            gotten[CharClassification.Other] = false;
-
-            // Get the correct font based on classification
-            var classifications = GetCharClassifications(text);
-            foreach (var classification in classifications)
-            {
-                if (gotten[classification]) continue;
-
-                gotten[classification] = true;
-
-                var fontAttributeClassification = classification switch
-                {
-                    CharClassification.CJK => "-asian",
-                    CharClassification.CTL => "-complex",
-                    CharClassification.Other => "",
-                    _ => "",
-                };
-
-                var fontName = $"font-name{fontAttributeClassification}";
-                var fontFamily = $"font-family{fontAttributeClassification}";
-                var font = properties?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value ??
-                    defaultProperties?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value;
-                if (font != null)
-                {
-                    textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
-                }
-            }
+            CheckFontsNonBulletProperties(text, properties, defaultProperties, textInfo);
         }
         else if (isBullet)
         {
-            var font = properties?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value ??
-                defaultProperties?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value;
+            CheckFontsBulletProperties(properties, defaultProperties, textInfo);
+        }
+    }
+
+
+    /// <summary>
+    /// Check the properties of a non-bullet element
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="properties"></param>
+    /// <param name="defaultProperties"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckFontsNonBulletProperties(string text, XElement properties, XElement? defaultProperties, TextInfo textInfo)
+    {
+        var gotten = new Dictionary<CharClassification, bool>();
+        gotten[CharClassification.CJK] = false;
+        gotten[CharClassification.CTL] = false;
+        gotten[CharClassification.Other] = false;
+
+        // Get the correct font based on classification
+        var classifications = GetCharClassifications(text);
+        foreach (var classification in classifications)
+        {
+            if (gotten[classification]) continue;
+
+            gotten[classification] = true;
+
+            var fontAttributeClassification = classification switch
+            {
+                CharClassification.CJK => "-asian",
+                CharClassification.CTL => "-complex",
+                CharClassification.Other => "",
+                _ => "",
+            };
+
+            var fontName = $"font-name{fontAttributeClassification}";
+            var fontFamily = $"font-family{fontAttributeClassification}";
+            var font = properties?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value ??
+                defaultProperties?.Attributes().FirstOrDefault(a => a.Name.LocalName == fontName || a.Name.LocalName == fontFamily)?.Value;
             if (font != null)
             {
                 textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
             }
         }
     }
+
+
+    /// <summary>
+    /// Check the properties of a bullet element
+    /// </summary>
+    /// <param name="properties"></param>
+    /// <param name="defaultProperties"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckFontsBulletProperties(XElement properties, XElement? defaultProperties, TextInfo textInfo)
+    {
+        var font = properties?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value ??
+            defaultProperties?.Attributes().FirstOrDefault(a => a.Name.LocalName == "font-name" || a.Name.LocalName == "font-family")?.Value;
+        if (font != null)
+        {
+            textInfo.Fonts.Add(FontComparison.NormalizeFontName(font));
+        }
+    }
+
+
+
 
 
     /// <summary>

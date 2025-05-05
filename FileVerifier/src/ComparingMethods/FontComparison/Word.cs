@@ -2,10 +2,12 @@
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,59 +23,88 @@ public static class WordFontExtraction
 
         WordprocessingDocument doc = WordprocessingDocument.Open(src, false);
         var mainDocPart = doc.MainDocumentPart;
+        if (mainDocPart == null) return null;
 
-        var themePart = mainDocPart?.ThemePart;
+        var themePart = mainDocPart.ThemePart;
         if (themePart == null) return null;
 
         // Get default fonts
-        var fontScheme = themePart?.Theme?.ThemeElements?.GetFirstChild<DocumentFormat.OpenXml.Drawing.FontScheme>();
+        var fontScheme = themePart.Theme?.ThemeElements?.GetFirstChild<DocumentFormat.OpenXml.Drawing.FontScheme>();
         if (fontScheme == null) return null;
 
-        var fontSchemeXml = XElement.Parse(fontScheme?.OuterXml ?? "");
+        var fontSchemeXml = XElement.Parse(fontScheme.OuterXml ?? "");
         var defFonts = MSOffice.GetDefaultFontsFromScheme(fontSchemeXml);
         if (defFonts == null) return null;
 
         var majFonts = defFonts.Value.major;
         var minFonts = defFonts.Value.minor;
-        var themeFontLang = mainDocPart?.DocumentSettingsPart?.Settings?.GetFirstChild<ThemeFontLanguages>();
-        var fontTable = mainDocPart?.FontTablePart?.Fonts;
+        var themeFontLang = mainDocPart.DocumentSettingsPart?.Settings?.GetFirstChild<ThemeFontLanguages>();
+        var fontTable = mainDocPart.FontTablePart?.Fonts;
         if (minFonts == null || majFonts == null || themeFontLang == null || fontTable == null) return null;
 
         // Look through each paragraph
-        var paragraphs = mainDocPart?.Document?.Body?.Elements<Paragraph>() ?? [];
+        var paragraphs = mainDocPart.Document?.Body?.Elements<Paragraph>() ?? [];
         foreach (var p in paragraphs)
         {
-            // Check if paragraph is filled
-            string? pColor = GetShadingColor(p.ParagraphProperties?.Shading, themePart);
-            if (pColor != null)
-            {
-                textInfo.BgColors.Add(pColor);
-            }
-
-            // Go through each run
-            foreach (var run in p.Elements<Run>())
-            {
-                CheckRun(run, themePart, themeFontLang, fontTable, majFonts, minFonts, textInfo);
-            }
+            CheckParagraph(p, themePart, themeFontLang, fontTable, majFonts, minFonts, textInfo);
         }
 
-        var styles = mainDocPart?.StyleDefinitionsPart?.Styles?.Descendants<Style>();
+        var styles = mainDocPart.StyleDefinitionsPart?.Styles?.Descendants<Style>();
         if (styles == null) return null;
 
         // Hyperlink colors are only stored in styles, so check there
         foreach (var style in styles)
         {
-            var name = style.StyleName;
-            if (name == null || name?.Val?.Value != "Hyperlink") continue;
-
-            var hex = GetColor(style.StyleRunProperties?.Color, themePart);
-            if (hex != null)
-            {
-                textInfo.TextColors.Add(hex);
-            }
+            CheckStyles(style, themePart, textInfo);
         }
 
         return textInfo;
+    }
+
+
+    /// <summary>
+    /// Check styles for hyperlink color
+    /// </summary>
+    /// <param name="style"></param>
+    /// <param name="themePart"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckStyles(Style style, ThemePart? themePart, TextInfo textInfo)
+    {
+        var name = style.StyleName;
+        if (name == null || name.Val?.Value != "Hyperlink") return;
+
+        var hex = GetColor(style.StyleRunProperties?.Color, themePart);
+        if (hex != null)
+        {
+            textInfo.TextColors.Add(hex);
+        }
+    }
+
+    /// <summary>
+    /// Check a paragraph
+    /// </summary>
+    /// <param name="p"></param>
+    /// <param name="themePart"></param>
+    /// <param name="themeFontLang"></param>
+    /// <param name="fontTable"></param>
+    /// <param name="majFonts"></param>
+    /// <param name="minFonts"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckParagraph(Paragraph p, ThemePart themePart, ThemeFontLanguages themeFontLang, Fonts fontTable, 
+        Dictionary<string, string> majFonts, Dictionary<string, string> minFonts, TextInfo textInfo)
+    {
+        // Check if paragraph is filled
+        string? pColor = GetShadingColor(p.ParagraphProperties?.Shading, themePart);
+        if (pColor != null)
+        {
+            textInfo.BgColors.Add(pColor);
+        }
+
+        // Go through each run
+        foreach (var run in p.Elements<Run>())
+        {
+            CheckRun(run, themePart, themeFontLang, fontTable, majFonts, minFonts, textInfo);
+        }
     }
 
 
@@ -111,10 +142,12 @@ public static class WordFontExtraction
     /// <returns></returns>
     private static string? GetColor(Color? col, ThemePart? themePart)
     {
-        var valHex = col?.Val?.Value;
+        if (col == null) return null;
+
+        var valHex = col.Val?.Value;
         if (valHex != null && valHex != "auto") return valHex;
 
-        var themeCol = col?.ThemeColor?.Value;
+        var themeCol = col.ThemeColor?.Value;
 
         var themColString = (themeCol is ThemeColorValues c) ?
         ((IEnumValue)c).Value : null;
@@ -123,8 +156,8 @@ public static class WordFontExtraction
         var scheme = themePart?.Theme?.ThemeElements?.ColorScheme;
         if (scheme == null) return null;
 
-        var themeTint = col?.ThemeTint?.Value;
-        var themeShade = col?.ThemeShade?.Value;
+        var themeTint = col.ThemeTint?.Value;
+        var themeShade = col.ThemeShade?.Value;
 
         var themeColHex = themColString.ToLower() switch
         {
@@ -151,7 +184,7 @@ public static class WordFontExtraction
 
 
     /// <summary>
-    /// Get the theme colro with the theme tint and theme shade applied
+    /// Get the theme color with the theme tint and theme shade applied
     /// </summary>
     /// <param name="themeHex"></param>
     /// <param name="themeShade"></param>
@@ -167,33 +200,39 @@ public static class WordFontExtraction
 
         try
         {
-            var themeTintFactor = int.Parse(themeTint, System.Globalization.NumberStyles.HexNumber) / 255.0;
-            r *= ApplyThemeTint(r, themeTintFactor);
-            g *= ApplyThemeTint(g, themeTintFactor);
-            b *= ApplyThemeTint(b, themeTintFactor);
+            if (themeTint != null)
+            {
+                var themeTintFactor = int.Parse(themeTint, System.Globalization.NumberStyles.HexNumber) / 255.0;
+                r *= ApplyThemeTint(r, themeTintFactor);
+                g *= ApplyThemeTint(g, themeTintFactor);
+                b *= ApplyThemeTint(b, themeTintFactor);
 
-            return FontComparison.GetHex((r, g, b));
+                return FontComparison.GetHex((r, g, b));
+            }
         }
         catch
         {
-            // Nothing
+            return null;
         }
 
         try
         {
-            var themeShadeFactor = int.Parse(themeShade, System.Globalization.NumberStyles.HexNumber) / 255.0;
-            r = ApplyThemeShade(r, themeShadeFactor);
-            g = ApplyThemeShade(g, themeShadeFactor);
-            b = ApplyThemeShade(b, themeShadeFactor);
+            if (themeShade != null)
+            {
+                var themeShadeFactor = int.Parse(themeShade, System.Globalization.NumberStyles.HexNumber) / 255.0;
+                r = ApplyThemeShade(r, themeShadeFactor);
+                g = ApplyThemeShade(g, themeShadeFactor);
+                b = ApplyThemeShade(b, themeShadeFactor);
 
-            return FontComparison.GetHex((r, g, b));
+                return FontComparison.GetHex((r, g, b));
+            }
         }
         catch
         {
-            // Nothing
+            return null;
         }
 
-        return null;
+        return themeHex;
     }
 
 
@@ -287,16 +326,16 @@ public static class WordFontExtraction
 
         // East Asia
         var eaLang = rPr.Languages?.EastAsia?.Value;
-        var eaTheme = GetThemeFontValueString(rFonts?.EastAsiaTheme?.Value);
+        var eaTheme = GetThemeFontValueString(rFonts.EastAsiaTheme?.Value);
         var eaThemeLang = themeFontLang.EastAsia?.Value ?? "";
 
         // Complex script
-        var csTheme = GetThemeFontValueString(rFonts?.ComplexScriptTheme?.Value ?? rFonts?.EastAsiaTheme?.Value);
+        var csTheme = GetThemeFontValueString(rFonts.ComplexScriptTheme?.Value ?? rFonts.EastAsiaTheme?.Value);
         var csThemeLang = themeFontLang.Bidi?.Value ?? "";
 
         // Other (ASCII / High ansii)
-        var asciiTheme = GetThemeFontValueString(rFonts?.AsciiTheme?.Value);
-        var hansiTheme = GetThemeFontValueString(rFonts?.HighAnsiTheme?.Value);
+        var asciiTheme = GetThemeFontValueString(rFonts.AsciiTheme?.Value);
+        var hansiTheme = GetThemeFontValueString(rFonts.HighAnsiTheme?.Value);
         var oThemeLang = themeFontLang.Val?.Value ?? "";
 
 
@@ -308,14 +347,14 @@ public static class WordFontExtraction
         };
 
         // The theme font takes priority over specified font
-        var eaFont = GetThemeFont(themeLangs, eaTheme, major, minor) ?? rFonts?.EastAsia;
+        var eaFont = GetThemeFont(themeLangs, eaTheme, major, minor) ?? rFonts.EastAsia;
 
         var lang = rPr.Languages;
 
         bool fontIsBig5OrGB2312 = FontIsBig5OrGB2312(eaFont, eaTheme, major, minor);
         bool langIsZh = LangIsZh(lang, eaLang);
 
-        var hint = rFonts?.Hint?.Value;
+        var hint = rFonts.Hint?.Value;
         bool eaHint = false;
         if (hint is FontTypeHintValues h) eaHint = (h == FontTypeHintValues.EastAsia);
 
@@ -323,7 +362,7 @@ public static class WordFontExtraction
 
         var fonts = new List<string?>();
 
-        var result = MSOffice.GetFontSlots(txt, csRef, eaHint, langIsZh, fontIsBig5OrGB2312, false);
+        var result = MSOffice.GetFontSlotsAndCheckForForeignCharacters(txt, csRef, eaHint, langIsZh, fontIsBig5OrGB2312, false);
         var slots = result.slots;
         var foreignWriting = result.foreignWriting;
 
@@ -331,10 +370,10 @@ public static class WordFontExtraction
         {
             var font = slot.ToLower() switch
             {
-                "ascii" => rFonts?.Ascii ?? GetThemeFont(themeLangs, asciiTheme, major, minor),
-                "hansi" => rFonts?.HighAnsi ?? GetThemeFont(themeLangs, hansiTheme, major, minor),
-                "eastasia" => rFonts?.EastAsia ?? GetThemeFont(themeLangs, eaTheme, major, minor),
-                "cs" => rFonts?.ComplexScript ?? GetThemeFont(themeLangs, csTheme, major, minor),
+                "ascii" => rFonts.Ascii ?? GetThemeFont(themeLangs, asciiTheme, major, minor),
+                "hansi" => rFonts.HighAnsi ?? GetThemeFont(themeLangs, hansiTheme, major, minor),
+                "eastasia" => rFonts.EastAsia ?? GetThemeFont(themeLangs, eaTheme, major, minor),
+                "cs" => rFonts.ComplexScript ?? GetThemeFont(themeLangs, csTheme, major, minor),
                 _ => null
             };
             if (string.IsNullOrEmpty(font)) continue;
@@ -360,26 +399,23 @@ public static class WordFontExtraction
     /// <returns></returns>
     private static bool FontIsBig5OrGB2312(string? font, string? fontTheme, Dictionary<string, string> majorFonts, Dictionary<string, string> minorFonts)
     {
-        bool fontIsBig5OrGB2312 = false;
         if (font == "Big5" || font == "GB2312")
         {
-            fontIsBig5OrGB2312 = true;
-        }
-        else if (fontTheme != null)
-        {
-            if (fontTheme == "majorEastAsia" && majorFonts.ContainsKey("eastAsia"))
-            {
-                var majEA = majorFonts["eastAsia"];
-                if (majEA == "Big5" || majEA == "GB2312") fontIsBig5OrGB2312 = true;
-            }
-            else if (fontTheme == "minorEastAsia" && minorFonts.ContainsKey("eastAsia"))
-            {
-                var minEA = minorFonts["eastAsia"];
-                if (minEA == "Big5" || minEA == "GB2312") fontIsBig5OrGB2312 = true;
-            }
+            return true;
         }
 
-        return fontIsBig5OrGB2312;
+        if (fontTheme == null) return false;
+
+        if (fontTheme == "majorEastAsia" && majorFonts.TryGetValue("eastAsia", out string? majEA))
+        {
+            if (majEA == "Big5" || majEA == "GB2312") return true;
+        }
+        else if (fontTheme == "minorEastAsia" && minorFonts.TryGetValue("eastAsia", out string? minEA))
+        {
+            if (minEA == "Big5" || minEA == "GB2312") return true;
+        }
+
+        return false;
     }
 
 
@@ -410,7 +446,7 @@ public static class WordFontExtraction
     {
         string? font;
 
-        var classification = theme?.Substring("m**or".Count());
+        var classification = theme?.Substring("m**or".Length);
         var dic = (theme?.Contains("major") ?? false) ? major : minor;
         themeLangs.TryGetValue(classification?.ToLower() ?? "", out var lang);
 
