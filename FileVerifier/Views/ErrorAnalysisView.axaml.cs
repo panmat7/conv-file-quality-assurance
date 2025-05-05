@@ -27,12 +27,12 @@ using Avalonia.Interactivity;
 
 namespace AvaloniaDraft.Views;
 
-public partial class TestAnalysisView : UserControl
+public partial class ErrorAnalysisView : UserControl
 {
     private Logger.Logger Logger;
     private List<Expander> TestExpanders;
 
-    public TestAnalysisView()
+    public ErrorAnalysisView()
     {
         InitializeComponent();
 

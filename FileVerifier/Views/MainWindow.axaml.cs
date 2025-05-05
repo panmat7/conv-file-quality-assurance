@@ -14,7 +14,7 @@ public partial class MainWindow : Window
     private HomeView HomeView;
     private SettingsView SettingsView;
     private ReportView ReportView;
-    private TestAnalysisView TestAnalysisView;
+    private ErrorAnalysisView ErrorAnalysisView;
 
     public MainWindow()
     {
@@ -27,11 +27,11 @@ public partial class MainWindow : Window
         // Set initial window size based on the current selection
         UpdateWindowSize(_settingsViewModel.SelectedWindowSize);
     
-        var homeView = new HomeView
+        HomeView = new HomeView
         {
             DataContext = _settingsViewModel
         };
-        MainContent.Content = homeView;
+        MainContent.Content = HomeView;
 
         // Add event handler for window resizing
         LayoutUpdated += MainWindow_LayoutUpdated;
@@ -65,7 +65,7 @@ public partial class MainWindow : Window
         HomeButton.Background = new SolidColorBrush(Colors.Transparent);
         SettingsButton.Background = new SolidColorBrush(Colors.Transparent);
         ReportButton.Background = new SolidColorBrush(Colors.Transparent);
-        TestAnalysisButton.Background = new SolidColorBrush(Colors.Transparent);
+        ErrorAnalysisButton.Background = new SolidColorBrush(Colors.Transparent);
 
 
         // Set active button style
@@ -102,13 +102,13 @@ public partial class MainWindow : Window
         SetActiveButton((Button)sender);
     }
 
-    private void TestAnalysisButton_Click(object sender, RoutedEventArgs e)
+    private void ErrorAnalysisButton_Click(object sender, RoutedEventArgs e)
     {
-        if (TestAnalysisView == null) TestAnalysisView = new TestAnalysisView
+        if (ErrorAnalysisView == null) ErrorAnalysisView = new ErrorAnalysisView
         {
             DataContext = _settingsViewModel
         };
-        MainContent.Content = TestAnalysisView;
+        MainContent.Content = ErrorAnalysisView;
         SetActiveButton((Button)sender);
     }
 }

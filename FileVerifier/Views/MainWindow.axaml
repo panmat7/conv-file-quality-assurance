@@ -54,10 +54,10 @@
 		                    BorderThickness="0" FontSize="16"
 		                    Click="ReportButton_Click"/>
 					
-					<Button x:Name="TestAnalysisButton" Content="Test analysis"
+					<Button x:Name="ErrorAnalysisButton" Content="Error Analysis"
 		                Background="Transparent" Foreground="White"
 		                BorderThickness="0" FontSize="16"
-		                Click="TestAnalysisButton_Click"/>
+		                Click="ErrorAnalysisButton_Click"/>
                 </StackPanel>
             </Grid>
         </Border>
