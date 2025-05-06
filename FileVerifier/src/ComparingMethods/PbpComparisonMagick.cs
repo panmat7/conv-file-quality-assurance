@@ -1,5 +1,5 @@
 using System;
-using AvaloniaDraft.FileManager;
+using AvaloniaDraft.ProgramManager;
 using ImageMagick;
 
 namespace AvaloniaDraft.ComparingMethods;

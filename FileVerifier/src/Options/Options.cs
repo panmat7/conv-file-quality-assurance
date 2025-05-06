@@ -11,9 +11,9 @@ using System.Text.Json;
 using System.IO;
 using System.Text.Json.Serialization;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
-using AvaloniaDraft.FileManager;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.Options;
 
@@ -236,6 +236,7 @@ public class Options
     public void LoadSettings()
     {
         if (Dir != null) ImportJSON(GetFilePath());
+        else SetDefaultSettings();
     }
 
 

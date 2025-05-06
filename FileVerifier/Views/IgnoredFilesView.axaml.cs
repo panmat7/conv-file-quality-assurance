@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using AvaloniaDraft.FileManager;
+using AvaloniaDraft.ProgramManager;
 using AvaloniaDraft.ViewModels;
 
 namespace AvaloniaDraft.Views;

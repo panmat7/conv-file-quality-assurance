@@ -1,8 +1,7 @@
 using AvaloniaDraft.ComparisonPipelines;
-using AvaloniaDraft.FileManager;
 using UnitTests.ComparingMethodsTest;
 
-namespace UnitTests.FileManagerTest;
+namespace UnitTests.ProgramManagerTest;
 
 [TestFixture]
 public class ComparisonPipelines : TestBase

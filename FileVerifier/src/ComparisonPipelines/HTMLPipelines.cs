@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -37,7 +37,7 @@ public static class HtmlPipelines
         {
             var compResult = new ComparisonResult(pair);
 
-            ComperingMethods.CompareFonts(pair, ref compResult);
+            ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
 
             GlobalVariables.Logger.AddComparisonResult(compResult);
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);

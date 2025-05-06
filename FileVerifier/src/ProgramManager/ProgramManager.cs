@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
-using Avalonia.Threading;
-using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.ComparisonPipelines;
 using AvaloniaDraft.Helpers;
 
-namespace AvaloniaDraft.FileManager;
+namespace AvaloniaDraft.ProgramManager;
 
 /// <summary>
 /// Class <c>FilePair</c> is used to store the path and format of the two compared files
@@ -93,10 +90,10 @@ public enum ReasonForIgnoring
 }
 
 /// <summary>
-/// Class <c>FileManager</c> is responsible for file handling and pairing before the verification process and
+/// Class <c>ProgramManager</c> is responsible for file handling and pairing before the verification process and
 /// starting the process itself.
 /// </summary>
-public sealed class FileManager
+public sealed class ProgramManager
 {
     private readonly string _oDirectory;
     private readonly string _nDirectory;
@@ -121,7 +118,7 @@ public sealed class FileManager
     //Progress reporting
     private DateTime _startTime;
     
-    public FileManager(string originalDirectory, string newDirectory, List<FilePair> checkpointFilePairs, IFileSystem? fileSystem = null)
+    public ProgramManager(string originalDirectory, string newDirectory, List<FilePair> checkpointFilePairs, IFileSystem? fileSystem = null)
     {
         _fileSystem = fileSystem ?? new FileSystem();
         _oDirectory = originalDirectory;
@@ -268,7 +265,9 @@ public sealed class FileManager
         _startTime = DateTime.Now;
         var timer = new Timer(WriteProgressToConsole, null, (int)TimeSpan.FromMinutes(5).TotalMilliseconds, 
             (int)TimeSpan.FromMinutes(5).TotalMilliseconds);
-
+    
+        UiControlService.Instance.AppendToConsole(
+            $"Starting verification for {_oDirectory}-{_nDirectory}...");
 
         var checkPointInterval = (int)TimeSpan.FromMinutes(15).TotalMilliseconds; // Change later based on settings
         var checkpointTimer = new Timer(_ => GlobalVariables.Logger.SaveReport(true), null,
@@ -368,7 +367,7 @@ public sealed class FileManager
         //     && (FormatCodes.PronomCodesPDF.Contains(filePair.NewFileFormat) ||
         //         FormatCodes.PronomCodesPDFA.Contains(filePair.NewFileFormat)))
         // {
-        //     var pageCount = ComperingMethods.GetPageCountExif(filePair.OriginalFilePath, filePair.OriginalFileFormat);
+        //     var pageCount = ComparingMethods.GetPageCountExif(filePair.OriginalFilePath, filePair.OriginalFileFormat);
         //
         //     switch (pageCount)
         //     {

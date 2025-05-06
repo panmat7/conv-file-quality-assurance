@@ -7,9 +7,8 @@ using System.Text.Json;
 using System.Threading;
 using AvaloniaDraft.ExtractionPipelines;
 using AvaloniaDraft.Helpers;
-using DocumentFormat.OpenXml.Wordprocessing;
 
-namespace AvaloniaDraft.FileManager;
+namespace AvaloniaDraft.ProgramManager;
 
 
 public class SingleFile
@@ -24,7 +23,7 @@ public class SingleFile
 }
 
 /// <summary>
-/// Used to write the extraction reports, make to mirror the design of FileManager. Work on the same principles.
+/// Used to write the extraction reports, make to mirror the design of ProgramManager. Work on the same principles.
 /// </summary>
 public class SingleFileManager
 {

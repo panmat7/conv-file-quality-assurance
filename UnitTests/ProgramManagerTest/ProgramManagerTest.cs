@@ -1,14 +1,14 @@
 using System.IO.Abstractions.TestingHelpers;
-using AvaloniaDraft.FileManager;
+using AvaloniaDraft.ProgramManager;
 using UnitTests.ComparingMethodsTest;
 
-namespace UnitTests.FileManagerTest;
+namespace UnitTests.ProgramManagerTest;
 
 [TestFixture]
-public class FileManagerTest : TestBase
+public class ProgramManagerTest : TestBase
 {
     [Test]
-    public void FileManagerCreationTest()
+    public void ProgramManagerCreationTest()
     {
         var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
@@ -27,12 +27,12 @@ public class FileManagerTest : TestBase
             }
         );
 
-        var f = new FileManager(@"C:\testOriginal\", @"C:\testNew\", [], fileSystem);
+        var p = new ProgramManager(@"C:\testOriginal\", @"C:\testNew\", [], fileSystem);
         
-        if(f == null) Assert.Fail();
+        if(p == null) Assert.Fail();
         
-        var pairs = f.GetFilePairs();
-        var pairless = f.GetPairlessFiles();
+        var pairs = p.GetFilePairs();
+        var pairless = p.GetPairlessFiles();
 
         var checkPairs = new List<FilePair>
         {

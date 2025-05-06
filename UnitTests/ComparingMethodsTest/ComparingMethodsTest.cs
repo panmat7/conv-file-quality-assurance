@@ -1,12 +1,12 @@
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.ProgramManager;
 using SixLabors.ImageSharp.Formats.Png;
 
 namespace UnitTests.ComparingMethodsTest;
 
 [TestFixture]
-public class ComperingMethodsTest
+public class ComparingMethodsTest
 {
     private string _testFileDirectory = "";
     
@@ -38,7 +38,7 @@ public class ComperingMethodsTest
             _testFileDirectory + @"TestDocuments\OneLetter.txt"
         );
         
-        var diff = ComperingMethods.CheckFileSizeDifference(files, 0.5);
+        var diff = ComparingMethods.CheckFileSizeDifference(files, 0.5);
         
         if(diff is null) Assert.Fail();
        
@@ -54,7 +54,7 @@ public class ComperingMethodsTest
             _testFileDirectory + @"TestDocuments\OneLetter.txt"
         );
         
-        var diff = ComperingMethods.CheckFileSizeDifference(files, 0.5);
+        var diff = ComparingMethods.CheckFileSizeDifference(files, 0.5);
         
         if(diff is null) Assert.Fail();
         
@@ -70,7 +70,7 @@ public class ComperingMethodsTest
             _testFileDirectory + @"TestDocuments\NoImage3Pages.pdf"
         );
         
-        var diff = ComperingMethods.CheckFileSizeDifference(files, 0.5);
+        var diff = ComparingMethods.CheckFileSizeDifference(files, 0.5);
         
         if(diff is null) Assert.Fail();
         
@@ -86,7 +86,7 @@ public class ComperingMethodsTest
             "Real"
         );
         
-        var diff = ComperingMethods.CheckFileSizeDifference(files, 0.5);
+        var diff = ComparingMethods.CheckFileSizeDifference(files, 0.5);
         Assert.That(diff, Is.Null);
     }
 
@@ -99,7 +99,7 @@ public class ComperingMethodsTest
             _testFileDirectory + @"Images\450x450.png"
         );
         
-        var diff = ComperingMethods.GetImageResolutionDifference(files);
+        var diff = ComparingMethods.GetImageResolutionDifference(files);
         Assert.That(diff, Is.EqualTo(new Tuple<int, int>(225, 225)));
     }
     
@@ -112,7 +112,7 @@ public class ComperingMethodsTest
             _testFileDirectory + @"Images\600x450.jpg"
         );
         
-        var diff = ComperingMethods.GetImageResolutionDifference(files);
+        var diff = ComparingMethods.GetImageResolutionDifference(files);
         Assert.That(diff, Is.EqualTo(new Tuple<int, int>(375, 225)));
     }
     
@@ -125,7 +125,7 @@ public class ComperingMethodsTest
             _testFileDirectory + @"Images\450x600.tiff"
         );
         
-        var diff = ComperingMethods.GetImageResolutionDifference(files);
+        var diff = ComparingMethods.GetImageResolutionDifference(files);
         Assert.That(diff, Is.EqualTo(new Tuple<int, int>(225, 375)));
     }
 
@@ -138,14 +138,14 @@ public class ComperingMethodsTest
             "Real"
         );
         
-        var diff = ComperingMethods.GetImageResolutionDifference(files);
+        var diff = ComparingMethods.GetImageResolutionDifference(files);
         Assert.That(diff, Is.Null);
     }
 
     [Test]
     public void GetImageResolutionTest_225PNG()
     {
-        var diff = ComperingMethods.GetImageResolution(_testFileDirectory + @"Images\225x225.png");
+        var diff = ComparingMethods.GetImageResolution(_testFileDirectory + @"Images\225x225.png");
         
         Assert.That(diff, Is.EqualTo(new Tuple<int, int>(225, 225)));
     }
@@ -153,7 +153,7 @@ public class ComperingMethodsTest
     [Test]
     public void GetImageResolutionTest_600x450JPG()
     {
-        var diff = ComperingMethods.GetImageResolution(_testFileDirectory + @"Images\600x450.jpg");
+        var diff = ComparingMethods.GetImageResolution(_testFileDirectory + @"Images\600x450.jpg");
         
         Assert.That(diff, Is.EqualTo(new Tuple<int, int>(600, 450)));
     }
@@ -161,7 +161,7 @@ public class ComperingMethodsTest
     [Test]
     public void GetImageResolution_450x600TIFF()
     {
-        var diff = ComperingMethods.GetImageResolution(_testFileDirectory + @"Images\450x600.tiff");
+        var diff = ComparingMethods.GetImageResolution(_testFileDirectory + @"Images\450x600.tiff");
         
         Assert.That(diff, Is.EqualTo(new Tuple<int, int>(450, 600)));
     }
@@ -169,7 +169,7 @@ public class ComperingMethodsTest
     [Test]
     public void GetImageResolution_Invalid()
     {
-        var diff = ComperingMethods.GetImageResolution("Not real");
+        var diff = ComparingMethods.GetImageResolution("Not real");
         
         Assert.That(diff, Is.Null);
     }
@@ -185,7 +185,7 @@ public class ComperingMethodsTest
             "fmt/1756"
         );
         
-        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        var diff = ComparingMethods.GetPageCountDifferenceExif(files);
         Assert.That(diff, Is.EqualTo(0));
     }
     
@@ -200,7 +200,7 @@ public class ComperingMethodsTest
             "fmt/1756"
         );
         
-        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        var diff = ComparingMethods.GetPageCountDifferenceExif(files);
         Assert.That(diff, Is.EqualTo(5));
     }
     
@@ -215,7 +215,7 @@ public class ComperingMethodsTest
             "fmt/1756"
         );
         
-        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        var diff = ComparingMethods.GetPageCountDifferenceExif(files);
         Assert.That(diff, Is.EqualTo(5));
     }
 
@@ -230,7 +230,7 @@ public class ComperingMethodsTest
             "fmt/19"
         );
         
-        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        var diff = ComparingMethods.GetPageCountDifferenceExif(files);
         Assert.That(diff, Is.EqualTo(0));
     }
     
@@ -245,7 +245,7 @@ public class ComperingMethodsTest
             "fmt/1754"
         );
         
-        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        var diff = ComparingMethods.GetPageCountDifferenceExif(files);
         Assert.That(diff, Is.EqualTo(0));
     }
 
@@ -260,7 +260,7 @@ public class ComperingMethodsTest
             "fmt/19"
         );
         
-        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        var diff = ComparingMethods.GetPageCountDifferenceExif(files);
         Assert.That(diff, Is.EqualTo(0));
     }
 
@@ -273,7 +273,7 @@ public class ComperingMethodsTest
             _testFileDirectory + @"Images\450x600.tiff"
         );
         
-        var diff = ComperingMethods.GetPageCountDifferenceExif(files);
+        var diff = ComparingMethods.GetPageCountDifferenceExif(files);
         Assert.That(diff, Is.Null);
     }
 
@@ -288,7 +288,7 @@ public class ComperingMethodsTest
             "fmt/353"
         );
         
-        var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+        var result = ComparingMethods.GetMissingOrWrongImageMetadataExif(files);
 
         if (result is null || result.Count != 1) Assert.Fail();
         
@@ -306,7 +306,7 @@ public class ComperingMethodsTest
             "fmt/12"
         );
         
-        var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+        var result = ComparingMethods.GetMissingOrWrongImageMetadataExif(files);
 
         if (result is null || result.Count != 4) Assert.Fail();
         
@@ -324,7 +324,7 @@ public class ComperingMethodsTest
             "fmt/313132313"
         );
         
-        var result = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+        var result = ComparingMethods.GetMissingOrWrongImageMetadataExif(files);
         
         Assert.That(result, Is.Null);
     }
@@ -340,7 +340,7 @@ public class ComperingMethodsTest
             "fmt/12"
         );
         
-        var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(files);
+        var res = ComparingMethods.GetMissingOrWrongImageMetadataExif(files);
         
         //Should not fail, as the pronom codes match
         if(res is null) Assert.Fail();
@@ -360,7 +360,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_PNG_NoTransparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\225x225.png");
+        var res = ComparingMethods.ContainsTransparency(_testFileDirectory + @"Images\225x225.png");
         
         Assert.That(res, Is.False);
     }
@@ -368,7 +368,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_TIFF_NoTransparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\450x600.tiff");
+        var res = ComparingMethods.ContainsTransparency(_testFileDirectory + @"Images\450x600.tiff");
         
         Assert.That(res, Is.False);
     }
@@ -376,7 +376,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_JPG()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\600x450.jpg");
+        var res = ComparingMethods.ContainsTransparency(_testFileDirectory + @"Images\600x450.jpg");
         
         Assert.That(res, Is.False);
     }
@@ -384,7 +384,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_PNG_Transparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T225x225.png");
+        var res = ComparingMethods.ContainsTransparency(_testFileDirectory + @"Images\T225x225.png");
         
         Assert.That(res, Is.True);
     }
@@ -392,7 +392,7 @@ public class ComperingMethodsTest
     [Test]
     public void ContainsTransparencyTest_TIFF_Transparency()
     {
-        var res = ComperingMethods.ContainsTransparency(_testFileDirectory + @"Images\T450x600.tiff");
+        var res = ComparingMethods.ContainsTransparency(_testFileDirectory + @"Images\T450x600.tiff");
         
         Assert.That(res, Is.True);
     }
@@ -407,7 +407,7 @@ public class ComperingMethodsTest
             "fmt/12"
         );
         
-        var res = ComperingMethods.VisualDocumentComparison(pair);
+        var res = ComparingMethods.VisualDocumentComparison(pair);
         
         if(res is null || res.Count > 0) Assert.Fail();
         
@@ -424,7 +424,7 @@ public class ComperingMethodsTest
             "fmt/12"
         );
         
-        var res = ComperingMethods.VisualDocumentComparison(pair, 2, 5);
+        var res = ComparingMethods.VisualDocumentComparison(pair, 2, 5);
         
         if(res is null || res.Count > 0) Assert.Fail();
         
@@ -441,7 +441,7 @@ public class ComperingMethodsTest
             "fmt/12"
         );
         
-        var res = ComperingMethods.VisualDocumentComparison(pair);
+        var res = ComparingMethods.VisualDocumentComparison(pair);
         
         if(res is null || res.Count != 1) Assert.Fail();
         
@@ -458,7 +458,7 @@ public class ComperingMethodsTest
             "fmt/12"
         );
         
-        var res = ComperingMethods.VisualDocumentComparison(pair);
+        var res = ComparingMethods.VisualDocumentComparison(pair);
         
         if(res is null || res.Count == 0) Assert.Fail();
         
@@ -475,7 +475,7 @@ public class ComperingMethodsTest
             "fmt/12"
         );
         
-        var res = ComperingMethods.VisualDocumentComparison(pair);
+        var res = ComparingMethods.VisualDocumentComparison(pair);
         
         if(res is not null) Assert.Fail();
         

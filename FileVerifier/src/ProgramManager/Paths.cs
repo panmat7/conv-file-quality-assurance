@@ -1,15 +1,8 @@
-﻿using DocumentFormat.OpenXml.Office2016.Drawing.Command;
-using DocumentFormat.OpenXml.Wordprocessing;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
-namespace AvaloniaDraft.FileManager;
+namespace AvaloniaDraft.ProgramManager;
 
 /// <summary>
 /// Stores the directory paths

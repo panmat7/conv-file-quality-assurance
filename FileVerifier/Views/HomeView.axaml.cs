@@ -9,8 +9,8 @@ using Avalonia.Interactivity;
 using Avalonia.OpenGL.Surfaces;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.ProgramManager;
 using AvaloniaDraft.ViewModels;
 
 namespace AvaloniaDraft.Views;
@@ -225,10 +225,10 @@ public partial class HomeView : UserControl
                     await StartVerificationProcess();
                     AutoStartVerification = false;
                 }
-                else if (GlobalVariables.FileManager != null)
+                else if (GlobalVariables.ProgramManager != null)
                 {
                     var ignoredFilesWindow = new IgnoredFilesView(
-                        GlobalVariables.FileManager.GetFilePairs().Count, GlobalVariables.FileManager.IgnoredFiles);
+                        GlobalVariables.ProgramManager.GetFilePairs().Count, GlobalVariables.ProgramManager.IgnoredFiles);
                     ignoredFilesWindow.Show();
                 }
             }
@@ -252,7 +252,7 @@ public partial class HomeView : UserControl
         {
             try
             {
-                if (Working || GlobalVariables.FileManager == null) return;
+                if (Working || GlobalVariables.ProgramManager == null) return;
 
                 Working = true;
                 
@@ -271,7 +271,7 @@ public partial class HomeView : UserControl
 
                 await Task.Run(() =>
                 {
-                    GlobalVariables.FileManager.StartVerification();
+                    GlobalVariables.ProgramManager.StartVerification();
                 });
                 
                 await Dispatcher.UIThread.InvokeAsync(() =>
@@ -317,11 +317,11 @@ public partial class HomeView : UserControl
             if (!string.IsNullOrEmpty(checkPointPath)) GlobalVariables.Logger.ImportJSON(checkPointPath);
             var filePairs = GlobalVariables.Logger.GetFilePairs();
 
-            GlobalVariables.FileManager = new FileManager.FileManager(InputPath, OutputPath, filePairs);
-            GlobalVariables.FileManager.SetSiegfriedFormats();
-            SetFileCount(GlobalVariables.FileManager.GetFilePairs().Count);
+            GlobalVariables.ProgramManager = new ProgramManager.ProgramManager(InputPath, OutputPath, filePairs);
+            GlobalVariables.ProgramManager.SetSiegfriedFormats();
+            SetFileCount(GlobalVariables.ProgramManager.GetFilePairs().Count);
 
-            foreach (var file in GlobalVariables.FileManager.IgnoredFiles)
+            foreach (var file in GlobalVariables.ProgramManager.IgnoredFiles)
             {
                 if (file.Reason != ReasonForIgnoring.AlreadyChecked && file.Reason != ReasonForIgnoring.Filtered)
                 {
@@ -350,8 +350,8 @@ public partial class HomeView : UserControl
             });
             return;
         }
-        GlobalVariables.FileManager.WritePairs();
-        OverwriteConsole("The following pairs were formed:\n" + GlobalVariables.FileManager.GetPairFormats());
+        GlobalVariables.ProgramManager.WritePairs();
+        OverwriteConsole("The following pairs were formed:\n" + GlobalVariables.ProgramManager.GetPairFormats());
     }
     
     private async void ExtractionStartButton_OnClick(object? sender, RoutedEventArgs e)

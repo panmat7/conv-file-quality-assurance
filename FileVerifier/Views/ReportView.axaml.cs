@@ -23,7 +23,7 @@ using Avalonia.Input;
 using Avalonia.Media.Immutable;
 using Avalonia.Interactivity;
 using System.Text;
-using AvaloniaDraft.FileManager;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.Views;
 
@@ -163,12 +163,12 @@ public partial class ReportView : UserControl
                 Content = ignoredFilesExpanderStackPanel,
             };
 
-            var reasons = new List<(FileManager.ReasonForIgnoring enm, string str)> {
-                (FileManager.ReasonForIgnoring.UnsupportedFormat, "Unsupported file format"),
-                (FileManager.ReasonForIgnoring.Encrypted, "Encrypted"),
-                (FileManager.ReasonForIgnoring.Corrupted, "Corrupted"),
-                (FileManager.ReasonForIgnoring.EncryptedOrCorrupted, "Encrypted or corrupted"),
-                (FileManager.ReasonForIgnoring.Unknown, "Unknown reason")
+            var reasons = new List<(ReasonForIgnoring enm, string str)> {
+                (ReasonForIgnoring.UnsupportedFormat, "Unsupported file format"),
+                (ReasonForIgnoring.Encrypted, "Encrypted"),
+                (ReasonForIgnoring.Corrupted, "Corrupted"),
+                (ReasonForIgnoring.EncryptedOrCorrupted, "Encrypted or corrupted"),
+                (ReasonForIgnoring.Unknown, "Unknown reason")
             };
 
 

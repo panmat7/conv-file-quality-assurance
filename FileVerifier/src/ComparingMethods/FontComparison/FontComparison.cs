@@ -1,5 +1,4 @@
-﻿using AvaloniaDraft.FileManager;
-using AvaloniaDraft.Helpers;
+﻿using AvaloniaDraft.Helpers;
 using Emgu.CV.Face;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using System;
@@ -12,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ComparingMethods;
 
