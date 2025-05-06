@@ -14,7 +14,7 @@
     <ItemGroup>
         <Folder Include="Models\" />
         <AvaloniaResource Include="Assets\**" />
-        <Folder Include="src\FileManager\Siegfried\" />
+        <Folder Include="src\ProgramManager\Siegfried\" />
     </ItemGroup>
 
     <ItemGroup>

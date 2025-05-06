@@ -1,6 +1,6 @@
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.ProgramManager;
 using SixLabors.ImageSharp.Formats.Png;
 
 namespace UnitTests.ComparingMethodsTest;

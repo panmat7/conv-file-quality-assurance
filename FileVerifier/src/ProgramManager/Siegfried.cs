@@ -7,9 +7,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using AvaloniaDraft.Helpers;
-using System.IO;
 
-namespace AvaloniaDraft.FileManager;
+namespace AvaloniaDraft.ProgramManager;
 
 /// <summary>
 /// The <c>Siegfried</c> class is responsible for handing communication with Siegfried

@@ -486,7 +486,7 @@ public static class ImageExtractionToDisk
                 nImageBytes = ms.ToArray();
             }
 
-            var tempDirs = GlobalVariables.FileManager!.GetTempDirectories();
+            var tempDirs = GlobalVariables.ProgramManager!.GetTempDirectories();
             var tempFilePath = TempFiles.CreateTemporaryFile(nImageBytes, tempDirs.Item2, ext);
 
             if (tempFilePath == null) return null;
@@ -976,7 +976,7 @@ public static class ImageExtractionToMemory
                 default: return null;
             }
 
-            var tempDirs = GlobalVariables.FileManager!.GetTempDirectories();
+            var tempDirs = GlobalVariables.ProgramManager!.GetTempDirectories();
 
             using var ms = new MemoryStream();
             using (var img = Image.Load(image.RawBytes))

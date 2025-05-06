@@ -1,5 +1,5 @@
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
+using AvaloniaDraft.ProgramManager;
 
 namespace UnitTests.ComparingMethodsTest;
 

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ExtractionPipelines;
 

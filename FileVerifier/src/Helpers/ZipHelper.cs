@@ -1,6 +1,6 @@
 using System.IO;
 using System.Linq;
-using AvaloniaDraft.FileManager;
+using AvaloniaDraft.ProgramManager;
 using SharpCompress.Archives;
 using SharpCompress.Common;
 
@@ -18,16 +18,16 @@ public abstract class ZipHelper
     /// </summary>
     /// <param name="directory"></param>
     /// <param name="tempDirectory"></param>
-    /// <param name="fileManager"></param>
-    public static void ExtractCompressedFiles(string directory, string tempDirectory, FileManager.FileManager fileManager)
+    /// <param name="programManager"></param>
+    public static void ExtractCompressedFiles(string directory, string tempDirectory, ProgramManager.ProgramManager programManager)
     {
-        var fileSystem = fileManager.GetFilesystem();
+        var fileSystem = programManager.GetFilesystem();
         var files = CompressedFilesExtensions.SelectMany(ext => fileSystem.Directory.GetFiles(directory, ext, SearchOption.AllDirectories));
         foreach (var file in files)
         {
             if (EncryptionChecker.IsCompressedEncrypted(file))
             {
-                fileManager.IgnoredFiles.Add(new IgnoredFile(file, ReasonForIgnoring.Encrypted));
+                programManager.IgnoredFiles.Add(new IgnoredFile(file, ReasonForIgnoring.Encrypted));
             }
             else
             {

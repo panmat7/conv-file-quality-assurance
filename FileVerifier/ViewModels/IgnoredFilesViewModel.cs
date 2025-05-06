@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using AvaloniaDraft.FileManager;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ViewModels;
 

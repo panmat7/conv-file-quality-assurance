@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
