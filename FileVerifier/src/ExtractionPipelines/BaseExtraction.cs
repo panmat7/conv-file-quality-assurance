@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.ComparingMethods.ExifTool;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ExtractionPipelines;
 

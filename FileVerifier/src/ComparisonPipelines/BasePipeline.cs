@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -100,7 +100,7 @@ public static class BasePipeline
     /// <returns></returns>
     public static string CreateTempFolderForImages()
     {
-        var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
+        var fileSystem = GlobalVariables.ProgramManager?.GetFilesystem();
         var tempDirectory = fileSystem?.Path.Combine(fileSystem.Path.GetTempPath(), fileSystem.Path.GetRandomFileName());
         if (tempDirectory == null) return string.Empty;
         fileSystem?.Directory.CreateDirectory(tempDirectory);
@@ -124,7 +124,7 @@ public static class BasePipeline
     /// <param name="tempDirectory"></param>
     private static void DeleteTempFolder(string tempDirectory)
     {
-        var fileSystem = GlobalVariables.FileManager?.GetFilesystem();
+        var fileSystem = GlobalVariables.ProgramManager?.GetFilesystem();
         if (fileSystem == null) return;
         
         if (fileSystem.Directory.Exists(tempDirectory))

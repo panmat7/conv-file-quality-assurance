@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using AvaloniaDraft.ProgramManager;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using ImageMagick;
 using UglyToad.PdfPig.Content;
@@ -46,7 +46,7 @@ public static class ExtractedImageMetadata
                 oFiles[i], ExtensionToPronom(oExt),
                 nFiles[i], ExtensionToPronom(nExt));
             
-            var e = ComperingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
+            var e = ComparingMethods.GetMissingOrWrongImageMetadataExif(tempPair);
 
             if (e == null)
                 failedCount++;

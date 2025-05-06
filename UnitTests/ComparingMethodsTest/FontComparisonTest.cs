@@ -1,11 +1,11 @@
 ﻿using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AvaloniaDraft.ProgramManager;
 
 namespace UnitTests.ComparingMethodsTest;
 

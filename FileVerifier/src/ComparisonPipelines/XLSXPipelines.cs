@@ -3,9 +3,9 @@ using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -57,13 +57,13 @@ public static class XLSXPipelines
             failedToExtract = true;
         }
         
-        ComperingMethods.CompareFonts(pair, ref compResult);
+        ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
         
         BasePipeline.ExecutePipeline(() =>
         {
             if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair);
+                var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {
@@ -208,11 +208,11 @@ public static class XLSXPipelines
                 failedToExtract = true;
             }
             
-            ComperingMethods.CompareFonts(pair, ref compResult);
+            ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
             
             if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair);
+                var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {

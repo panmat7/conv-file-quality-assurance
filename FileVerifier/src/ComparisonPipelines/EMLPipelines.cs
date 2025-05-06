@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Collections.Generic;
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -113,7 +113,7 @@ public static class EmlPipelines
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
 
-            ComperingMethods.CompareFonts(pair, ref compResult);
+            ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
 
             GlobalVariables.Logger.AddComparisonResult(compResult);
 

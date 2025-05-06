@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using AvaloniaDraft.ProgramManager;
 
 namespace AvaloniaDraft.ComparisonPipelines;
 
@@ -60,12 +60,12 @@ public static class PdfPipelines
                 failedToExtract = true;
             }
           
-            ComperingMethods.CompareFonts(pair, ref compResult);
+            ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
             int? pageDiff = null;
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages))
             {
-                pageDiff = ComperingMethods.GetPageCountDifferenceExif(pair);
+                pageDiff = ComparingMethods.ComparingMethods.GetPageCountDifferenceExif(pair);
                 switch (pageDiff)
                 {
                     case null:
@@ -97,7 +97,7 @@ public static class PdfPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair);
+                var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {
@@ -167,7 +167,7 @@ public static class PdfPipelines
                 if (pageDiff == 0)
                 {
                     //Getting the page count and using it to determine if to do everything in one go, or split
-                    var pageCount = ComperingMethods.GetPageCountExif(pair.OriginalFilePath, pair.OriginalFileFormat);
+                    var pageCount = ComparingMethods.ComparingMethods.GetPageCountExif(pair.OriginalFilePath, pair.OriginalFileFormat);
 
                     if (pageCount > 75)
                     {
@@ -176,7 +176,7 @@ public static class PdfPipelines
                         
                         foreach (var interval in checkIntervals)
                         {
-                            var res = ComperingMethods.VisualDocumentComparison(pair, interval.Item1, interval.Item2);
+                            var res = ComparingMethods.ComparingMethods.VisualDocumentComparison(pair, interval.Item1, interval.Item2);
 
                             if (res == null)
                             {
@@ -204,7 +204,7 @@ public static class PdfPipelines
                     }
                     else
                     {
-                        var res = ComperingMethods.VisualDocumentComparison(pair);
+                        var res = ComparingMethods.ComparingMethods.VisualDocumentComparison(pair);
                 
                         if (res == null)
                             compResult.AddTestResult(Methods.VisualDocComp, false,
@@ -288,11 +288,11 @@ public static class PdfPipelines
                 failedToExtract = true;
             }
             
-            ComperingMethods.CompareFonts(pair, ref compResult);
+            ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
             
             if (GlobalVariables.Options.GetMethod(Methods.Pages))
             {
-                var diff = ComperingMethods.GetPageCountDifferenceExif(pair);
+                var diff = ComparingMethods.ComparingMethods.GetPageCountDifferenceExif(pair);
                 switch (diff)
                 {
                     case null:
@@ -322,7 +322,7 @@ public static class PdfPipelines
             
             if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair);
+                var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {

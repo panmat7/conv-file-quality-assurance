@@ -1,7 +1,7 @@
 using System.IO.Abstractions.TestingHelpers;
-using AvaloniaDraft.FileManager;
+using AvaloniaDraft.ProgramManager;
 
-namespace UnitTests.FileManagerTest;
+namespace UnitTests.ProgramManagerTest;
 
 [TestFixture]
 public class SingleFileManagerTest
@@ -20,6 +20,8 @@ public class SingleFileManagerTest
         );
         
         var sfm = new SingleFileManager(@"C:\testOriginal\", fileSystem);
+        
+        if(sfm is null) Assert.Fail();
         
         Assert.Pass();
     }

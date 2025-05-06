@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using AvaloniaDraft.ComparingMethods;
-using AvaloniaDraft.FileManager;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using AvaloniaDraft.ProgramManager;
 using ClosedXML;
 using DocumentFormat.OpenXml.Wordprocessing;
 using ImageMagick;
@@ -56,7 +56,7 @@ public static class ImagePipelines
             //Check options if this check is enabled.
             if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
-                var res = ComperingMethods.CheckFileSizeDifference(pair);
+                var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
 
                 if (res == null)
                 {
@@ -87,7 +87,7 @@ public static class ImagePipelines
 
             if (GlobalVariables.Options.GetMethod(Methods.Resolution))
             {
-                var res = ComperingMethods.GetImageResolutionDifference(pair);
+                var res = ComparingMethods.ComparingMethods.GetImageResolutionDifference(pair);
 
                 if (res is null)
                 {
@@ -116,7 +116,7 @@ public static class ImagePipelines
 
             if (GlobalVariables.Options.GetMethod(Methods.Metadata))
             {
-                var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pair);
+                var res = ComparingMethods.ComparingMethods.GetMissingOrWrongImageMetadataExif(pair);
                 
                 if (res is null)
                 {
@@ -143,7 +143,7 @@ public static class ImagePipelines
 
                 var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
 
-                if (res < acceptance)
+                if (res < 0)
                 {
                     error = new Error(
                         "Error calculating image similarity",
@@ -263,7 +263,7 @@ public static class ImagePipelines
                 } 
                 else
                 {
-                    var res = ComperingMethods.CheckFileSizeDifference(pair);
+                    var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
 
                     if (res == null)
                     {
@@ -302,7 +302,7 @@ public static class ImagePipelines
                 } 
                 else
                 {
-                    var res = ComperingMethods.GetImageResolutionDifference(pairWithTemp);
+                    var res = ComparingMethods.ComparingMethods.GetImageResolutionDifference(pairWithTemp);
 
                     if (res is null)
                     {
@@ -341,7 +341,7 @@ public static class ImagePipelines
                 } 
                 else
                 {
-                    var res = ComperingMethods.GetMissingOrWrongImageMetadataExif(pairWithTemp);
+                    var res = ComparingMethods.ComparingMethods.GetMissingOrWrongImageMetadataExif(pairWithTemp);
 
                     if (res is null)
                     {
@@ -392,8 +392,8 @@ public static class ImagePipelines
                     var acceptance = GlobalVariables.Options.PbpComparisonThreshold; //Read from options later ?
 
                     var res = PbpComparisonMagick.CalculateImageSimilarity(pairWithTemp);
-                    Console.WriteLine(res);
-                    if (res < acceptance)
+
+                    if (res < 0)
                     {
                         compResult.AddTestResult(Methods.PointByPoint, false,
                             comments: ["This test was performed on an extracted image."],

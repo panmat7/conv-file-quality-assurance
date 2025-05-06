@@ -50,7 +50,7 @@ public class DocumentVisualOperationsTest
         var rects3 = DocumentVisualOperations.SegmentDocumentImage(file3);
         var rects4 = DocumentVisualOperations.SegmentDocumentImage(path4);
         var rects5 = DocumentVisualOperations.SegmentDocumentImage("Not real");
-        var rects6 = DocumentVisualOperations.SegmentDocumentImage(path4);
+        var rects6 = DocumentVisualOperations.SegmentDocumentImage(new byte[]{});
 
         if(rects5 is not null || rects6 is not null) Assert.Fail();
         
@@ -61,7 +61,7 @@ public class DocumentVisualOperationsTest
         var segments1 = DocumentVisualOperations.GetSegmentPictures(path1, rects1);
         var segments2 = DocumentVisualOperations.GetSegmentPictures(file2, rects2);
         var segments3 = DocumentVisualOperations.GetSegmentPictures("", rects3);
-        var segments4 = DocumentVisualOperations.GetSegmentPictures(path4, []);
+        var segments4 = DocumentVisualOperations.GetSegmentPictures(path4, new List<Rectangle>());
         var singleSegment = DocumentVisualOperations.GetSegmentPictures(file2, rects2[0]);
         
         if(segments3 is not null || segments4 is not null) Assert.Fail();
