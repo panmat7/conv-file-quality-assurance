@@ -11,10 +11,10 @@ public partial class MainWindow : Window
 {
     private readonly SettingsViewModel _settingsViewModel = new SettingsViewModel();
 
-    private HomeView HomeView;
-    private SettingsView SettingsView;
-    private ReportView ReportView;
-    private ErrorAnalysisView ErrorAnalysisView;
+    private HomeView? HomeView;
+    private SettingsView? SettingsView;
+    private ReportView? ReportView;
+    private ErrorAnalysisView? ErrorAnalysisView;
 
     public MainWindow()
     {
@@ -74,7 +74,7 @@ public partial class MainWindow : Window
 
     private void HomeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (HomeView == null) HomeView = new HomeView
+        HomeView ??= new HomeView
         {
             DataContext = _settingsViewModel
         };
@@ -84,7 +84,7 @@ public partial class MainWindow : Window
 
     private void SettingsButton_Click(object sender, RoutedEventArgs e)
     {
-        if (SettingsView == null) SettingsView = new SettingsView
+        SettingsView ??= new SettingsView
         {
             DataContext = _settingsViewModel
         };
@@ -94,7 +94,7 @@ public partial class MainWindow : Window
 
     private void ReportButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ReportView == null) ReportView = new ReportView
+        ReportView ??= new ReportView
         {
             DataContext = _settingsViewModel
         };
@@ -104,7 +104,7 @@ public partial class MainWindow : Window
 
     private void ErrorAnalysisButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ErrorAnalysisView == null) ErrorAnalysisView = new ErrorAnalysisView
+        ErrorAnalysisView ??= new ErrorAnalysisView
         {
             DataContext = _settingsViewModel
         };

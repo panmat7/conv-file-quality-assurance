@@ -19,10 +19,10 @@ public partial class HomeView : UserControl
 {
     private bool AutoStartVerification { get; set; }
     
-    private string InputPath { get; set; }
-    private string OutputPath { get; set; }
-    private string CheckpointPath { get; set; }
-    private string ExtractionPath { get; set; }
+    private string? InputPath { get; set; }
+    private string? OutputPath { get; set; }
+    private string? CheckpointPath { get; set; }
+    private string? ExtractionPath { get; set; }
     private bool Working { get; set; } = false;
     
     //Progress bar
