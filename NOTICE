@@ -32,5 +32,15 @@ specific language governing permissions and limitations under the License.
 
 ---
 
+**ExifTool**  
+Copyright © 2003–2025 Phil Harvey  
+Licensed under the GNU General Public License v3 (GPLv3)  
+https://exiftool.org  
+https://www.gnu.org/licenses/gpl-3.0.html
+
+ExifTool is distributed under the GPL v3 and requires that derivative works are also licensed under GPL v3.
+
+---
+
 This project is licensed under the GNU General Public License v3 (GPLv3).  
 For details, see the LICENSE file or visit https://www.gnu.org/licenses/gpl-3.0.html
