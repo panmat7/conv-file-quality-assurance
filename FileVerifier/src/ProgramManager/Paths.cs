@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 
@@ -7,6 +8,7 @@ namespace AvaloniaDraft.ProgramManager;
 /// <summary>
 /// Stores the directory paths
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class Paths
 {
     public string? OriginalFilesPath { get; set; }
@@ -14,7 +16,7 @@ public class Paths
     public string? CheckpointPath { get; set; }
     public string? DataExtractionFilesPath { get; set; }
 
-    private readonly string? JsonPath;
+    private readonly string? JsonPath; // Path to where Paths is saved as a JSON file
 
     public Paths() 
     {
