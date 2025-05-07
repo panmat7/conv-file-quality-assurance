@@ -225,8 +225,6 @@ public static class WordFontExtraction
                     nb = (int)newRgbCol.B;
                 }
 
-                Console.WriteLine($"{themeHex} with tint {themeTintFactor} -> {FontComparison.GetHex((nr, ng, nb))}");
-
                 return FontComparison.GetHex((nr, ng, nb));
             }
         }
@@ -259,8 +257,6 @@ public static class WordFontExtraction
                     ng = (int)newRgbCol.G;
                     nb = (int)newRgbCol.B;
                 }
-
-                Console.WriteLine($"{themeHex} with shade {themeShadeFactor} -> {FontComparison.GetHex((nr, ng, nb))}");
 
                 return FontComparison.GetHex((nr, ng, nb));
             }
