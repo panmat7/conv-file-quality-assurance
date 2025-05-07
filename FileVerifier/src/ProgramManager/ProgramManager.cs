@@ -180,7 +180,7 @@ public sealed class ProgramManager
                 var alreadyChecked = (checkpointFilePairs.Any(fp => fp.OriginalFilePath == pair.OriginalFilePath
                     && fp.NewFilePath == pair.NewFilePath));
 
-                if (alreadyChecked)
+                if (!alreadyChecked)
                 {
                     _filePairs.Add(pair);
                     continue;
