@@ -2,6 +2,8 @@
 using System;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.Logger;
+using System.Diagnostics;
+using DocumentFormat.OpenXml.Math;
 
 namespace AvaloniaDraft;
 
