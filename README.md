@@ -125,3 +125,7 @@ The Test Analysis/Overview tab with an JSON report imported:
 ## License
 
 This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+
+## Third-Party Licenses
+
+This project uses third-party libraries that are licensed separately. See the [NOTICE](NOTICE) file for details on these licenses.
