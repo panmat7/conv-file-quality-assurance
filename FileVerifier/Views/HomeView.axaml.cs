@@ -9,6 +9,7 @@ using Avalonia.Interactivity;
 using Avalonia.OpenGL.Surfaces;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using AvaloniaDraft.ComparingMethods;
 using AvaloniaDraft.Helpers;
 using AvaloniaDraft.ProgramManager;
 using AvaloniaDraft.ViewModels;

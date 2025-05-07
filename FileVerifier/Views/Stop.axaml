@@ -3,7 +3,7 @@
         x:Class="AvaloniaDraft.Views.StopWindow"
         Title="Cancel"
         Width="300"
-        Height="150"
+        Height="180"
         CanResize="False"
         SystemDecorations="None"
         WindowStartupLocation="CenterOwner"
@@ -29,5 +29,9 @@
                     Margin="10"
                     Click="CloseWindow"/>
         </StackPanel>
+
+		<CheckBox x:Name="SaveCheckpoint" HorizontalAlignment="Center">
+			Save current progress as checkpoint
+		</CheckBox>
     </StackPanel>
 </Window>

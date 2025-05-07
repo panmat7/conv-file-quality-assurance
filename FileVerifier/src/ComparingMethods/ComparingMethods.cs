@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -418,12 +419,13 @@ public static class ComparingMethods
         
         return new Tuple<bool, bool>(err, failed);
     }
-    
+
 
     /// <summary>
     /// Compare the fonts of two files
     /// </summary>
     /// <param name="fp">The file pair</param>
+    [ExcludeFromCodeCoverage]
     public static void CompareFonts(FilePair fp, ref ComparisonResult compResult)
     {
         if (!GlobalVariables.Options.GetMethod(Methods.Fonts)) return;
@@ -450,6 +452,7 @@ public static class ComparingMethods
     /// <param name="result"></param>
     /// <param name="errors"></param>
     /// <param name="comments"></param>
+    [ExcludeFromCodeCoverage]
     private static void CheckFontDifference(FontComparisonResult result, ref List<Error> errors, ref List<string> comments)
     {
         if (result.FontsOnlyInOriginal.Count > 0 || result.FontsOnlyInConverted.Count > 0)
@@ -463,7 +466,7 @@ public static class ComparingMethods
 
             if (result.FontsOnlyInOriginal.Count > 0)
             {
-                StringBuilder bld = new StringBuilder();
+                var bld = new StringBuilder();
                 bld.Append("Fonts only in original:");
                 foreach (var f in result.FontsOnlyInOriginal) bld.Append($"\n{f}");
                 comments.Add(bld.ToString());
@@ -471,7 +474,7 @@ public static class ComparingMethods
 
             if (result.FontsOnlyInConverted.Count > 0)
             {
-                StringBuilder bld = new StringBuilder();
+                var bld = new StringBuilder();
                 bld.Append("Fonts only in converted:");
                 foreach (var f in result.FontsOnlyInConverted) bld.Append($"\n{f}");
                 comments.Add(bld.ToString());
@@ -486,6 +489,7 @@ public static class ComparingMethods
     /// <param name="result"></param>
     /// <param name="errors"></param>
     /// <param name="comments"></param>
+    [ExcludeFromCodeCoverage]
     private static void FontCheckColors(FontComparisonResult result, ref List<Error> errors, ref List<string> comments)
     {
         if (result.BgColorsNotConverted)
@@ -499,7 +503,7 @@ public static class ComparingMethods
 
             if (result.BgColorsOnlyInOriginal.Count > 0)
             {
-                StringBuilder bld = new StringBuilder();
+                var bld = new StringBuilder();
                 bld.Append("Background colors only in original:");
                 foreach (var c in result.BgColorsOnlyInOriginal) bld.Append($"\n#{c}");
                 comments.Add(bld.ToString());
@@ -518,7 +522,7 @@ public static class ComparingMethods
 
             if (result.TextColorsOnlyInOriginal.Count > 0)
             {
-                StringBuilder bld = new StringBuilder();
+                var bld = new StringBuilder();
                 bld.Append("Text colors only in original:");
                 foreach (var c in result.TextColorsOnlyInOriginal) bld.Append($"\n#{c}");
                 comments.Add(bld.ToString());
