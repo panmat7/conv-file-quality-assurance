@@ -74,7 +74,7 @@ public static class ScriptCodes
         var dir = Directory.GetCurrentDirectory();
         while (dir != null)
         {
-            if (Path.GetFileName(dir) == "FileVerifier")
+            if (Path.GetFileName(dir) == "conv-file-quality-assurance")
             {
                 break;
             }

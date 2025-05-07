@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AvaloniaDraft.ProgramManager;
+using System.Diagnostics;
 
 namespace UnitTests.ComparingMethodsTest;
 
@@ -32,8 +33,11 @@ public class FontComparisonTest
 
                 foreach (var oFile in originalFilePaths)
                 {
-                    var nFile = convertedFilePaths.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f) == 
-                                                                    Path.GetFileNameWithoutExtension(oFile));
+                    var oId = Path.GetFileNameWithoutExtension(oFile);
+                    var nFile = convertedFilePaths.FirstOrDefault(f => {
+                        var nId = Path.GetFileName(f).Split('_').FirstOrDefault();
+                        return nId == oId;
+                    });
                     if (nFile == null) throw new Exception("Failed to pair files");
 
 
@@ -53,7 +57,7 @@ public class FontComparisonTest
         throw new Exception("Failed to find project directory \"conv-file-quality-assurance\"");
     }
 
-    private string? GetFormatCode(string src)
+    private static string? GetFormatCode(string src)
     {
         var ext = Path.GetExtension(src).ToUpper();
             return ext switch
@@ -79,7 +83,7 @@ public class FontComparisonTest
         // Compare every test file pair
         foreach (var fp in filePairs)
         {
-            var testName = Path.GetFileNameWithoutExtension(fp.OriginalFilePath);
+            var testName = Path.GetFileNameWithoutExtension(fp.NewFilePath);
 
             (bool pass, bool foreignChars) expectedResult;
             if (testName.Contains("_p")) // 'p' for pass
@@ -94,7 +98,7 @@ public class FontComparisonTest
             {
                 throw new Exception($"Test {testName} not formatted correctly");
             }
-            expectedResult.foreignChars = testName.Contains("fc");
+            expectedResult.foreignChars = testName.Contains("-fc");
 
             var comparisonResult = FontComparison.CompareFiles(fp);
             (bool pass, bool foreignChars) result = (comparisonResult.Pass, comparisonResult.ContainsForeignCharacters);

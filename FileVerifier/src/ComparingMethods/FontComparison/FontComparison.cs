@@ -20,7 +20,6 @@ public class TextInfo
 {
     public bool ForeignWriting { get; set; }
     public HashSet<string> Fonts { get; set; }
-    public HashSet<HashSet<string>> AltFonts { get; set; }
     public HashSet<string> TextColors { get; set; }
     public HashSet<string> BgColors { get; set; }
 
@@ -29,7 +28,6 @@ public class TextInfo
     {
         ForeignWriting = false;
         Fonts = [];
-        AltFonts = [];
         TextColors = [];
         BgColors = [];
     }

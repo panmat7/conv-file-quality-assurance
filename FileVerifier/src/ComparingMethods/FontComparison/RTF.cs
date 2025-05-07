@@ -64,6 +64,6 @@ public static class RtfFontExtraction
 
         textInfo.Fonts.Add(fontName);
         textInfo.TextColors.Add(textHex);
-        textInfo.BgColors.Add(bgHex);
+        if (bgHex != "000000") textInfo.BgColors.Add(bgHex);
     }
 }

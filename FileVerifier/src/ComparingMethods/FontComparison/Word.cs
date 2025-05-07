@@ -194,6 +194,7 @@ public static class WordFontExtraction
     {
         if (themeHex == null) return null;
 
+
         var r = Convert.ToInt32(themeHex.Substring(0, 2), 16);
         var g = Convert.ToInt32(themeHex.Substring(2, 2), 16);
         var b = Convert.ToInt32(themeHex.Substring(4, 2), 16);
@@ -203,11 +204,11 @@ public static class WordFontExtraction
             if (themeTint != null)
             {
                 var themeTintFactor = int.Parse(themeTint, System.Globalization.NumberStyles.HexNumber) / 255.0;
-                r *= ApplyThemeTint(r, themeTintFactor);
-                g *= ApplyThemeTint(g, themeTintFactor);
-                b *= ApplyThemeTint(b, themeTintFactor);
+                var nr = ApplyThemeTint(r, themeTintFactor);
+                var ng = ApplyThemeTint(g, themeTintFactor);
+                var nb = ApplyThemeTint(b, themeTintFactor);
 
-                return FontComparison.GetHex((r, g, b));
+                return FontComparison.GetHex((nr, ng, nb));
             }
         }
         catch
@@ -220,11 +221,11 @@ public static class WordFontExtraction
             if (themeShade != null)
             {
                 var themeShadeFactor = int.Parse(themeShade, System.Globalization.NumberStyles.HexNumber) / 255.0;
-                r = ApplyThemeShade(r, themeShadeFactor);
-                g = ApplyThemeShade(g, themeShadeFactor);
-                b = ApplyThemeShade(b, themeShadeFactor);
+                var nr = ApplyThemeShade(r, themeShadeFactor);
+                var ng = ApplyThemeShade(g, themeShadeFactor);
+                var nb = ApplyThemeShade(b, themeShadeFactor);
 
-                return FontComparison.GetHex((r, g, b));
+                return FontComparison.GetHex((nr, ng, nb));
             }
         }
         catch
