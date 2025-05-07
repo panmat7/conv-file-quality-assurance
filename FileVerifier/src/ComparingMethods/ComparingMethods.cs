@@ -419,31 +419,43 @@ public static class ComparingMethods
         return new Tuple<bool, bool>(err, failed);
     }
     
+
     /// <summary>
     /// Compare the fonts of two files
     /// </summary>
     /// <param name="fp">The file pair</param>
-    public static List<Error> CompareFonts(FilePair fp, ref ComparisonResult compResult)
+    public static void CompareFonts(FilePair fp, ref ComparisonResult compResult)
     {
-        if (!GlobalVariables.Options.GetMethod(Methods.Fonts)) return [];
+        if (!GlobalVariables.Options.GetMethod(Methods.Fonts)) return;
 
         var comments = new List<string>();
         var errors = new List<Error>();
 
         var result = FontComparison.CompareFiles(fp);
-
-        if (result.Errors.Count > 0)
-        {
-            foreach (var e in result.Errors) errors.Add(e);
-        }
-
+        
+        foreach (var e in result.Errors) errors.Add(e);
         if (result.ContainsForeignCharacters) comments.Add("Contains foreign characters");
 
 
+        CheckFontDifference(result, ref errors, ref comments);
+        FontCheckColors(result, ref errors, ref comments);
+
+        compResult.AddTestResult(Methods.Fonts, result.Pass, null, comments, errors);
+    }
+
+
+    /// <summary>
+    /// Check for different fonts from a FontComparisonResult
+    /// </summary>
+    /// <param name="result"></param>
+    /// <param name="errors"></param>
+    /// <param name="comments"></param>
+    private static void CheckFontDifference(FontComparisonResult result, ref List<Error> errors, ref List<string> comments)
+    {
         if (result.FontsOnlyInOriginal.Count > 0 || result.FontsOnlyInConverted.Count > 0)
         {
             errors.Add(new Error(
-                "Font difference", 
+                "Font difference",
                 "Different fonts were detected in the two files.",
                 ErrorSeverity.Low,
                 ErrorType.Visual)
@@ -465,8 +477,17 @@ public static class ComparingMethods
                 comments.Add(bld.ToString());
             }
         }
+    }
 
 
+    /// <summary>
+    /// Check for different colors from a FontComparisonResult
+    /// </summary>
+    /// <param name="result"></param>
+    /// <param name="errors"></param>
+    /// <param name="comments"></param>
+    private static void FontCheckColors(FontComparisonResult result, ref List<Error> errors, ref List<string> comments)
+    {
         if (result.BgColorsNotConverted)
         {
             errors.Add(new Error(
@@ -503,14 +524,9 @@ public static class ComparingMethods
                 comments.Add(bld.ToString());
             }
         }
-
-        compResult.AddTestResult(Methods.Fonts, result.Pass, null, comments, errors);
-
-        // GlobalVariables.Logger.AddTestResult(fp, Methods.Fonts.Name, result.Pass, null, comments, errors);
-
-        return errors;
     }
-    
+
+
     /// <summary>
     /// Extracts the count of "draw:page" elements from content.xml, representing the number of slides
     /// </summary>

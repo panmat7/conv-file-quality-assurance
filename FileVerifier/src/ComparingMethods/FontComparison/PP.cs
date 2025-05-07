@@ -71,7 +71,7 @@ public static class PPFontExtraction
             if (colorDic == null) return null;
 
             // Get the theme
-            var themePart = slideMasterPart?.ThemePart;
+            var themePart = slideMasterPart.ThemePart;
 
             // Check the default fonts
             var fontScheme = themePart?.Theme?.ThemeElements?.FontScheme;
@@ -172,7 +172,7 @@ public static class PPFontExtraction
         StyleProperties sldLayoutStyle;
         if (placeholderShape != null)
         {
-            var listStyle = placeholderShape?.TextBody?.ListStyle;
+            var listStyle = placeholderShape.TextBody?.ListStyle;
             var listStyleXml = XElement.Parse(listStyle?.OuterXml ?? "");
             sldLayoutStyle = GetDefaultStyle(listStyleXml, colorDic, lvl);
         }
@@ -212,7 +212,7 @@ public static class PPFontExtraction
 
 
         // Check each run
-        var runs = paragraph?.Descendants<Run>();
+        var runs = paragraph.Descendants<Run>();
         if (runs == null) return;
         foreach (var run in runs)
         {
@@ -254,7 +254,7 @@ public static class PPFontExtraction
         // Get fonts
         var csRef = runProp?.Descendants<RightToLeft>().Any() ?? false;
         var langIsZh = (!string.IsNullOrEmpty(lang) && lang.Contains("zh"));
-        (var slots, var foreignChars) = MSOffice.GetFontSlots(run.InnerText, csRef, false, langIsZh, false, true);
+        (var slots, var foreignChars) = MSOffice.GetFontSlotsAndCheckForForeignCharacters(run.InnerText, csRef, false, langIsZh, false, true);
         if (foreignChars) textInfo.ForeignWriting = true;
 
         var rLatinFont = runProp?.GetFirstChild<LatinFont>()?.Typeface?.Value;
@@ -345,6 +345,7 @@ public static class PPFontExtraction
     /// <returns></returns>
     private static StyleProperties GetDefaultStyle(XElement? styleElement, Dictionary<string, string> colorDic, int? level)
     {
+        const string typefaceStr = "typeface";
         var style = new StyleProperties();
         if (styleElement == null) return style;
 
@@ -370,7 +371,7 @@ public static class PPFontExtraction
         var buFont = lvlStyle.Descendants().FirstOrDefault(e => e.Name.LocalName == "buFont");
         if (buFont != null)
         {
-            var typeface = buFont.Attributes().FirstOrDefault(a => a.Name.LocalName == "typeface")?.Value;
+            var typeface = buFont.Attributes().FirstOrDefault(a => a.Name.LocalName == typefaceStr)?.Value;
             if (typeface != null) style.buFont = FontComparison.NormalizeFontName(typeface);
         }
 
@@ -383,9 +384,9 @@ public static class PPFontExtraction
         if (txtHex != null) style.textColor = txtHex;
 
         // Fonts
-        style.latinFont = XmlHelpers.GetAttributeByLocalName(defProperties.Descendants().FirstOrDefault(e => e.Name.LocalName == "latin"), "typeface");
-        style.eaFont = XmlHelpers.GetAttributeByLocalName(defProperties.Descendants().FirstOrDefault(e => e.Name.LocalName == "ea"), "typeface");
-        style.csFont = XmlHelpers.GetAttributeByLocalName(defProperties.Descendants().FirstOrDefault(e => e.Name.LocalName == "cs"), "typeface");
+        style.latinFont = XmlHelpers.GetAttributeByLocalName(defProperties.Descendants().FirstOrDefault(e => e.Name.LocalName == "latin"), typefaceStr);
+        style.eaFont = XmlHelpers.GetAttributeByLocalName(defProperties.Descendants().FirstOrDefault(e => e.Name.LocalName == "ea"), typefaceStr);
+        style.csFont = XmlHelpers.GetAttributeByLocalName(defProperties.Descendants().FirstOrDefault(e => e.Name.LocalName == "cs"), typefaceStr);
 
         return style;
     }
@@ -411,9 +412,9 @@ public static class PPFontExtraction
         {
             // Scheme
             var scheme = schemeClr.Attribute("val")?.Value;
-            if (scheme != null && colorDic.ContainsKey(scheme))
+            if (scheme != null && colorDic.TryGetValue(scheme, out string? value))
             {
-                var baseColor = ColorTranslator.FromHtml("#" + colorDic[scheme]);
+                var baseColor = ColorTranslator.FromHtml("#" + value);
 
                 var lumModStr = schemeClr.Descendants().FirstOrDefault(e => e.Name.LocalName == "lumMod")?.Attributes().FirstOrDefault(a => a.Name.LocalName == "val")?.Value;
                 var lumOffStr = schemeClr.Descendants().FirstOrDefault(e => e.Name.LocalName == "lumOff")?.Attributes().FirstOrDefault(a => a.Name.LocalName == "val")?.Value;
@@ -640,14 +641,14 @@ public static class PPFontExtraction
 
         string? hex;
 
-        var rgbCol = bulletColor?.GetFirstChild<RgbColorModelHex>();
+        var rgbCol = bulletColor.GetFirstChild<RgbColorModelHex>();
         if (rgbCol != null)
         {
             hex = rgbCol.Val;
         }
         else
         {
-            var schemeCol = bulletColor?.GetFirstChild<SchemeColor>();
+            var schemeCol = bulletColor.GetFirstChild<SchemeColor>();
 
             hex = GetSchemeColor(schemeCol, colorDic);
         }

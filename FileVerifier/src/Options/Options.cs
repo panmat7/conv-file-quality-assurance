@@ -38,13 +38,12 @@ public class Options
     public double SizeComparisonThreshold { get; set; }
     public double PbpComparisonThreshold { get; set; }
 
-    public Dictionary<string, Dictionary<string?, bool>> FileFormatsEnabled { get; set; } = new();
+    public Dictionary<string, Dictionary<string, bool>> FileFormatsEnabled { get; set; } = new();
     public Dictionary<string, bool> MethodsEnabled { get; set; } = new();
 
     public int? SpecifiedThreadCount { get; set; }
     public bool IgnoreUnsupportedFileType { get; set; }
 
-    private JsonSerializerOptions? SerializerOptions;
 
 
     /// <summary>
@@ -52,13 +51,11 @@ public class Options
     /// </summary>
     public void Initialize()
     {
-        SerializerOptions = null;
-
         SetDirPath();
         Profile = SettingsProfile.Default;
 
-        FileFormatsEnabled = new Dictionary<string, Dictionary<string?, bool>>();
-        MethodsEnabled = new Dictionary<string, bool>();
+        FileFormatsEnabled = [];
+        MethodsEnabled = [];
 
         LoadSettings();
     }
@@ -68,34 +65,19 @@ public class Options
     /// </summary>
     public void InitializeEnabledFormats()
     {
-        // Get every field of FormatCodes, which are lists of pronom codes for every file type
-        var fcFields = typeof(FormatCodes).GetFields();
-        foreach (var fld in fcFields)
+        foreach (var format in FormatCodes.AllCodes)
         {
-            var ff = fld.GetValue(null);
-            if (ff is not FileFormat fileFormat) continue;
+            var pronomCodes = format.PronomCodes.Where(c => !FormatCodes.UnsupportedFormats.Contains(c));
+            if (!pronomCodes.Any()) continue;
 
-            var supportedCodes = fileFormat.PronomCodes.Where(c => !FormatCodes.UnsupportedFormats.Contains(c));
-            if (!supportedCodes.Any()) continue;
+            var fmtCodes = format.FormatCodes;
 
-            var fmtCodes = fileFormat.FormatCodes;
-
-            if (fmtCodes.ToHashSet().SetEquals(["jpg", "jpeg"]))
+            if (fmtCodes.Count > 0)
             {
-                var type = "jpeg/jpg";
-                if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
-                foreach (var fmt in fileFormat.PronomCodes)
-                {
-                    if (!FormatCodes.UnsupportedFormats.Contains(fmt))
-                        FileFormatsEnabled[type][fmt] = true;
-                }
-            }
-            else if (fmtCodes.Count == 1)
-            {
-                var type = fileFormat.FormatCodes[0].ToLower();
+                var type = string.Join("/", fmtCodes);
 
-                if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, new Dictionary<string, bool>());
-                foreach (var fmt in fileFormat.PronomCodes)
+                if (!FileFormatsEnabled.ContainsKey(type)) FileFormatsEnabled.Add(type, []);
+                foreach (var fmt in format.PronomCodes)
                 {
                     if (!FormatCodes.UnsupportedFormats.Contains(fmt))
                         FileFormatsEnabled[type][fmt] = true;
@@ -114,9 +96,9 @@ public class Options
     {
         var name = method.Name;
 
-        if (MethodsEnabled.ContainsKey(name))
+        if (MethodsEnabled.TryGetValue(name, out bool enabled))
         {
-            return MethodsEnabled[name];
+            return enabled;
         }
         else
         {
@@ -134,9 +116,9 @@ public class Options
     {
         var name = method.Name;
 
-        if (!MethodsEnabled.ContainsKey(name)) return;
+        if (!MethodsEnabled.TryGetValue(name, out bool value)) return;
 
-        MethodsEnabled[name] = setTo ?? MethodsEnabled[name];
+        MethodsEnabled[name] = setTo ?? value;
     }
 
 
@@ -150,9 +132,9 @@ public class Options
 
         foreach (var ft in FileFormatsEnabled.Keys)
         {
-            if (FileFormatsEnabled[ft].ContainsKey(pronomCode))
+            if (FileFormatsEnabled[ft].TryGetValue(pronomCode, out bool enabled))
             {
-                return FileFormatsEnabled[ft][pronomCode];
+                return enabled;
             }
         }
 
@@ -166,6 +148,8 @@ public class Options
     /// /// <param name="setTo">Enable or not. Leave out to toggle to its opposite value</param> 
     public void SetFormat(string? pronomCode, bool? setTo = null)
     {
+        if (pronomCode == null) return;
+
         // Get the file type of the pronom code
         string? fileType = FileFormatsEnabled.Keys.FirstOrDefault(k => FileFormatsEnabled[k].ContainsKey(pronomCode));
         if (fileType == null) return;
@@ -192,11 +176,11 @@ public class Options
     /// <param name="setTo">Enable or not</param>
     public void SetFiletype(string filetype, bool setTo)
     {
-        if (!FileFormatsEnabled.ContainsKey(filetype)) return;
+        if (!FileFormatsEnabled.TryGetValue(filetype, out Dictionary<string, bool>? codes)) return;
 
-        foreach (var fmt in FileFormatsEnabled[filetype].Keys)
+        foreach (var fmt in codes.Keys)
         {
-            FileFormatsEnabled[filetype][fmt] = setTo;
+            codes[fmt] = setTo;
         }
     }
 
@@ -271,7 +255,7 @@ public class Options
             SettingsProfile.Custom1 => "custom1",
             SettingsProfile.Custom2 => "custom2",
             SettingsProfile.Custom3 => "custom3",
-            SettingsProfile => "-"
+            _ => "-"
         } + ".json";
     }
 
@@ -307,7 +291,7 @@ public class Options
             {
                 var jsonString = File.ReadAllText(src);
 
-                var o = JsonSerializer.Deserialize<Options>(jsonString, GetJsonSerializerOptions());
+                var o = JsonSerializer.Deserialize<Options>(jsonString);
                 if (o is Options opt)
                 {
                     this.FileFormatsEnabled = opt.FileFormatsEnabled;
@@ -327,19 +311,5 @@ public class Options
         {
             Console.WriteLine($"Error trying to load settings: {ex}");
         }
-    }
-
-
-    /// <summary>
-    /// Get JSON serializer options
-    /// </summary>
-    /// <returns></returns>
-    private JsonSerializerOptions GetJsonSerializerOptions()
-    {
-        return SerializerOptions ?? new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
     }
 }

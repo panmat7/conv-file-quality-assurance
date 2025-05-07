@@ -36,7 +36,7 @@ public static class HtmlBasedFontExtraction
     /// </summary>
     /// <param name="src">The file path or HTML content</param>
     /// <returns></returns>
-    public static TextInfo? GetTextInfoHtml(string src, bool isContent = false, bool includeAltFonts = true)
+    public static TextInfo? GetTextInfoHtml(string src, bool isContent = false)
     {
         var textInfo = new TextInfo();
 
@@ -64,68 +64,65 @@ public static class HtmlBasedFontExtraction
         var styledNodes = doc.DocumentNode.SelectNodes("//*[@style]") ?? Enumerable.Empty<HtmlNode>();
         foreach (var node in styledNodes)
         {
-            var styleAttr = node.Attributes["style"];
-
-            var styleVal = styleAttr.Value.Replace("&quot;", "");
-            var attributes = styleVal.Split(';');
-
-            foreach (var attr in attributes)
-            {
-                var parts = attr.Split(":");
-                if (parts.Length != 2) continue;
-
-                var name = parts[0];
-                name = name.TrimStart();
-                var value = attr.Substring(name.Length + 1);
-
-                switch(name)
-                {
-                    case "font-family":
-                        GetFontFromFontFamilyAttribute(value, includeAltFonts, textInfo);
-                        break;
-
-                    case "color":
-                        var txtHex = GetHex(value);
-                        if (txtHex != null) textInfo.TextColors.Add(txtHex);
-                        break;
-
-                    case "background-color":
-                    case "background":
-                        var bgHex = GetHex(value);
-                        if (bgHex != null) textInfo.BgColors.Add(bgHex);
-                        break;
-                }
-            }
+            CheckStyleNode(node, textInfo);
         }
 
         return textInfo;
     }
 
+    
+    /// <summary>
+    /// Check a styled node and extract font and colors
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="textInfo"></param>
+    private static void CheckStyleNode(HtmlNode node, TextInfo textInfo)
+    {
+        var styleAttr = node.Attributes["style"];
 
+        var styleVal = styleAttr.Value.Replace("&quot;", "");
+        var attributes = styleVal.Split(';');
 
+        foreach (var attr in attributes)
+        {
+            var parts = attr.Split(":");
+            if (parts.Length != 2) continue;
+
+            var name = parts[0];
+            name = name.TrimStart();
+            var value = attr.Substring(name.Length + 1);
+
+            switch (name)
+            {
+                case "font-family":
+                    GetFontFromFontFamilyAttribute(value, textInfo);
+                    break;
+
+                case "color":
+                    var txtHex = GetHex(value);
+                    if (txtHex != null) textInfo.TextColors.Add(txtHex);
+                    break;
+
+                case "background-color":
+                case "background":
+                    var bgHex = GetHex(value);
+                    if (bgHex != null) textInfo.BgColors.Add(bgHex);
+                    break;
+            }
+        }
+    }
 
     /// <summary>
     /// Gets the font or fonts from a "font-family" attribute
     /// </summary>
     /// <param name="attributeValue"></param>
-    /// <param name="includeAltFonts"></param>
-    /// <param name="fonts"></param>
-    /// <param name="altFonts"></param>
-    private static void GetFontFromFontFamilyAttribute(string attributeValue, bool includeAltFonts, TextInfo textInfo)
+    /// <param name="textInfo"></param>
+    private static void GetFontFromFontFamilyAttribute(string attributeValue, TextInfo textInfo)
     {
         var styleFonts = attributeValue.Split(',');
-        if (styleFonts.Length == 1 || (!includeAltFonts && styleFonts.Length >= 1))
+        if (styleFonts.Length >= 1)
         {
             textInfo.Fonts.Add(FontComparison.NormalizeFontName(styleFonts[0]));
-        }
-        else if (styleFonts.Length > 1 && includeAltFonts)
-        {
-            var fontChoices = new HashSet<string>();
-            foreach (var font in styleFonts)
-            {
-                fontChoices.Add(FontComparison.NormalizeFontName(font));
-            }
-            textInfo.AltFonts.Add(fontChoices);
         }
     }
 

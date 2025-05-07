@@ -272,15 +272,9 @@ public class Logger
     {
         try
         {
-            var seralizerOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
             var jsonString = File.ReadAllText(src);
 
-            var l = JsonSerializer.Deserialize<Logger>(jsonString, seralizerOptions);
+            var l = JsonSerializer.Deserialize<Logger>(jsonString);
             if (l is Logger logger)
             {
                 FileComparisonCount = l.FileComparisonCount;

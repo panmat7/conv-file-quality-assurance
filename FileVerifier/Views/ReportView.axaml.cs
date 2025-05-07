@@ -182,9 +182,8 @@ public partial class ReportView : UserControl
                 foreach (var file in files.Select(f => f.FilePath))
                 {
                     fileCount++;
-                    var dir = System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(file));
                     var fileName = System.IO.Path.GetFileName(file);
-                    stringBuilder.AppendLine($"{dir}/{fileName}");
+                    stringBuilder.AppendLine(fileName);
                 }
 
                 var expander = new Expander

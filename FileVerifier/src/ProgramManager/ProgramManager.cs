@@ -21,7 +21,15 @@ public class FilePair
     public bool Done { get; set; }
     public bool InProcess { get; set; }
 
-    public FilePair() { }
+    public FilePair() 
+    {
+        OriginalFilePath = "";
+        OriginalFileFormat = "";
+        NewFilePath = "";
+        NewFileFormat = "";
+        Done = false;
+        InProcess = false;
+    }
 
     public FilePair(string oFilePath, string nFilePath)
     {
@@ -99,7 +107,6 @@ public sealed class ProgramManager
     private readonly string _nDirectory;
     private readonly string _tempODirectory;
     private readonly string _tempNDirectory;
-    private readonly string _checkpoint;
     public List<IgnoredFile> IgnoredFiles { get; set; }
     private List<FilePair> _filePairs;
     private readonly List<string> _pairlessFiles;
@@ -170,17 +177,18 @@ public sealed class ProgramManager
             {
                 var pair = new FilePair(oFile, "", nFile, "");
 
-                if (!checkpointFilePairs.Any(fp => fp.OriginalFilePath == pair.OriginalFilePath 
-                    && fp.NewFilePath == pair.NewFilePath))
+                var alreadyChecked = (checkpointFilePairs.Any(fp => fp.OriginalFilePath == pair.OriginalFilePath
+                    && fp.NewFilePath == pair.NewFilePath));
+
+                if (alreadyChecked)
                 {
                     _filePairs.Add(pair);
-                } 
-                else
-                {
-                    var reason = ReasonForIgnoring.AlreadyChecked;
-                    IgnoredFiles.Add(new IgnoredFile(nFile, reason));
-                    IgnoredFiles.Add(new IgnoredFile(oFile, reason));
+                    continue;
                 }
+
+                var reason = ReasonForIgnoring.AlreadyChecked;
+                IgnoredFiles.Add(new IgnoredFile(nFile, reason));
+                IgnoredFiles.Add(new IgnoredFile(oFile, reason));
             }
             else
             {

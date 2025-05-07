@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml;
+﻿using Avalonia.Animation.Easings;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 using System.Collections.Generic;
@@ -52,17 +53,18 @@ public static class MSOffice
 
     public static Dictionary<string, string> GetDefaultFonts(XElement fontList)
     {
+        const string typefaceStr = "typeface";
         var dic = new Dictionary<string, string>();
 
         foreach (var font in fontList.Descendants())
         {
             (string? key, string? value) = font.Name.LocalName switch
             {
-                "latin" => ("Latin", XmlHelpers.GetAttributeByLocalName(font, "typeface")),
-                "ea" => ("EastAsia", XmlHelpers. GetAttributeByLocalName(font, "typeface")),
-                "cs" => ("ComplexScript", XmlHelpers.GetAttributeByLocalName(font, "typeface")),
+                "latin" => ("Latin", XmlHelpers.GetAttributeByLocalName(font, typefaceStr)),
+                "ea" => ("EastAsia", XmlHelpers. GetAttributeByLocalName(font, typefaceStr)),
+                "cs" => ("ComplexScript", XmlHelpers.GetAttributeByLocalName(font, typefaceStr)),
 
-                "font" => (XmlHelpers.GetAttributeByLocalName(font, "script"), XmlHelpers.GetAttributeByLocalName(font, "typeface")),
+                "font" => (XmlHelpers.GetAttributeByLocalName(font, "script"), XmlHelpers.GetAttributeByLocalName(font, typefaceStr)),
 
                 _ => (null, null),
             };
@@ -92,12 +94,28 @@ public static class MSOffice
     /// <param name="langIsZH">Whether or not the language is 'zh'</param>
     /// <param name="fontIsBig5orGB2312">Whether or not the font is 'Big5' or 'GB2312'</param>
     /// <returns></returns>
-    public static (HashSet<string> slots, bool foreignWriting) GetFontSlots(string txt, bool csRef, bool eaHint, bool langIsZH, bool fontIsBig5orGB2312, bool combinedLatin)
+    public static (HashSet<string> slots, bool foreignWriting) GetFontSlotsAndCheckForForeignCharacters(string txt, bool csRef, bool eaHint, bool langIsZH, bool fontIsBig5orGB2312, bool combinedLatin)
     {
         if (string.IsNullOrWhiteSpace(txt)) return ([], false);
 
         bool foreignChars = false;
 
+
+        var slots = new HashSet<string>();
+        foreach (var c in txt)
+        {
+            if (FontComparison.IsForeign(c)) foreignChars = true;
+
+            var slot = GetFontSlotForChar(c, csRef, eaHint, langIsZH, fontIsBig5orGB2312, combinedLatin);
+            if (slot != null) slots.Add(slot);
+        }
+
+        return (slots, foreignChars);
+    }
+
+
+    private static string? GetFontSlotForChar(char c, bool csRef, bool eaHint, bool langIsZH, bool fontIsBig5orGB2312, bool combinedLatin)
+    {
         string ascii = combinedLatin ? "latin" : "ascii";
         string hansi = combinedLatin ? "latin" : "hAnsi";
         string ea = "eastAsia";
@@ -163,54 +181,43 @@ public static class MSOffice
         };
 
 
-        var slots = new HashSet<string>();
-        foreach (var c in txt)
+        // East Asian if language is zh or font is Big5 or GB2312, otherwise High Ansi
+        if (FontComparison.InRange(c, eaIfZHOrBig5orGB2312Ranges))
         {
-            if (FontComparison.IsForeign(c)) foreignChars = true;
-
-            // East Asian if language is zh or font is Big5 or GB2312, otherwise High Ansi
-            if (FontComparison.InRange(c, eaIfZHOrBig5orGB2312Ranges))
-            {
-                slots.Add((eaHint && (langIsZH || fontIsBig5orGB2312)) ? ea : hansi);
-                continue;
-            }
-
-            // East Asian if language is zh, otherwise High Ansi
-            if (FontComparison.InRange(c, eaIfZHRanges))
-            {
-                slots.Add((eaHint && langIsZH) ? ea : hansi);
-                continue;
-            }
-
-            // East Asian if hint, otherwise High Ansi
-            if (FontComparison.InRange(c, hansiOrEaIfHintRanges))
-            {
-                slots.Add((eaHint) ? ea : hansi);
-                continue;
-            }
-
-            // East Asian
-            if (FontComparison.InRange(c, eaRanges))
-            {
-                slots.Add((csRef) ? cs : ea);
-                continue;
-            }
-
-            // ASCII
-            if (FontComparison.InRange(c, asciiRanges))
-            {
-                slots.Add((csRef) ? cs : ascii);
-                continue;
-            }
-
-            // High Ansi
-            if (FontComparison.InRange(c, hansiRanges))
-            {
-                slots.Add((csRef) ? cs : hansi);
-            }
+            return ((eaHint && (langIsZH || fontIsBig5orGB2312)) ? ea : hansi);
         }
 
-        return (slots, foreignChars);
+        // East Asian if language is zh, otherwise High Ansi
+        if (FontComparison.InRange(c, eaIfZHRanges))
+        {
+            return ((eaHint && langIsZH) ? ea : hansi);
+        }
+
+        // East Asian if hint, otherwise High Ansi
+        if (FontComparison.InRange(c, hansiOrEaIfHintRanges))
+        {
+            return ((eaHint) ? ea : hansi);
+        }
+
+        // East Asian
+        if (FontComparison.InRange(c, eaRanges))
+        {
+            return ((csRef) ? cs : ea);
+        }
+
+        // ASCII
+        if (FontComparison.InRange(c, asciiRanges))
+        {
+            return ((csRef) ? cs : ascii);
+        }
+
+        // High Ansi
+        if (FontComparison.InRange(c, hansiRanges))
+        {
+            return ((csRef) ? cs : hansi);
+        }
+
+        return null;
     }
 }
 
