@@ -14,6 +14,7 @@ public partial class StopWindow : Window
     private void StopComparison(object sender, RoutedEventArgs e)
     {
         GlobalVariables.StopProcessing = true;
+        if (SaveCheckpoint.IsChecked == true) GlobalVariables.Logger.SaveReport(true);
         Close();
     }
     
