@@ -1,5 +1,7 @@
 ﻿using Avalonia.Animation.Easings;
+using ColorMine.ColorSpaces;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Office2013.Drawing.Chart;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Org.BouncyCastle.Asn1.Tsp;
@@ -12,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using SystemDrawing = System.Drawing;
 
 namespace AvaloniaDraft.ComparingMethods;
 
@@ -119,18 +122,18 @@ public static class WordFontExtraction
         if (shading == null) return null;
 
         // Convert to Color class
-        var col = new Color
+        var themeFill = new Color
         {
             Val = new StringValue
             {
                 Value = shading.Fill?.Value,
             },
-            ThemeColor = shading.ThemeColor,
-            ThemeTint = shading.ThemeTint,
-            ThemeShade = shading.ThemeShade,
+            ThemeColor = shading.ThemeFill,
+            ThemeTint = shading.ThemeFillTint,
+            ThemeShade = shading.ThemeFillShade,
         };
 
-        return GetColor(col, themePart);
+        return GetColor(themeFill, themePart);
     }
 
 
@@ -140,7 +143,7 @@ public static class WordFontExtraction
     /// <param name="col"></param>
     /// <param name="themePart"></param>
     /// <returns></returns>
-    private static string? GetColor(Color? col, ThemePart? themePart)
+    private static string? GetColor(Color? col, ThemePart? themePart, bool shading = true)
     {
         if (col == null) return null;
 
@@ -179,7 +182,9 @@ public static class WordFontExtraction
             _ => null,
         };
 
-        return GetThemeColor(themeColHex, themeShade, themeTint);
+        
+
+        return GetThemeColor(themeColHex, themeShade, themeTint, shading);
     }
 
 
@@ -190,11 +195,9 @@ public static class WordFontExtraction
     /// <param name="themeShade"></param>
     /// <param name="themeTint"></param>
     /// <returns></returns>
-    private static string? GetThemeColor(string? themeHex, string? themeShade, string? themeTint)
+    private static string? GetThemeColor(string? themeHex, string? themeShade, string? themeTint, bool shading)
     {
         if (themeHex == null) return null;
-
-
         var r = Convert.ToInt32(themeHex.Substring(0, 2), 16);
         var g = Convert.ToInt32(themeHex.Substring(2, 2), 16);
         var b = Convert.ToInt32(themeHex.Substring(4, 2), 16);
@@ -203,10 +206,24 @@ public static class WordFontExtraction
         {
             if (themeTint != null)
             {
-                var themeTintFactor = int.Parse(themeTint, System.Globalization.NumberStyles.HexNumber) / 255.0;
-                var nr = ApplyThemeTint(r, themeTintFactor);
-                var ng = ApplyThemeTint(g, themeTintFactor);
-                var nb = ApplyThemeTint(b, themeTintFactor);
+                int nr, ng, nb;
+                var themeTintFactor = int.Parse(themeTint, NumberStyles.HexNumber) / 255.0;
+                if (!shading) {
+                    nr = ApplyThemeTint(r, themeTintFactor);
+                    ng = ApplyThemeTint(g, themeTintFactor);
+                    nb = ApplyThemeTint(b, themeTintFactor);
+                } 
+                else
+                {
+                    var rgbCol = new Rgb { R = r, G = g, B = b };
+                    var hslCol = rgbCol.To<Hsl>();
+                    hslCol.L = hslCol.L * themeTintFactor + (100.0 - themeTintFactor * 100.0);
+
+                    var newRgbCol = hslCol.To<Rgb>();
+                    nr = (int)newRgbCol.R;
+                    ng = (int)newRgbCol.G;
+                    nb = (int)newRgbCol.B;
+                }
 
                 return FontComparison.GetHex((nr, ng, nb));
             }
@@ -220,10 +237,26 @@ public static class WordFontExtraction
         {
             if (themeShade != null)
             {
-                var themeShadeFactor = int.Parse(themeShade, System.Globalization.NumberStyles.HexNumber) / 255.0;
-                var nr = ApplyThemeShade(r, themeShadeFactor);
-                var ng = ApplyThemeShade(g, themeShadeFactor);
-                var nb = ApplyThemeShade(b, themeShadeFactor);
+                int nr, ng, nb;
+                var themeShadeFactor = int.Parse(themeShade, NumberStyles.HexNumber) / 255.0;
+
+                if (!shading)
+                {
+                    nr = ApplyThemeShade(r, themeShadeFactor);
+                    ng = ApplyThemeShade(g, themeShadeFactor);
+                    nb = ApplyThemeShade(b, themeShadeFactor);
+                } 
+                else
+                {
+                    var rgbCol = new Rgb { R = r, G = g, B = b };
+                    var hslCol = rgbCol.To<Hsl>();
+                    hslCol.L *= themeShadeFactor;
+
+                    var newRgbCol = hslCol.To<Rgb>();
+                    nr = (int)newRgbCol.R;
+                    ng = (int)newRgbCol.G;
+                    nb = (int)newRgbCol.B;
+                }
 
                 return FontComparison.GetHex((nr, ng, nb));
             }
