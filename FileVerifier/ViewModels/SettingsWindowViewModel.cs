@@ -182,8 +182,8 @@ public double SizeComparisonThreshold
         get => _isVisualDocComparisonEnabled;
         set
         {
-            if (_isPbPEnabled == value) return;
-            _isPbPEnabled = value;
+            if (_isVisualDocComparisonEnabled == value) return;
+            _isVisualDocComparisonEnabled = value;
             GlobalVariables.Options.SetMethod(Methods.VisualDocComp, value);
             OnPropertyChanged(nameof(IsVisualDocComparisonEnabled));
         }
