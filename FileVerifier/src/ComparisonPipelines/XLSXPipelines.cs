@@ -297,7 +297,7 @@ public static class XLSXPipelines
             GlobalVariables.Logger.AddComparisonResult(compResult);
             
             BasePipeline.DeleteTempFolders(tempFoldersForImages.Item1, tempFoldersForImages.Item2);
-            
+             
         }, [pair.OriginalFilePath, pair.NewFilePath], additionalThreads, updateThreadCount, markDone);
     }
 }

@@ -1,2 +1,0 @@
-Images are of documents present in this dataset
-https://www.kaggle.com/datasets/manisha717/dataset-of-pdf-files

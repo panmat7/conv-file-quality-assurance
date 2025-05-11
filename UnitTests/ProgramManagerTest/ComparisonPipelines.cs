@@ -16,7 +16,7 @@ public class ComparisonPipelines : TestBase
         if(pjPipeline is null) Assert.Fail();
         if(nonePipeline is not null) Assert.Fail();
         
-        Assert.That(dpPipeline?.Method.Name, Is.EqualTo("DocxToPdfPipeline"));
+        Assert.That(dpPipeline?.Method.Name, Is.EqualTo("DocxToTextDocPipeline"));
         Assert.That(pjPipeline?.Method.Name, Is.EqualTo("ImageToImagePipeline"));
     }
 }

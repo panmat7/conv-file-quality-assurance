@@ -363,10 +363,11 @@ public sealed class ProgramManager
     }
 
     /// <summary>
-    /// Calculates the number of threads that should be assigned to a file verification process. 
+    /// Calculates the number of threads that should be assigned to a file verification process.
+    /// This functionality is not employed by any pipeline and, while present, is not supported. 
     /// </summary>
     /// <param name="filePair">The pair of files</param>
-    /// <returns>The recommended number of additional threads</returns>
+    /// <returns>The recommended number of additional threads, i.e. 0 in current implementation</returns>
     private static int GetAdditionalThreadCount(FilePair filePair)
     {
         // //Visual comparison may receive additional threads

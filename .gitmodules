@@ -1,0 +1,3 @@
+[submodule "UnitTests/ComparingMethodsTest/TestFiles"]
+	path = UnitTests/ComparingMethodsTest/TestFiles
+	url = https://github.com/panmat7/conv-file-quality-assurance-testfiles.git
