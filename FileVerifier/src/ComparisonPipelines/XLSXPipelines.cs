@@ -21,7 +21,7 @@ public static class XLSXPipelines
         if (FormatCodes.PronomCodesPDF.Contains(outputFormat) || FormatCodes.PronomCodesPDFA.Contains(outputFormat))
             return XlsxToPdfPipeline;
         if (!FormatCodes.PronomCodesCSV.Contains(outputFormat) && FormatCodes.PronomCodesSpreadsheets.Contains(outputFormat))
-            return XslxToSpreadsheetPipeline;
+            return XlsxToSpreadsheetPipeline;
 
         return null;
     }
@@ -36,31 +36,31 @@ public static class XLSXPipelines
     private static void XlsxToPdfPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
-        Error error;
-
-        var compResult = new ComparisonResult(pair);
-
-        var failedToExtract = false;
-        var equalNumberOfImages = false;
-
-        var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
-        try
-        {
-            ImageExtractionToDisk.ExtractImagesFromXlsxToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
-            ImageExtractionToDisk.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
-            // Some checks will be skipped if the number of images is not equal
-            equalNumberOfImages = ImageExtractionToDisk.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
-                tempFoldersForImages.Item2);
-        }
-        catch (Exception)
-        {
-            failedToExtract = true;
-        }
-        
-        ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
-        
         BasePipeline.ExecutePipeline(() =>
         {
+            Error error;
+
+            var compResult = new ComparisonResult(pair);
+
+            var failedToExtract = false;
+            var equalNumberOfImages = false;
+
+            var tempFoldersForImages = BasePipeline.CreateTempFoldersForImages();
+            try
+            {
+                ImageExtractionToDisk.ExtractImagesFromXlsxToDisk(pair.OriginalFilePath, tempFoldersForImages.Item1);
+                ImageExtractionToDisk.ExtractImagesFromPdfToDisk(pair.NewFilePath, tempFoldersForImages.Item2);
+                // Some checks will be skipped if the number of images is not equal
+                equalNumberOfImages = ImageExtractionToDisk.CheckIfEqualNumberOfImages(tempFoldersForImages.Item1,
+                    tempFoldersForImages.Item2);
+            }
+            catch (Exception)
+            {
+                failedToExtract = true;
+            }
+        
+            ComparingMethods.ComparingMethods.CompareFonts(pair, ref compResult);
+            
             if (GlobalVariables.Options.GetMethod(Methods.Size))
             {
                 var res = ComparingMethods.ComparingMethods.CheckFileSizeDifference(pair);
@@ -182,7 +182,7 @@ public static class XLSXPipelines
     /// <param name="additionalThreads">Number of threads available for usage</param>
     /// <param name="updateThreadCount">Callback function used to update current thread count</param>
     /// <param name="markDone">Function marking the FilePair as done</param>
-    private static void XslxToSpreadsheetPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
+    private static void XlsxToSpreadsheetPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
         BasePipeline.ExecutePipeline(() =>

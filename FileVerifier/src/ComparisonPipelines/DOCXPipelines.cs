@@ -34,11 +34,11 @@ public static class DocxPipelines
     private static void DocxToTextDocPipeline(FilePair pair, int additionalThreads, Action<int> updateThreadCount,
         Action markDone)
     {
-        var compResult = new ComparisonResult(pair);
-
         BasePipeline.ExecutePipeline(() =>
         {
             Error error;
+            
+            var compResult = new ComparisonResult(pair);
 
             var failedToExtract = false;
             var equalNumberOfImages = false;
