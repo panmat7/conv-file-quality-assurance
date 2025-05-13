@@ -175,7 +175,7 @@ public static class ODTPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Metadata, false, errors: [error]);
                 }
             }
             
