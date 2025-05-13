@@ -5,7 +5,7 @@
 ---
 ![Home Screen](./readmeImg/Program.png)
 
-# 📚 Table of contents
+# 📚Table of contents
 - [Background & Motivation](#background--motivation)  
 - [Key Features](#key-features)  
 - [Comparison Methods](#comparison-methods)  
@@ -23,10 +23,10 @@
 
 ---
 
-# 📖 Background & Motivation
+# 📖Background & Motivation
 ---
 
-# 🚀 Key features
+# 🚀Key features
 - Pixel-by-pixel visual comparisons of images or document pages
 - Detection of metadata differences (resolution, color space, bit depth, etc.)
 - Table break detection in spreadsheets converted to PDFs
