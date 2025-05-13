@@ -230,17 +230,9 @@ public class Options
     private void SetDirPath()
     {
         var currentDir = Directory.GetCurrentDirectory();
-        
-
-        while (currentDir != null)
-        {
-            if (Path.GetFileName(currentDir) == "FileVerifier")
-            {
-                Dir = Path.Join(currentDir, "settings");
-                return;
-            }
-            currentDir = Directory.GetParent(currentDir)?.FullName;
-        }
+        var dir = Path.Join(currentDir, "settings");
+        Directory.CreateDirectory(dir);
+        Dir = dir;
     }
 
     /// <summary>

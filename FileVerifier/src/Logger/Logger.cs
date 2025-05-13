@@ -228,16 +228,8 @@ public class Logger
         // Get directory
         string? dir = null;
         var currentDir = Directory.GetCurrentDirectory();
-        while (currentDir != null)
-        {
-            if (Path.GetFileName(currentDir) == "FileVerifier")
-            {
-                dir = checkpoint ? currentDir : Path.Join(currentDir, reportsFolderName);
-                break;
-            }
-            currentDir = Directory.GetParent(currentDir)?.FullName;
-        }
-        if (dir == null) return;
+        dir = Path.Join(currentDir, "reports");
+        Directory.CreateDirectory(dir);
 
         var path = Path.Join(dir, name);
 

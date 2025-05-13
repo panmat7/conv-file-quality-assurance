@@ -236,16 +236,7 @@ public sealed class ExifTool : IDisposable
         if (OperatingSystem.IsWindows())
         {
             var curDir = Directory.GetCurrentDirectory();
-
-            while (!string.IsNullOrEmpty(curDir))
-            {
-                if (Path.GetFileName(curDir) == "conv-file-quality-assurance")
-                {
-                    return curDir + @"\FileVerifier\src\ComparingMethods\ExifTool\exiftool.exe";
-                }
-
-                curDir = Directory.GetParent(curDir)?.FullName;
-            }
+            return curDir + @"\ExifTool\exiftool.exe"; 
         }
         else
         {
