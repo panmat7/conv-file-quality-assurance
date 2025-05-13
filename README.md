@@ -5,7 +5,7 @@
 ---
 ![Home Screen](./readmeImg/Program.png)
 
-## Table of contents
+# Table of contents
 - [Background & Motivation](#background--motivation)  
 - [Key Features](#key-features)  
 - [Comparison Methods](#comparison-methods)  
@@ -23,10 +23,10 @@
 
 ---
 
-## 📖 Background & Motivation
+# Background & Motivation
 ---
 
-## 🚀 Key features
+# Key features
 - Pixel-by-pixel visual comparisons of images or document pages
 - Detection of metadata differences (resolution, color space, bit depth, etc.)
 - Table break detection in spreadsheets converted to PDFs
@@ -37,7 +37,7 @@
 
 ---
 
-## 🧪 Comparison Methods 
+## Comparison Methods 
 Each method performs a specific type of comparison between original and converted files:
 
 - **File Size** – Compares raw file sizes.
@@ -56,7 +56,7 @@ Each method performs a specific type of comparison between original and converte
 
 ---
 
-## 🖼️ Screenshots & UI Overview
+## Screenshots & UI Overview
 
 ### Home Screen  
 ![Home Screen](./readmeImg/Program.png)
@@ -75,24 +75,21 @@ Get a summary of test failures by severity.
 
 ---
 
-## 📂 Supported File Formats
+## Supported File Formats
 
 ![Supported File formats](./readmeImg/SupportedFileFormats.png)
 
 ---
 
-## 🔎 Supported Comparison methods
+## Supported Comparison methods
 
 ![Supported Comparison methods](./readmeImg/SupportedComparisonMethods.png)
 
 ---
 
-## 💻 Installation
+## Installation
 
-### ✅ Windows
-
-The application has been tested and is working on Windows 10 and 11.
-
+### Windows
 #### Dependencies 
 - [.NET 8+](https://dotnet.microsoft.com/en-us/download)
 - [Siegfried](https://www.itforarchivists.com/) (Add to system PATH)
@@ -106,9 +103,7 @@ dotnet build
 
 ---
 
-### 🐧 Ubuntu 22.04
-
-
+### Ubuntu 22.04
 #### Dependencies 
 - .NET 8+
 - [Siegfried](https://www.itforarchivists.com/)
@@ -146,7 +141,7 @@ dotnet build
 * Errors have three levels of severity, Low, Medium and High. Low should be treated as more of a warning.
 
 
-## 📘 Usage Guide
+## Usage Guide
 
 1. **Choose original and converted folders.**  
    To extract metadata only, select a single directory and press **"Extract"**.
@@ -175,7 +170,7 @@ dotnet build
 
 ---
 
-## ⚠️ Known Issues & Limitations
+## Known Issues & Limitations
 
 - **Table break check** currently works only for PDFs with standard A4 or letter-sized pages.
 - **Extracted metadata comparison** may over-report differences. We are evaluating lowering the severity of these alerts.
