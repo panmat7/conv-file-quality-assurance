@@ -132,7 +132,7 @@ cd conv-file-quality-assurance
 dotnet build
 ```
 
-# 📘 Usage Guide
+# 📘Usage Guide
 
 1. **Choose original and converted folders.**  
    To extract metadata only, select a single directory and press **"Extract"**.
