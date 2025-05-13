@@ -1,131 +1,211 @@
 # conv-file-quality-assurance
-This application performs quality checks on files mostly for files converted from a fileformat to an archival format. 
-The checks consists of metadata, size, color space, pixelvalue, fonts, number of pages and animations. 
 
+**conv-file-quality-assurance** is a cross-platform application designed to verify the integrity and quality of files that have been converted from their original format to archival formats (e.g., PDF, TIFF, PNG). It performs a series of in-depth comparisons and checks—such as visual differences, metadata mismatches, and structural inconsistencies—to ensure the preservation process retains fidelity.
+
+---
 ![Home Screen](./readmeImg/Program.png)
 
-## Comparing methods
-* File Size: Compares the file sizes of each file.
+## Table of contents
+- [Background & Motivation](#background--motivation)  
+- [Key Features](#key-features)  
+- [Comparison Methods](#comparison-methods)  
+- [Screenshots & UI Overview](#screenshots--ui-overview)  
+- [Supported File Formats](#supported-file-formats)  
+- [Installation](#installation)  
+  - [Windows](#windows)  
+  - [Ubuntu 22.04](#ubuntu-2204)  
+- [Usage Guide](#usage-guide)  
+- [Known Issues & Limitations](#known-issues--limitations)  
+- [Testing & Validation](#testing--validation)  
+- [License](#license)  
+- [Third-Party Licenses](#third-party-licenses)  
+- [Contributing](#contributing)  
 
-* Pixel by pixel: Checks every pixel in an image against another image. It calculates the eucludian distance between the colors of each pixel.
+---
 
-* Color Space: Checks for missing or different color spaces. 
+## 📖 Background & Motivation
+---
 
-* Fonts: Checks for missing or different fonts.
+## 🚀 Key features
+- Pixel-by-pixel visual comparisons of images or document pages
+- Detection of metadata differences (resolution, color space, bit depth, etc.)
+- Table break detection in spreadsheets converted to PDFs
+- Font, animation, and transparency detection
+- PDF page count comparisons
+- Extraction and verification of embedded images
+- JSON report generation with severity-based error classification
 
-* Number of pages: Checks for missing or extra pages.
+---
 
-* Animations: Checks if a presentation format includes animations.
+## 🧪 Comparison Methods 
+Each method performs a specific type of comparison between original and converted files:
 
-* Image resolution: Checks for different resolution in images.
+- **File Size** – Compares raw file sizes.
+- **Pixel-by-Pixel** – Calculates Euclidean distance between color values for each pixel.
+- **Color Space** – Identifies missing or altered color spaces.
+- **Fonts** – Flags missing or replaced fonts.
+- **Number of Pages** – Detects discrepancies in page count.
+- **Animations** – Flags the presence or absence of animations in presentation files.
+- **Image Resolution** – Compares DPI and resolution metadata.
+- **Visual Document Comparison** – Hybrid method: compares document layout + pixel comparisons.
+- **Transparency Check** – Detects use of transparency layers.
+- **Table Break Check** – Flags if tables/images are split across multiple pages in PDFs.
+- **Metadata Comparison** – Compares physical dimensions, bit depth, resolution, etc.
+- **Extracted Metadata Check** – Extracts images from documents and checks embedded metadata  
+  _NOTE: This method may trigger frequently; severity could be reduced._
 
-* Visual Document comparison: Performs a visual comparison of images of pages of the document, done by comparing the position of elements on the page and pixel by pixel comparison of sectioned where it is deemed necessary.
+---
 
-* Transparency checks: Checks if images or text-document include transparancy. 
+## 🖼️ Screenshots & UI Overview
 
-* Table break checks: Checks if spreadsheet formats converted to PDF have too wide tables/images result in the result being spread over several pages (NOTE: Currently works only when the result has standard PDF page size). 
+### Home Screen  
+![Home Screen](./readmeImg/Program.png)
 
-* Metadata checks: Checks for missing or different metadata on images. Resolution, color type, bit depth and physical printing dimentions are directly compared, missing or newly created metadata are only noted.
+### Settings Tab  
+Customize which checks are performed.  
+![Settings Tab](./readmeImg/Settings.png)
 
-* Metadata checks (extracted): Extracts images from PDF, OpenOffice and Microsoft Office files and checks for missing or different metadata. (NOTE: This method was added very recently and seems to trigger very often. We are considering lowering the severity of the errors it produces to low)
+### Report Tab  
+Visual interface for exploring the generated JSON reports.  
+![Report Tab](./readmeImg/ReportTab.png)
 
+### Test Analysis Tab  
+Get a summary of test failures by severity.  
+![Test Analysis](./readmeImg/TestAnalysis.png)
 
+---
 
-
-
-## Supported file formats in the current version
+## 📂 Supported File Formats
 
 ![Supported File formats](./readmeImg/SupportedFileFormats.png)
 
-## Supported comparison methods
+---
+
+## 🔎 Supported Comparison methods
 
 ![Supported Comparison methods](./readmeImg/SupportedComparisonMethods.png)
 
+---
 
+## 💻 Installation
 
-## Windows
+### ✅ Windows
 
 The application has been tested and is working on Windows 10 and 11.
 
-### Dependencies Windows
-* .NET 8+
-* Siegfried 
+#### Dependencies 
+- [.NET 8+](https://dotnet.microsoft.com/en-us/download)
+- [Siegfried](https://www.itforarchivists.com/) (Add to system PATH)
 
-### Installation Windows
-1. Install .Net 8 from Microsoft's website (https://dotnet.microsoft.com/en-us/download)
-1. Install Siegfried from their website (https://www.itforarchivists.com/) and add it to path enviromental variables. 
-2. Clone the repository 
-```sh
-git clone https://github.com/panmat7/conv-file-quality-assurance.git
+#### Installation Steps
+```bash
+git clone --recursive https://github.com/panmat7/conv-file-quality-assurance.git
+cd conv-file-quality-assurance
+dotnet build
 ```
-3. Build and run the application
+
+---
+
+### 🐧 Ubuntu 22.04
 
 
-## Ubuntu 22.04
-### Dependencies Ubuntu
-* .NET 8+
-* Siegfried
-* Emgu.cv
-* ExifTool
+#### Dependencies 
+- .NET 8+
+- [Siegfried](https://www.itforarchivists.com/)
+- [Emgu.CV](https://www.emgu.com/wiki/index.php/Download_And_Installation)
+- [ExifTool](https://exiftool.org/install.html#Unix)
 
-### Installation Ubuntu
-1. Install Siegfried from their website (https://www.itforarchivists.com/)
-2. Install Emgu.cv (https://www.emgu.com/wiki/index.php/Download_And_Installation)
+#### Installation Steps
+1. **Install Siegfried**  
+   Download and install from: https://www.itforarchivists.com/
+2. **Install Emgu.CV**  
+   Follow instructions here: https://www.emgu.com/wiki/index.php/Download_And_Installation  
     - If you can't run the Point by point or Visual document comparison, it is probably because of missing dependencies. Check the provided recource and follow the instructions (https://www.emgu.com/wiki/index.php/Download_And_Installation#System.DllNotFoundException)
-3. Install ExifTool using apt-get or the link (https://exiftool.org/install.html#Unix)
+3. **Install ExifTool**  
+   Using `apt`:
+   ```bash
+   sudo apt-get install libimage-exiftool-perl
+   ```
+   Or follow the instructions at: https://exiftool.org/install.html#Unix
 
-4. Clone the repository 
+4. **Install .NET 8 SDK**  
+
+5. **Clone and Build the Project** 
 ```sh
-git clone https://github.com/panmat7/conv-file-quality-assurance.git
-```
-5. Build and run the application
-```sh
+git clone --recursive https://github.com/panmat7/conv-file-quality-assurance.git
 cd conv-file-quality-assurance
 dotnet build
 ```
 
 
-## Usage
+## Usage Instructions
 ### Usage NB!
 
 * The console window will print the progress of the verification every 5 minutes, and a estimated time left.
 * If you try to load and verify many thousands of files, it may take a while for the loading and verification to finish.
-* Errors have three levels of severity, Low, Medium and High. Low should be treaded as more of a warning.
+* Errors have three levels of severity, Low, Medium and High. Low should be treated as more of a warning.
 
 
-### Usage guide
+## 📘 Usage Guide
 
-1. Choose the folder for original files, and for the new files.
-    - To perform information extraction simply load the single directory and press "Extract". Note that image extraction is currectly only supported for images.
-2. Click the "Load" button to create the file pairs.
-    - Optinally one may choose to start the comparison from a "Checkpoint" report. These are saved during the verification process and allow for the the verification continue in case of crashes. To do this, simply mark the "Start from Checkpoint" checkbox and select a checkpoint JSON report. 
-3. Use the Quick settings or the "Settings" tab to choose what comparison methods you want to run. 
-    - In the settings tab you can ignore File formats to verify.
+1. **Choose original and converted folders.**  
+   To extract metadata only, select a single directory and press **"Extract"**.
 
-The Settings tab:
-![Home Screen](./readmeImg/Settings.png)
+2. **Click "Load"** to pair original and converted files.  
+   Optionally load from a **checkpoint JSON** to resume interrupted runs.
+   - To do this, check **"Start from Checkpoint"** and select a saved checkpoint JSON report.
 
+3. **Configure checks** using the **Settings** tab or **Quick Settings**.
+   - You can also exclude certain file formats from verification in the Settings tab.
 
-4. Click the "Start" button to start the verfication process. 
+4. **Click "Start"** to begin the verification process.
 
-5. After the process is done, a JSON report will be genereated in the reports folder. The folder will be generated in the working directory.
+5. Once complete, a JSON report will be saved in the `reports/` folder (created in the working directory).
 
-6. To view the report in the application go to the "Report" tab click the "Load from JSON" button and choose the report.
+6. **View the report**:
+   - Go to the **"Report"** tab.
+   - Click **"Load from JSON"** and select the report to view results.
 
-The Report tab with an JSON report imported:
-![Home Screen](./readmeImg/ReportTab.png)
+7. **Test Analysis Tab**:
+   - Navigate to the **"Test Analysis"** tab to view a general overview of test failures by severity.
 
-7. A general overview over the number of test failures can be found in the "Test analysis" tab
+> ⏳ **Note**: The console prints progress every 5 minutes with estimated time remaining.  
+> ⚠️ **Severity Levels**: Errors are categorized as **Low**, **Medium**, or **High**.  
+>    - **Low** should be considered warnings and not always critical.
 
-The Test Analysis/Overview tab with an JSON report imported:
-![Home Screen](./readmeImg/TestAnalysis.png)
+---
 
+## ⚠️ Known Issues & Limitations
 
+- **Table break check** currently works only for PDFs with standard A4 or letter-sized pages.
+- **Extracted metadata comparison** may over-report differences. We are evaluating lowering the severity of these alerts.
+- Some Emgu.CV-based checks may not function if system dependencies are missing (especially on Linux).
 
-## License
+---
+
+## ✅ Testing & Validation
+
+- Application manually tested on:
+  - **Windows 10 & 11**
+  - **Ubuntu 22.04**
+- JSON output reports pass internal consistency checks.
+- Planned: Schema validation for report files to ensure correctness.
+
+---
+
+## 📄 License
 
 This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
 
-## Third-Party Licenses
+---
 
-This project uses third-party libraries that are licensed separately. See the [NOTICE](NOTICE) file for details on these licenses.
+## 📦 Third-Party Licenses
+
+This project uses external libraries such as Emgu.CV, ExifTool, and Siegfried.  
+See the [NOTICE](NOTICE) file for third-party license information.
+
+---
+
+## 🤝 Contributing
+
+We are not accepting contributions for now. 
