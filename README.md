@@ -37,7 +37,7 @@
 
 ---
 
-# 🧪 Comparison Methods 
+# 🧪Comparison Methods 
 Each method performs a specific type of comparison between original and converted files:
 
 - **File Size** – Compares raw file sizes.
@@ -56,7 +56,7 @@ Each method performs a specific type of comparison between original and converte
 
 ---
 
-# 🖼️ Screenshots & UI Overview
+# 🖼️Screenshots & UI Overview
 
 ## Home Screen  
 ![Home Screen](./readmeImg/Program.png)
@@ -75,21 +75,21 @@ Get a summary of test failures by severity.
 
 ---
 
-# 📂 Supported File Formats
+# 📂Supported File Formats
 
 ![Supported File formats](./readmeImg/SupportedFileFormats.png)
 
 ---
 
-# 🔎 Supported Comparison methods
+# 🔎Supported Comparison methods
 
 ![Supported Comparison methods](./readmeImg/SupportedComparisonMethods.png)
 
 ---
 
-# 💻 Installation
+# 💻Installation
 
-## ✅ Windows
+## ✅Windows
 ### Dependencies 
 - [.NET 8+](https://dotnet.microsoft.com/en-us/download)
 - [Siegfried](https://www.itforarchivists.com/) (Add to system PATH)
@@ -103,7 +103,7 @@ dotnet build
 
 ---
 
-## 🐧 Ubuntu 22.04
+## 🐧Ubuntu 22.04
 ### Dependencies 
 - .NET 8+
 - [Siegfried](https://www.itforarchivists.com/)
@@ -161,7 +161,7 @@ dotnet build
 
 ---
 
-# ⚠️ Known Issues & Limitations
+# ⚠️Known Issues & Limitations
 
 - **Table break check** currently works only for PDFs with standard A4 or letter-sized pages.
 - **Extracted metadata comparison** may over-report differences. We are evaluating lowering the severity of these alerts.
@@ -169,7 +169,7 @@ dotnet build
 
 ---
 
-# ✅ Testing & Validation
+# ✅Testing & Validation
 
 - Application manually tested on:
   - **Windows 10 & 11**
@@ -179,19 +179,19 @@ dotnet build
 
 ---
 
-# 📄 License
+# 📄License
 
 This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
 
 ---
 
-# 📦 Third-Party Licenses
+# 📦Third-Party Licenses
 
 This project uses external libraries such as Emgu.CV, ExifTool, and Siegfried.  
 See the [NOTICE](NOTICE) file for third-party license information.
 
 ---
 
-# 🤝 Contributing
+# 🤝Contributing
 
 We are not accepting contributions for now. 
