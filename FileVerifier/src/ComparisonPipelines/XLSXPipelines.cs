@@ -149,7 +149,7 @@ public static class XLSXPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Metadata, false, errors: [error]);
                 }
             }
             //Check for empty pages
@@ -290,7 +290,7 @@ public static class XLSXPipelines
                         ErrorSeverity.High,
                         ErrorType.FileError
                     );
-                    compResult.AddTestResult(Methods.Transparency, false, errors: [error]);
+                    compResult.AddTestResult(Methods.Metadata, false, errors: [error]);
                 }
             }
             

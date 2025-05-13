@@ -95,7 +95,8 @@ public static class ImageExtractionToDisk
     /// <returns></returns>
     private static string ComputeHash(ReadOnlySpan<byte> rawBytes)
     {
-        return rawBytes.GetHashCode().ToString();
+        var hashBytes = MD5.HashData(rawBytes.ToArray());
+        return Convert.ToBase64String(hashBytes);
     }
     
     /****************************************************OPEN DOCUMENT IMAGES****************************************************/
