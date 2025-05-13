@@ -6,7 +6,7 @@
 ![Home Screen](./readmeImg/Program.png)
 
 ## 📚Table of contents
-- [Background & Motivation](#background--motivation)  
+- [Background & Motivation](#background)  
 - [Key Features](#key-features)  
 - [Comparison Methods](#comparison-methods)  
 - [Screenshots & UI Overview](#screenshots--ui-overview)  
@@ -23,7 +23,16 @@
 
 ---
 
-## 📖Background & Motivation
+## 🏛️Background
+
+This project is a proposal from Innlandet Fylkeskommune for a bachelor thesis at NTNU's programming program. It addresses a key issue in the automatic conversion of documents to archival formats—namely, the potential for errors and inconsistencies during conversion.
+
+The Innlandet County Archive, one of Norway’s largest inter-municipal archives, receives a wide variety of digital documents from 48 municipalities. Many of these documents arrive in formats not suited for long-term archival storage, requiring conversion to approved archival formats.
+
+A previous NTNU thesis developed an automated conversion tool. However, during conversion, loss of data or visual discrepancies can occur. Because of the large volume of files, manual inspection is not feasible.
+
+To solve this, the archive requested the development of a quality assurance tool that can automatically detect potential issues in converted files. This project aims to fulfill that need—reducing manual work and increasing reliability in the archival process.
+
 ---
 
 ## 🚀Key features
