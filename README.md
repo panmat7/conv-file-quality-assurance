@@ -1,6 +1,6 @@
 # conv-file-quality-assurance
 
-**conv-file-quality-assurance** is a cross-platform application designed to verify the integrity and quality of files that have been converted from their original format to archival formats (e.g., PDF, TIFF, PNG). It performs a series of in-depth comparisons and checks—such as visual differences, metadata mismatches, and structural inconsistencies—to ensure the preservation process retains fidelity.
+**conv-file-quality-assurance** is a cross-platform application designed to verify the integrity and quality of files that have been converted from their original format to archival formats. It performs a series of in-depth comparisons and checks, such as visual differences, metadata mismatches, and structural inconsistencies, to ensure the preservation process retains fidelity.
 
 ---
 ![Home Screen](./readmeImg/Program.png)
@@ -131,6 +131,8 @@ git clone --recursive https://github.com/panmat7/conv-file-quality-assurance.git
 cd conv-file-quality-assurance
 dotnet build
 ```
+
+---
 
 ## 📘Usage Guide
 
