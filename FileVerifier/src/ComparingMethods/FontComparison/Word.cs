@@ -402,7 +402,7 @@ public static class WordFontExtraction
 
         foreach (var slot in slots)
         {
-            var font = slot.ToLower() switch
+            string? fontName = slot.ToLower() switch
             {
                 "ascii" => rFonts.Ascii ?? GetThemeFont(themeLangs, asciiTheme, major, minor),
                 "hansi" => rFonts.HighAnsi ?? GetThemeFont(themeLangs, hansiTheme, major, minor),
@@ -410,13 +410,21 @@ public static class WordFontExtraction
                 "cs" => rFonts.ComplexScript ?? GetThemeFont(themeLangs, csTheme, major, minor),
                 _ => null
             };
-            if (string.IsNullOrEmpty(font)) continue;
+            if (string.IsNullOrEmpty(fontName)) continue;
 
-
-            // Check that the font exists in the font table, and that it is using its primary and not alternative name.
+            // Check that the font exists in the font table, and that it is using its primary and not an alternative name
             bool existsInFontTable = fontTable.Descendants<Font>()
-                .Any(f => font == f.Name?.Value || font == f.AltName?.Val?.Value);
-            if (existsInFontTable) fonts.Add(font);
+                .Any(f => {
+                    if (fontName == f.Name?.Value) return true;
+
+                    var altNames = f?.AltName?.Val?.Value?.Split(',')?.ToList();
+                    if (altNames == null) return false;
+
+                    if (altNames.Contains(fontName)) return true;
+
+                    return false;
+                });
+            if (existsInFontTable) fonts.Add(fontName);
         }
             
         return (fonts, foreignWriting);
