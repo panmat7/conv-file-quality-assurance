@@ -76,18 +76,18 @@ Each method performs a specific type of comparison between original and converte
 
 ## 🖼️Screenshots & UI Overview
 
-### Home Screen  
+### 🏠Home Screen  
 ![Home Screen](./readmeImg/HomeView.png)
 
-### Settings Tab  
+### ⚙️Settings Tab  
 Customize which checks are performed.  
 ![Settings Tab](./readmeImg/Settings.png)
 
-### Report Tab  
+### 📄Report Tab  
 Visual interface for exploring the generated JSON reports.  
 ![Report Tab](./readmeImg/ReportView.png)
 
-### Error Analysis Tab  
+### 📊Error Analysis Tab  
 Get a summary of test failures by severity.  
 ![Error Analysis](./readmeImg/ErrorAnalysis.png)
 
@@ -216,7 +216,7 @@ The comparison is performed by functions called pipelines. Pipelines compare the
 
 ## 💻Installation
 
-### ✅Windows
+### 🪟Windows
 #### Dependencies 
 - [.NET 8+](https://dotnet.microsoft.com/en-us/download)
 - [Siegfried](https://www.itforarchivists.com/) (Add to system PATH)
