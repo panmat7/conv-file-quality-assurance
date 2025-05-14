@@ -11,7 +11,7 @@
 - [Comparison Methods](#comparison-methods)  
 - [Screenshots & UI Overview](#screenshots--ui-overview)  
 - [Supported File Formats](#supported-file-formats)
-   -[Comparison Methods in Supported Pipelines](#Comparison-Methods-in-Supported-Pipelines)
+  - [Comparison Methods in Supported Pipelines](#Comparison-Methods-in-Supported-Pipelines)
 - [Installation](#installation)  
   - [Windows](#windows)  
   - [Ubuntu 22.04](#ubuntu-2204)  
