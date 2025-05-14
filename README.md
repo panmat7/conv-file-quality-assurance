@@ -8,7 +8,7 @@
 ## 📚Table of contents
 - [Background & Motivation](#background)  
 - [Key Features](#key-features)
-- [File pairing](file-pairing)
+- [File pairing](#file-pairing)
 - [Comparison Methods](#comparison-methods)  
 - [Screenshots & UI Overview](#screenshots--ui-overview)  
 - [Supported File Formats](#supported-file-formats)
@@ -47,7 +47,7 @@ To solve this, the archive requested the development of a quality assurance tool
 - JSON report generation with severity-based error classification
 
 ---
-## File Pairing
+## 🔗File Pairing
 To perform comparisons, the application pairs files from the original and converted directories based on their filenames.
 
 - If a file in the original directory has a unique name, its converted counterpart keeps the same name.
