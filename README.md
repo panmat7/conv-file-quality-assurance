@@ -1,13 +1,14 @@
 # conv-file-quality-assurance
 
-**conv-file-quality-assurance** is a cross-platform application designed to verify the integrity and quality of files that have been converted from their original format to archival formats. It performs a series of in-depth comparisons and checks, such as visual differences, metadata mismatches, and structural inconsistencies, to ensure the preservation process retains fidelity.
+**conv-file-quality-assurance** is a cross-platform application designed to verify the integrity and quality of files that have been converted from their original format to archival formats. It performs a series of in-depth comparisons and checks, such as visual differences, metadata mismatches, and structural inconsistencies, to ensure the preservation process retains fidelity. 
 
 ---
 ![Home Screen](./readmeImg/Program.png)
 
 ## 📚Table of contents
 - [Background & Motivation](#background)  
-- [Key Features](#key-features)  
+- [Key Features](#key-features)
+- [File pairing](file-pairing)
 - [Comparison Methods](#comparison-methods)  
 - [Screenshots & UI Overview](#screenshots--ui-overview)  
 - [Supported File Formats](#supported-file-formats)
@@ -26,7 +27,7 @@
 
 ## 🏛️Background
 
-This project is a proposal from Innlandet Fylkeskommune for a bachelor thesis at NTNU's programming program. It addresses a key issue in the automatic conversion of documents to archival formats—namely, the potential for errors and inconsistencies during conversion.
+This project is a proposal from Innlandet Fylkeskommune for a bachelor thesis at the Norwegian University of Science and Technology's programming program. It addresses a key issue in the automatic conversion of documents to archival formats—namely, the potential for errors and inconsistencies during conversion.
 
 The Innlandet County Archive, one of Norway’s largest inter-municipal archives, receives a wide variety of digital documents from 48 municipalities. Many of these documents arrive in formats not suited for long-term archival storage, requiring conversion to approved archival formats.
 
@@ -46,7 +47,14 @@ To solve this, the archive requested the development of a quality assurance tool
 - JSON report generation with severity-based error classification
 
 ---
+## File Pairing
+To perform comparisons, the application pairs files from the original and converted directories based on their filenames.
 
+- If a file in the original directory has a unique name, its converted counterpart keeps the same name.
+
+- If there are multiple original files with the same name (but different extensions), the converted files are renamed by appending the original extension (e.g., document.docx → document_DOCX.pdf) to ensure unique and traceable pairings.
+
+--- 
 ## 🧪Comparison Methods 
 Each method performs a specific type of comparison between original and converted files:
 
