@@ -79,9 +79,9 @@ Customize which checks are performed.
 Visual interface for exploring the generated JSON reports.  
 ![Report Tab](./readmeImg/ReportView.png)
 
-### Test Analysis Tab  
+### Error Analysis Tab  
 Get a summary of test failures by severity.  
-![Test Analysis](./readmeImg/ErrorAnalysis.png)
+![Error Analysis](./readmeImg/ErrorAnalysis.png)
 
 ---
 
@@ -273,8 +273,8 @@ dotnet build
    - Go to the **"Report"** tab.
    - Click **"Load from JSON"** and select the report to view results.
 
-7. **Test Analysis Tab**:
-   - Navigate to the **"Test Analysis"** tab to view a general overview of test failures by severity.
+7. **Error Analysis Tab**:
+   - Navigate to the **"Error Analysis"** tab to view a general overview of test failures by severity.
 
 > ⏳ **Note**: The console prints progress every 5 minutes with estimated time remaining.  
 > ⚠️ **Severity Levels**: Errors are categorized as **Low**, **Medium**, or **High**.  
