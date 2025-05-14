@@ -10,7 +10,8 @@
 - [Key Features](#key-features)  
 - [Comparison Methods](#comparison-methods)  
 - [Screenshots & UI Overview](#screenshots--ui-overview)  
-- [Supported File Formats](#supported-file-formats)  
+- [Supported File Formats](#supported-file-formats)
+   -[Comparison Methods in Supported Pipelines](#Comparison-Methods-in-Supported-Pipelines)
 - [Installation](#installation)  
   - [Windows](#windows)  
   - [Ubuntu 22.04](#ubuntu-2204)  
@@ -90,9 +91,118 @@ Get a summary of test failures by severity.
 
 ---
 
-## 🔎Supported Comparison methods
+### 🔎Comparison Methods in Supported Pipelines
+The comparison is performed by functions called pipelines. Pipelines compare the original file to the converted file. In this list they follow the [original_format]-[converted_format] name schema.
 
-![Supported Comparison methods](./readmeImg/SupportedComparisonMethods.png)
+- `CSV-PDF`
+  - File Size Comparison
+  - Table break Checks
+- `DOCX-PDF&TextDoc`\*
+  - Font Comparison
+  - Page Count Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted) 
+  - Image Metadata Comparison (extracted)
+- `EML-PDF`
+  - Font Comparison 
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+- `HTML-PDF`
+  - Font Comparison
+- `IMG-IMG`\*\*
+  - File Size Comparison
+  - Resolution Comparison
+  - Image Metadata Comparison
+  - Pixel Value Comparison
+  - Color Profile Comparison
+- `IMG-PDF`\*\*
+  - File Size Comparison
+  - Resolution Comparison
+  - Image Metadata Comparison
+  - Pixel Value Comparison
+  - Color Profile Comparison
+- `ODP-PDF`
+  - Font Comparison
+  - Page (slide) Count Comparison
+  - File Size Comparison
+  - Animation Check
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+- `ODP-Presentation`\*\*\*
+  - Font Comparison
+  - Page (slide) Count Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+- `ODS-PDF`
+  - Font Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+  - Table Break Check
+  - Check for blank pages at the end
+- `ODS-Spreadsheet`\*\*\*\*
+  - Font Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+- `ODT-PDF&TextDoc`\*
+  - Font Comparison
+  - Page Count Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+- `PDF-PDF`
+  - Font Comparison
+  - Page Count Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+  - Visual Document Comparison
+- `PDF-TextDoc`\*
+  - Font Comparison
+  - Page Count Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+- `PPTX-PDF`
+  - Font Comparison
+  - Page Count Comparison
+  - File Size Comparison
+  - Animation Check
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+- `PPTX-Presentation`\*\*\*
+  - Font Comparison
+  - Page (slide) Count Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+- `RTF-PDF&TextDoc`\*
+  - Font Comparison
+  - File Size Comparison
+  - Color Profile Comparison
+  - Page Count Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+- `XLSX-PDF`
+  - Font Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+  - Table Break Check
+  - Check for blank pages at the end
+- `XLSX-Spreadsheet`\*\*\*\*
+  - Font Comparison
+  - File Size Comparison
+  - Color Profile Comparison (extracted)
+  - Image Metadata Comparison (extracted)
+
+
+\* TextDoc refers to RTF, ODT and DOCX formats \
+\*\* IMG referes to PNG, JPEG, BMP, TIFF and GIF formats \
+\*\*\* Presentation refers to PPTX and ODP \
+\*\*\*\* Spreadsheet refers to ODS and XLSX
 
 ---
 
