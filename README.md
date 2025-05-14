@@ -3,7 +3,7 @@
 **conv-file-quality-assurance** is a cross-platform application designed to verify the integrity and quality of files that have been converted from their original format to archival formats. It performs a series of in-depth comparisons and checks, such as visual differences, metadata mismatches, and structural inconsistencies, to ensure the preservation process retains fidelity.
 
 ---
-![Home Screen](./readmeImg/Program.png)
+![Home Screen](./readmeImg/HomeView.png)
 
 ## 📚Table of contents
 - [Background & Motivation](#background)  
@@ -69,7 +69,7 @@ Each method performs a specific type of comparison between original and converte
 ## 🖼️Screenshots & UI Overview
 
 ### Home Screen  
-![Home Screen](./readmeImg/Program.png)
+![Home Screen](./readmeImg/HomeView.png)
 
 ### Settings Tab  
 Customize which checks are performed.  
@@ -77,11 +77,11 @@ Customize which checks are performed.
 
 ### Report Tab  
 Visual interface for exploring the generated JSON reports.  
-![Report Tab](./readmeImg/ReportTab.png)
+![Report Tab](./readmeImg/ReportView.png)
 
 ### Test Analysis Tab  
 Get a summary of test failures by severity.  
-![Test Analysis](./readmeImg/TestAnalysis.png)
+![Test Analysis](./readmeImg/ErrorAnalysis.png)
 
 ---
 
