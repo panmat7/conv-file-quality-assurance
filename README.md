@@ -66,7 +66,6 @@ Each method performs a specific type of comparison between original and converte
 - **Animations** – Flags the presence or absence of animations in presentation files.
 - **Image Resolution** – Compares DPI and resolution metadata.
 - **Visual Document Comparison** – Hybrid method: compares document layout + pixel comparisons.
-- **Transparency Check** – Detects use of transparency layers.
 - **Table Break Check** – Flags if tables/images are split across multiple pages in PDFs.
 - **Metadata Comparison** – Compares physical dimensions, bit depth, resolution, etc.
 - **Extracted Metadata Check** – Extracts images from documents and checks embedded metadata  
