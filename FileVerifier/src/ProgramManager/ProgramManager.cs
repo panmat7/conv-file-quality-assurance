@@ -337,8 +337,12 @@ public sealed class ProgramManager
     {
         //Get the correct pipeline based on pair formats
         var pipeline = BasePipeline.SelectPipeline(pair);
-        
-        if (pipeline == null) return false; //None found
+
+        if (pipeline == null) //None found
+        {
+            UiControlService.Instance.MarkProgress(); 
+            return false;
+        } 
         
         var thread = new Thread(() =>
         {

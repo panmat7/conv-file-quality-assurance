@@ -65,7 +65,6 @@ public static class FormatCodes
 
     public static readonly FileFormat PronomCodesDOCX = new FileFormat(["docx"], [
         "fmt/412", //Word for Windows 2007 onwards
-        "fmt/479",
         "fmt1827"
     ]);
 
@@ -163,7 +162,6 @@ public static class FormatCodes
     ]);
 
     public static readonly FileFormat PronomCodesPPTM = new FileFormat(["pptm"], [
-        "fmt/479",
         "fmt/487"
     ]);
 
@@ -346,7 +344,6 @@ public static class FormatCodes
         "fmt/100", //4.01
         "fmt/103", // 1.1
         "fmt/471" //5
-
     ]);
 
 
