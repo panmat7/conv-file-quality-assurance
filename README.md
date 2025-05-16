@@ -61,7 +61,7 @@ Each method performs a specific type of comparison between original and converte
 - **File Size** – Compares raw file sizes.
 - **Pixel-by-Pixel** – Calculates Euclidean distance between color values for each pixel.
 - **Color Space** – Identifies missing or altered color spaces.
-- **Fonts** – Flags missing or replaced fonts.
+- **Fonts** – Flags missing or replaced fonts, as well as text colors and background colors.
 - **Number of Pages** – Detects discrepancies in page count.
 - **Animations** – Flags the presence or absence of animations in presentation files.
 - **Image Resolution** – Compares DPI and resolution metadata.
