@@ -39,9 +39,10 @@ To solve this, the archive requested the development of a quality assurance tool
 
 ## 🚀Key features
 - Pixel-by-pixel visual comparisons of images or document pages
-- Detection of metadata differences (resolution, color space, bit depth, etc.)
+- Detection of metadata differences (resolution, transparency, color space, bit depth, etc.)
 - Table break detection in spreadsheets converted to PDFs
-- Font, animation, and transparency detection
+- Animation detection in presentation formats (PPTX, ODP)
+- Font comparison
 - PDF page count comparisons
 - Extraction and verification of embedded images
 - JSON report generation with severity-based error classification
