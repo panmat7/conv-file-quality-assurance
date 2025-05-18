@@ -10,7 +10,7 @@
 - [Key Features](#key-features)
 - [File pairing](#file-pairing)
 - [Comparison Methods](#comparison-methods)  
-- [Screenshots & UI Overview](#screenshots--ui-overview)  
+- [Screenshots & UI Overview](#screenshots-&-ui-overview)  
 - [Supported File Formats](#supported-file-formats)
   - [Comparison Methods in Supported Pipelines](#Comparison-Methods-in-Supported-Pipelines)
 - [Installation](#installation)  
