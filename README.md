@@ -97,6 +97,8 @@ Get a summary of test failures by severity.
 
 ![Supported File formats](./readmeImg/SupportedFileFormats.png)
 
+Vertical rows represent the original format and the horizontal columns the converted format.
+
 ---
 
 ### 🔎Comparison Methods in Supported Pipelines
