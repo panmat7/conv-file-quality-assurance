@@ -198,7 +198,7 @@ public class Options
         InitializeEnabledFormats();
 
         SizeComparisonThreshold = 75.0;
-        PbpComparisonThreshold = 0.0;
+        PbpComparisonThreshold = 2.3;
 
         SpecifiedThreadCount = null;
         IgnoreUnsupportedFileType = true;

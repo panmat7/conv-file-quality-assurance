@@ -140,7 +140,7 @@
 							<TextBox Text="{Binding PbpComparisonThreshold, Converter={StaticResource SliderValueConverter}, Mode=TwoWay}"
                                      Width="50" Margin="5,0,5,0" VerticalAlignment="Center"/>
 							<TextBlock Text="" VerticalAlignment="Center" Foreground="White" Width="50"/>
-							<Slider x:Name="PbpComparisonSlider"  Width="200" VerticalAlignment="Center"
+							<Slider x:Name="PbpComparisonSlider"  Width="200" VerticalAlignment="Center" Maximum="10"
 									Value="{Binding PbpComparisonThreshold, Mode=TwoWay}"/>
 						</StackPanel>
                     </StackPanel>

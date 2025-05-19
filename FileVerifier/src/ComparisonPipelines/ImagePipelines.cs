@@ -139,7 +139,7 @@ public static class ImagePipelines
 
             if(GlobalVariables.Options.GetMethod(Methods.PointByPoint))
             {
-                var acceptance = 0.1 * GlobalVariables.Options.PbpComparisonThreshold;
+                var acceptance = GlobalVariables.Options.PbpComparisonThreshold;
 
                 var res = PbpComparisonMagick.CalculateImageSimilarity(pair);
 

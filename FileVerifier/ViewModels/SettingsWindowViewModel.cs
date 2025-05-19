@@ -110,7 +110,7 @@ public double SizeComparisonThreshold
         set
         {
             if (_pbpComparisonThreshold == value) return;
-            if (value < 0 || value > 100) return;
+            if (value < 0 || value > 10) return;
             _pbpComparisonThreshold = value;
             GlobalVariables.Options.PbpComparisonThreshold = value;
             OnPropertyChanged(nameof(PbpComparisonThreshold));
