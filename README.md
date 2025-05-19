@@ -6,26 +6,26 @@
 ![Home Screen](./readmeImg/HomeView.png)
 
 ## 📚Table of contents
-- [Background](#background)  
+- [Background & Motivation](#background)  
 - [Key Features](#key-features)
 - [File pairing](#file-pairing)
 - [Comparison Methods](#comparison-methods)  
-- [Screenshots and UI Overview](#screenshots-and-ui-overview)  
+- [Screenshots & UI Overview](#screenshots--ui-overview)  
 - [Supported File Formats](#supported-file-formats)
   - [Comparison Methods in Supported Pipelines](#Comparison-Methods-in-Supported-Pipelines)
 - [Installation](#installation)  
   - [Windows](#windows)  
   - [Ubuntu 22.04](#ubuntu-2204)  
 - [Usage Guide](#usage-guide)  
-- [Known Issues and Limitations](#known-issues-and-limitations)  
-- [Testing and Validation](#testing-and-validation)  
+- [Known Issues & Limitations](#known-issues--limitations)  
+- [Testing & Validation](#testing--validation)  
 - [License](#license)  
 - [Third-Party Licenses](#third-party-licenses)  
 - [Contributing](#contributing)  
 
 ---
 
-## 🏛️Background
+## 🏛Background
 
 This project is a proposal from Innlandet Fylkeskommune for a bachelor thesis at the Norwegian University of Science and Technology's programming program. It addresses a key issue in the automatic conversion of documents to archival formats—namely, the potential for errors and inconsistencies during conversion.
 
@@ -74,7 +74,7 @@ Each method performs a specific type of comparison between original and converte
 
 ---
 
-## 🖼️Screenshots and UI Overview
+## 🖼Screenshots & UI Overview
 
 ### 🏠Home Screen  
 ![Home Screen](./readmeImg/HomeView.png)
@@ -88,7 +88,7 @@ Visual interface for exploring the generated JSON reports.
 ![Report Tab](./readmeImg/ReportView.png)
 
 ### 📊Error Analysis Tab  
-Get a summary of test failures by type.  
+Get a summary of test failures by severity.  
 ![Error Analysis](./readmeImg/ErrorAnalysis.png)
 
 ---
@@ -290,7 +290,7 @@ dotnet build
 
 ---
 
-## ⚠️Known Issues & Limitations
+## ⚠Known Issues & Limitations
 
 - **Table break check** currently works only for PDFs with standard A4 or letter-sized pages.
 - **Extracted metadata comparison** may over-report differences. We are evaluating lowering the severity of these alerts.
