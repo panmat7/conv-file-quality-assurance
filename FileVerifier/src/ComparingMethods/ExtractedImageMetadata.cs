@@ -57,7 +57,7 @@ public static class ExtractedImageMetadata
                 
                 //Specifying transparency differences.
                 if(!transparency && e.Any(err => err.Description.Contains("Transparency loss")))
-                    compResult.AddTestResult(Methods.Transparency, true,
+                    compResult.AddTestResult(Methods.Transparency, false,
                         errors: [ new Error("Transparency difference detected",
                                 "The images contained in the documents have different transparencies.",
                                 ErrorSeverity.Medium,
